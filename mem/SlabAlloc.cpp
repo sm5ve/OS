@@ -111,20 +111,14 @@ void* allocFromSlab(SlabSize size){
 
 void slabFree(void* ptr){
 	SlabSize size;
-	if(ptr >= (void*)slab8 && ptr < ((void*)slab8 + KERNEL_SLAB_8_SIZE)){
-		size = SlabSize::SIZE8;
-	}
-	else if(ptr >= (void*)slab16 && ptr < ((void*)slab16 + KERNEL_SLAB_16_SIZE)){
-		size = SlabSize::SIZE16;
-	}
-	else if(ptr >= (void*)slab32 && ptr < ((void*)slab32 + KERNEL_SLAB_32_SIZE)){
-		size = SlabSize::SIZE32;
-	}
-	else if(ptr >= (void*)slab64 && ptr < ((void*)slab64 + KERNEL_SLAB_64_SIZE)){
-		size = SlabSize::SIZE64;
-	}
-	else{
-		assert(false, "Attempted to free slab outside of pools");
+	for(int i = 0; i < 5; i++){
+		if(i == 4){
+			assert(false, "Attempted to free slab outside of pools");
+		}
+		if(ptr >= slabs[i] && ptr < (slabs[i] + slab_alloc_sizes[i])){
+			size = (SlabSize)i;
+			break;
+		}
 	}
 
 	#ifdef SLAB_ALLOC_DOUBLE_FREE_GUARD
