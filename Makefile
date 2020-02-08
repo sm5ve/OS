@@ -35,7 +35,7 @@ kernel: $(OBJFILES)
 -include $(DEPFILES)
 
 %.cppo: %.cpp Makefile
-	@$(CC) $(CPPFLAGS) $(INCLUDE) $(WARNINGS) -fno-sized-deallocation -c $< -o $@
+	@$(CC) $(CPPFLAGS) $(INCLUDE) $(WARNINGS) -fno-sized-deallocation -std=gnu++11 -c $< -o $@
 
 %.sxo: %.sx Makefile
 	@$(CC) $(INCLUDE) -ffreestanding -c $< -o $@

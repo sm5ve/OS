@@ -25,7 +25,7 @@ extern "C" [[noreturn]] void kernel_init(unsigned int multiboot_magic, unsigned 
 	auto test = new int[4];
 	delete test;	
 	test = new int[1];
-	//new int[100];
+	new int[100];
 	
 	DisableInterrupts d;
 
