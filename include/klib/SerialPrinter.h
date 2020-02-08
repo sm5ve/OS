@@ -1,7 +1,9 @@
 #ifndef PRINT_SERIAL
 #define PRINT_SERIAL
 
-enum COMPort{
+#include <stdint.h>
+
+enum COMPort : uint16_t{
 	COM1 = 0x3f8,
 	COM2 = 0x2f8,
 	COM3 = 0x3e8,
@@ -10,12 +12,13 @@ enum COMPort{
 
 class SerialPrinter{
 	public:
-		SerialPrinter(COMPort port);
+		SerialPrinter(COMPort p);
+		SerialPrinter();
 		
-		SerialPrinter& operator<<(char c);
-		SerialPrinter& operator<<(char* c);	
-		SerialPrinter& operator<<(int i);
-		SerialPrinter& operator<<(void* ptr);
+		SerialPrinter& operator<<(const char c);
+		SerialPrinter& operator<<(const char* c);	
+		SerialPrinter& operator<<(const int i);
+		SerialPrinter& operator<<(const void* ptr);
 	private:
 		bool isTransmitEmpty();
 		COMPort port;		

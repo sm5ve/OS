@@ -6,6 +6,7 @@ void itoa(int value, char* str, int base){
 	if(value == 0){
 		str[0] = '0';
 		str[1] = 0;
+		return;
 	}
 	if(value < 0){
 		str[0] = '-';
@@ -26,3 +27,31 @@ void itoa(int value, char* str, int base){
 	}
 	str[len] = 0;
 }
+
+void paddedItoa(int value, char* str, int base, int length){
+	for(int i = 0; i < length; i++){
+		str[i] = '0';
+	}
+	str[length] = 0;
+	if(value == 0){
+		return;
+	}
+    if(value < 0){
+        str[0] = '-';
+        str++;
+		length--;
+        value *= -1;
+    }
+	int n = 0;
+    while(value != 0){
+        str[n++] = digits[value % base];
+        value /= base;
+    }
+    for(int i = 0; i < length/2; i++){
+        char a = str[i];
+        char b = str[length - i - 1];
+        str[length - i - 1] = a;
+        str[i] = b;
+    }
+}
+

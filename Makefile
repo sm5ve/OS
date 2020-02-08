@@ -25,7 +25,7 @@ WARNINGS := -Wall -Wextra -pedantic -Wshadow -Wpointer-arith -Wcast-align \
             -Wredundant-decls -Winline -Wno-long-long \
             -Wconversion
 
-CPPFLAGS := -ffreestanding
+CPPFLAGS := -ffreestanding -fno-exceptions -fno-rtti
 
 all: kernel
 

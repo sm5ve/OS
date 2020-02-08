@@ -2,8 +2,10 @@
 #include <arch/i386/proc.h>
 #include <klib/util/str.h>
 
-SerialPrinter::SerialPrinter(COMPort port){
-	this -> port = port;
+SerialPrinter::SerialPrinter(){}
+
+SerialPrinter::SerialPrinter(COMPort p){
+	port = p;
 	outb(port + 1, (char) 0x00);    // Disable all interrupts
 	outb(port + 3, (char) 0x80);    // Enable DLAB (set baud rate divisor)
 	outb(port + 0, (char) 0x03);    // Set divisor to 3 (lo byte) 38400 baud
@@ -17,29 +19,29 @@ bool SerialPrinter::isTransmitEmpty(){
 	return (inb(port + 5) & 20) == 0;
 }
 
-SerialPrinter& SerialPrinter::operator<<(char c){
+SerialPrinter& SerialPrinter::operator<<(const char c){
 	while(!isTransmitEmpty());
 	outb(port, c);
 	return *this;
 }
 
-SerialPrinter& SerialPrinter::operator<<(char* c){
+SerialPrinter& SerialPrinter::operator<<(const char* c){
 	for(;*c != 0; c++){
 		*this << *c;
 	}
 	return *this;
 }
 
-SerialPrinter& SerialPrinter::operator<<(int i){
+SerialPrinter& SerialPrinter::operator<<(const int i){
 	char str[100];
 	itoa(i, str, 10);
 	*this << str;
 	return *this;
 }
 
-SerialPrinter& SerialPrinter::operator<<(void* ptr){
+SerialPrinter& SerialPrinter::operator<<(const void* ptr){
 	char str[100];
-	itoa((int)ptr, str, 16);
+	paddedItoa((int)ptr, str, 16, 8);
 	*this << "0x" << str;
 	return *this;
 }
