@@ -1,0 +1,75 @@
+#include <flags.h>
+#ifndef USE_MULTIBOOT_2
+
+#define ASM_FILE 1
+
+#include <multiboot/multiboot.h>
+
+#ifdef __ELF__
+# define AOUT_KLUDGE 0
+#else
+# define AOUT_KLUDGE MULTIBOOT_AOUT_KLUDGE
+#endif
+
+.set MULTIBOOT_HEADER_FLAGS, (MULTIBOOT_PAGE_ALIGN | MULTIBOOT_MEMORY_INFO | MULTIBOOT_VIDEO_MODE | AOUT_KLUDGE)
+
+.section .multiboot
+.align 4
+
+.set MULTIBOOT_HEADER_SIZE, (multiboot_header_end - multiboot_header_start)
+
+multiboot_header_start:
+
+//standard multiboot 1 header
+
+.long MULTIBOOT_HEADER_MAGIC
+.long MULTIBOOT_HEADER_FLAGS
+.long -(MULTIBOOT_HEADER_MAGIC + MULTIBOOT_HEADER_FLAGS)
+
+//Multiboot memory info
+//TODO: understand what Serenity is doing here
+
+.long 0x00000000
+.long 0x00000000
+.long 0x00000000
+.long 0x00000000
+.long 0x00000000
+
+//Multiboot video mode info
+
+#ifdef FRAMEBUFFER
+//mode type
+.long 0x00000000
+.long 1280 //height
+.long 1024 //width
+.long 32 //depth
+#endif
+
+multiboot_header_end:
+ 
+
+.section .bss
+.align 16
+
+stack_bottom:
+.skip KERNEL_STACK_SIZE
+stack_top:
+
+.section .text
+.global _start
+.type _start @function
+
+_start:
+    mov $stack_top, %esp
+
+    call kernel_init
+
+    cli
+
+    1:
+        hlt
+        jmp 1b
+
+.size _start, . - _start
+
+#endif
