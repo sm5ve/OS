@@ -14,7 +14,7 @@ OBJFILES := $(CPPOBJFILES) $(ASMOBJFILES)
 DEPFILES    := $(patsubst %.cpp,%.d,$(CPPFILES))
 
 CC := i686-elf-gcc
-CPPFLAGS ?= 
+CPPFLAGS ?=  
 
 INCLUDE=-I./include
 
@@ -35,7 +35,7 @@ kernel: $(OBJFILES)
 -include $(DEPFILES)
 
 %.cppo: %.cpp Makefile
-	@$(CC) $(CPPFLAGS) $(INCLUDE) $(WARNINGS) -c $< -o $@
+	@$(CC) $(CPPFLAGS) $(INCLUDE) $(WARNINGS) -fno-sized-deallocation -c $< -o $@
 
 %.sxo: %.sx Makefile
 	@$(CC) $(INCLUDE) -ffreestanding -c $< -o $@

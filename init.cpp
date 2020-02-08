@@ -20,21 +20,14 @@ extern "C" [[noreturn]] void kernel_init(unsigned int multiboot_magic, unsigned 
 	p << "\nMultiboot magic verified\n";
 	
 	initSlabAllocator();
-	
-	void* p1 = slabAlloc(3);
-	void* p2 = slabAlloc(3);
-	void* p3 = slabAlloc(4);
-	
-	slabFree(p2);
-	slabAlloc(64);
-	void* p4 = slabAlloc(6);
-	slabAlloc(32);
-	slabFree(p1);
-	void* p5 = slabAlloc(8);
-	void* p6 = slabAlloc(6);
-	void* p7 = slabAlloc(5);
+	initHeapAllocator();
+
+	auto test = new int[4];
+	delete test;	
+	test = new int[1];
+	new int[100];
 
 	DisableInterrupts d;
 	
-	outw(0x604, 0x2000);
+	outw(0x604, 0x2000); //shutdown qemu
 }
