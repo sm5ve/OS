@@ -46,3 +46,12 @@ SerialPrinter& SerialPrinter::operator<<(const void* ptr){
 	return *this;
 }
 
+SerialPrinter& SerialPrinter::operator<<(const bool b){
+	if(b){
+		*this << "true";
+	}
+	else{
+		*this << "false";
+	}
+	return *this;
+}

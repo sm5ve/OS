@@ -19,6 +19,7 @@ class SerialPrinter{
 		SerialPrinter& operator<<(const char* c);	
 		SerialPrinter& operator<<(const int i);
 		SerialPrinter& operator<<(const void* ptr);
+		SerialPrinter& operator<<(const bool b);
 	private:
 		bool isTransmitEmpty();
 		COMPort port;		

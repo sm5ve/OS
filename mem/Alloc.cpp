@@ -1,4 +1,5 @@
 #include <mem.h>
+#include <assert.h>
 
 void* kalloc(size_t size){
 	if(size <= 64){
@@ -8,10 +9,12 @@ void* kalloc(size_t size){
 }
 
 void kfree(void* ptr){
-	if(ptr >= (void*) kheap && ptr < (void*)(kheap + KERNEL_HEAP_SIZE)){
+	if(ptr >= (void*) kheap && ptr < (void*)((int)kheap + KERNEL_HEAP_SIZE)){
 		heapFree(ptr);
 	}
-	slabFree(ptr);
+	else{
+		slabFree(ptr);
+	}
 }
 
 void *operator new(size_t size)

@@ -1,11 +1,9 @@
 Memory:
-	kalloc/free
 	Bump allocator
-	memcopy
 CPU functionality:
 	GDT
 	IDT
-	Higer-half
+	Higher-half
 Debugging:
 	Symbolicator/ELF parser/DWARF parser
 	Stack Traces
