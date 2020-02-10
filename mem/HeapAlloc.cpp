@@ -2,8 +2,6 @@
 #include <assert.h>
 #include <flags.h>
 
-#include <klib/SerialPrinter.h>
-
 //TODO remember to disable this once malloc's been better tested!
 #define HEAP_INTEGRITY_CHECKS
 
@@ -39,7 +37,6 @@ HeapNode** ptrToNodeTableEntry(void* ptr){
 }
 
 size_t validateHeapFromBase(HeapNode* base){
-	SerialPrinter p(COMPort::COM1);
 	size_t enumeratedFreeSize = 0;
 	if(base == NULL){
 		return enumeratedFreeSize;
@@ -542,4 +539,4 @@ void heapFree(void* ptr){
 	}
 	
 	validateHeap();
-		}
+}

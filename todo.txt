@@ -1,7 +1,7 @@
 Memory:
+	Wrap heap allocator in a class so we can have different allocation pools if we want.
 	Bump allocator
 CPU functionality:
-	GDT
 	IDT
 	Higher-half
 Debugging:

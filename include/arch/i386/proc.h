@@ -12,4 +12,5 @@ uint16_t inw(uint16_t port);
 void cli();
 void sti();
 
+void installGDT();
 #endif
