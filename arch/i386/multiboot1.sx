@@ -55,24 +55,81 @@ stack_bottom:
 .skip KERNEL_STACK_SIZE
 stack_top:
 
+mboot_magic:
+    .long 0
+mboot_header:
+    .long 0
+
+.section .bss, "aw", @nobits
+    .align 4096
+boot_page_directory:
+    .skip 4096
+boot_page_table1:
+    .skip 4096
+boot_page_table2:
+    .skip 4096
+
+
 .section .text
 .global _start
 .type _start @function
+.extern higher
 
 _start:
-    mov $stack_top, %esp
+	movl %eax, (mboot_magic - 0xC0000000)
+	movl %ebx, (mboot_header - 0xC0000000)
+
+    mov $(stack_top - 0xC0000000), %esp
+
+    pushl $(boot_page_table2 - 0xC0000000)
+    pushl $(boot_page_table1 - 0xC0000000)
+    pushl $(boot_page_directory - 0xC0000000)
+
+   	call higher
+		
+	movl $(boot_page_directory - 0xC0000000), %ecx
+	movl %ecx, %cr3
+
+	# Enable paging and the write-protect bit.
+	movl %cr0, %ecx
+	orl $0x80010000, %ecx
+	movl %ecx, %cr0
+
+	# Jump to higher half with an absolute jump. 
+	lea 4f, %ecx
+	jmp *%ecx
+
+
+	#sti	
+
+    #cli
+
+    4:
+	# At this point, paging is fully set up and enabled.
+
+	# Unmap the identity mapping as it is now unnecessary. 
+	movl $0, boot_page_directory + 0
+	movl $0, boot_page_directory + 4
+	
+	# Reload crc3 to force a TLB flush so the changes to take effect.
+	movl %cr3, %ecx
+	movl %ecx, %cr3
+
+	# Set up the stack.
+	mov $stack_top, %esp
+
+	# Enter the high-level kernel.
+	movl mboot_magic, %eax
+	movl mboot_header, %ebx
 	
 	pushl %ebx
-	pushl %eax	
+	pushl %eax
+	call kernel_init
 
-    call kernel_init
-
-    cli
-
-    1:
-        hlt
-        jmp 1b
-
+	# Infinite loop if the system has nothing more to do.
+	cli
+1:	hlt
+	jmp 1b
 .size _start, . - _start
 
 #endif

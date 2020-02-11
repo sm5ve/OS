@@ -8,8 +8,8 @@
 
 #include <mem.h>
 
-extern "C" [[noreturn]] void kernel_init(unsigned int multiboot_magic, unsigned long addr){
-	
+extern "C" [[noreturn]] void kernel_init(unsigned int multiboot_magic, unsigned long addr){	
+	SerialPrinter d(COMPort::COM1);
 	#ifndef MULTIBOOT_2
 	assert(multiboot_magic == MULTIBOOT_BOOTLOADER_MAGIC, "Error: Multiboot magic does not match. Aborting boot.");
 	#else

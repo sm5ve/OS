@@ -41,7 +41,7 @@ SerialPrinter& SerialPrinter::operator<<(const int i){
 
 SerialPrinter& SerialPrinter::operator<<(const void* ptr){
 	char str[100];
-	paddedItoa((int)ptr, str, 16, 8);
+	paddedItoa((uint32_t)ptr, str, 16, 8);
 	*this << "0x" << str;
 	return *this;
 }

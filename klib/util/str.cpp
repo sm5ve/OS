@@ -1,8 +1,9 @@
 #include <klib/util/str.h>
 
 const char* digits = "0123456789abcdefghijklmnopqrstuvwxyz";
-
-void itoa(int value, char* str, int base){
+/*
+template <class T>
+void itoa(T value, char* str, int base){
 	if(value == 0){
 		str[0] = '0';
 		str[1] = 0;
@@ -28,7 +29,8 @@ void itoa(int value, char* str, int base){
 	str[len] = 0;
 }
 
-void paddedItoa(int value, char* str, int base, int length){
+template <class T>
+void paddedItoa(T value, char* str, int base, int length){
 	for(int i = 0; i < length; i++){
 		str[i] = '0';
 	}
@@ -53,5 +55,4 @@ void paddedItoa(int value, char* str, int base, int length){
         str[length - i - 1] = a;
         str[i] = b;
     }
-}
-
+}*/
