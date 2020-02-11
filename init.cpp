@@ -27,9 +27,17 @@ extern "C" [[noreturn]] void kernel_init(unsigned int multiboot_magic, unsigned 
 	p << "Installing the GDT\n";
 	installGDT();
 	p << "GDT installed!\n";	
-
-	DisableInterrupts d;
+	p << "Installing the IDT\n";
+	installIDT();
+	p << "IDT installed!\n";
+	p << "Enabling interrupts\n";
+	sti();
+	for(;;){
+		asm("hlt");
+	}
+	//DisableInterrupts d;
 	
 	outw(0x604, 0x2000); //shutdown qemu
+
 }
 

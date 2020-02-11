@@ -35,7 +35,7 @@ kernel: $(OBJFILES)
 -include $(DEPFILES)
 
 %.cppo: %.cpp Makefile
-	@$(CC) $(CPPFLAGS) $(INCLUDE) $(WARNINGS) -fno-sized-deallocation -std=gnu++11 -c $< -o $@
+	@$(CC) $(CPPFLAGS) $(INCLUDE) $(WARNINGS) -fno-sized-deallocation -std=gnu++2a -c $< -o $@
 
 %.sxo: %.sx Makefile
 	@$(CC) $(INCLUDE) -ffreestanding -c $< -o $@
@@ -44,7 +44,10 @@ run: kernel
 	@qemu-system-x86_64 -serial stdio -kernel kernel
 
 term: kernel
-	@qemu-system-x86_64 -nographic -kernel kernel
+	@qemu-system-x86_64 -nographic -no-reboot -d cpu_reset -kernel kernel
+
+ints: kernel
+	@qemu-system-x86_64 -nographic -d int,cpu_reset -no-reboot -kernel kernel
 
 clean:
 	-@$(RM) $(wildcard $(OBJFILES) kernel)

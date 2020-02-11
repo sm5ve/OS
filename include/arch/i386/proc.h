@@ -1,6 +1,10 @@
 #ifndef I386_HEADER
 #define I386_HEADER
 
+#if !(defined(__x86_64__) || defined(__i386__))
+#error "Error: included i386 header in non-intel build"
+#endif
+
 #include <stdint.h>
 
 void outb(uint16_t port, uint8_t c);
@@ -13,4 +17,5 @@ void cli();
 void sti();
 
 void installGDT();
+void installIDT();
 #endif

@@ -64,7 +64,7 @@ constexpr uint8_t segmentFlags(bool kernel, bool system, bool executable, bool r
 	return
 	(1 << 7)                    |//Set 'present' flag (required for all valid segment selectors
 	((kernel ? 0 : 3) << 5)     |//Set privilege level of segment
-	((system ? 1 : 0) << 4)     |//If bit 4 is set, we declare this a code segment
+	((system ? 0 : 1) << 4)     |//If bit 4 is unset, we declare this a system segment
 	((executable ? 1 : 0) << 3) |
 	(0 << 2)                    |//We'll always assume our segment grows up
 	((rw ? 1 : 0) << 1)         |//If this is a code segment, rw = false prevents reading from the segment, if this is a data segment, rw = false prevents writing to this segment
@@ -76,9 +76,11 @@ constexpr uint8_t segmentFlags(bool kernel, bool system, bool executable, bool r
 void installGDT(){
 	SerialPrinter p(COMPort::COM1);
 	writeSegment(0, 0x00000000, 0x00000000, 0); //GDT must start with null segment
-	uint8_t codeFlags = segmentFlags(true, true, true, true);
+	uint8_t codeFlags = segmentFlags(true, false, true, true);
 	writeSegment(1, 0x00000000, 0xffffffff, codeFlags);
-	uint8_t dataFlags = segmentFlags(true, true, false, true);
+	uint8_t dataFlags = segmentFlags(true, false, false, true);
 	writeSegment(2, 0x00000000, 0xffffffff, dataFlags);
 	flushGDT();
+
+	p << "GDT located at " << (void*)gdt << "\n";
 }
