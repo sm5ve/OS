@@ -2,148 +2,69 @@
 #include <mem.h>
 #include <assert.h>
 
-#define SLAB_ALLOC_DOUBLE_FREE_GUARD
-#define DOUBLE_FREE_INDEX(ptr, size) (((int)ptr - (int)slabs[size])/sizes[size])
+#define WRITE_FREE_SLAB(index,  ptr) (*((uint32_t*)((uint32_t) (buffer) + (index) * (slab_size))) = (uint32_t)(ptr));
 
-//#define SLAB_ALLOC_IMPLEMENTATION_DEBUG
+#define SET_FREED_MAP_BIT(index, bit) {(freed_map)[(index) >> 3] &= ~(1 << ((index) & 7)); (freed_map)[(index) >> 3] |= ((bit) << ((index) & 7));};
 
-#ifdef SLAB_ALLOC_IMPLEMENTATION_DEBUG
-#include <klib/SerialPrinter.h>
-#endif
+#define GET_FREED_MAP_BIT(index) (((freed_map[(index) >> 3]) >> ((index) & 7)) & 1)
 
-uint8_t slab8[KERNEL_SLAB_8_SIZE];
-uint8_t slab16[KERNEL_SLAB_16_SIZE];
-uint8_t slab32[KERNEL_SLAB_32_SIZE];
-uint8_t slab64[KERNEL_SLAB_64_SIZE];
+#define PTR_TO_INDEX(ptr) (((uint32_t)ptr - (uint32_t) buffer) / slab_size)
 
-#ifdef SLAB_ALLOC_DOUBLE_FREE_GUARD
-bool slab8freed[KERNEL_SLAB_8_SIZE];
-bool slab16freed[KERNEL_SLAB_16_SIZE];
-bool slab32freed[KERNEL_SLAB_32_SIZE];
-bool slab64freed[KERNEL_SLAB_64_SIZE];
+#define ZERO_MEMORY
 
-bool* freedmap[4];
-#endif
-
-enum SlabSize{
-	SIZE8 = 0,
-	SIZE16 = 1,
-	SIZE32 = 2,
-	SIZE64 = 3
-};
-
-int sizes[4] = {8, 16, 32, 64};
-int slab_alloc_sizes[4] = {KERNEL_SLAB_8_SIZE, KERNEL_SLAB_16_SIZE, KERNEL_SLAB_32_SIZE, KERNEL_SLAB_64_SIZE};
-
-void* slabFreePtr[4];
-void* slabMaxInitPtr[4];
-void* slabs[4];
-
-#ifdef SLAB_ALLOC_IMPLEMENTATION_DEBUG
-SerialPrinter printer;
-#endif
-
-
-void initSlabAllocator(){
-	#ifdef SLAB_ALLOC_IMPLEMENTATION_DEBUG
-	printer = SerialPrinter(COMPort::COM1);
-	#endif
-
-	#ifdef SLAB_ALLOC_DOUBLE_FREE_GUARD
-	freedmap[0] = (bool*) slab8freed;
-	freedmap[1] = (bool*) slab16freed;
-	freedmap[2] = (bool*) slab32freed;
-	freedmap[3] = (bool*) slab64freed;
-	
-	for(int n = 0; n < 4; n++){
-		for(int i = 0; i < slab_alloc_sizes[n]; i++){
-			freedmap[n][i] = true;
-		}
+SlabAlloc::SlabAlloc(void* buff, size_t buff_s, size_t slab_s, uint8_t* fmap){
+	this -> buffer = buff;
+	this -> buffer_size = buff_s;
+	this -> slab_size = slab_s;
+	this -> freed_map = fmap;
+	this -> free_ptr = buff;
+	assert(buffer_size >= 4, "Error: attemped to make slab allocator with slab size < 4 bytes"); //We're going to store a pointer to the next freed slab, which needs 4 bytes.
+	for(uint32_t i = 0; i < buffer_size / slab_size - 1; i++){
+		WRITE_FREE_SLAB(i, (uint32_t)buffer + (i + 1) * slab_size);
 	}
-	#endif
-
-	slabFreePtr[0] = (void*)slab8;
-	slabFreePtr[1] = (void*)slab16;
-	slabFreePtr[2] = (void*)slab32;
-	slabFreePtr[3] = (void*)slab64;
-
-	for(int i = 0; i < 4; i++){
-		slabs[i] = slabFreePtr[i];
-		slabMaxInitPtr[i] = slabs[i];
-		*((void**)slabs[i]) = slabs[i] + sizes[i];	
+	WRITE_FREE_SLAB(buffer_size / slab_size - 1, NULL);
+	if(freed_map){
+		memset(freed_map, 0, buff_s/8); //Make sure everything's set to free
 	}
 }
 
-void* allocFromSlab(SlabSize size){
-	
-	#ifdef SLAB_ALLOC_IMPLEMENTATION_DEBUG
-	printer << "Allocating slab of size " << size << "\n";
-	#endif
-
-	void* returnPtr = slabFreePtr[size];
-
-	#ifdef SLAB_ALLOC_IMPLEMENTATION_DEBUG
-	printer << "Found pointer at " << returnPtr << "\n";
-	#endif
-
-	void* nextFree = *((void**)returnPtr);
-	
-	assert(nextFree >= slabs[size], "Somehow set next free pointer below slab heap");
-	assert(nextFree < slabs[size] + slab_alloc_sizes[size], "Ran out of space on slab heap");
-
-	if(nextFree > slabMaxInitPtr[size]){
-		slabMaxInitPtr[size] = nextFree;
-		*((void**)nextFree) = nextFree + sizes[size];
-	}
-
-	slabFreePtr[size] = nextFree;
-
-	memset(returnPtr, 0, (size_t)sizes[size]);	
-	
-	#ifdef SLAB_ALLOC_DOUBLE_FREE_GUARD
-	assert(freedmap[size][DOUBLE_FREE_INDEX(returnPtr, size)], "Error: somehow allocated already allocated pointer");
-	assert(freedmap[size][DOUBLE_FREE_INDEX(nextFree, size)], "Error: somehow set next freed pointer to already allocated pointer");
-	freedmap[size][DOUBLE_FREE_INDEX(returnPtr, size)] = false;
-	#endif	
-
-	return returnPtr;	
+SlabAlloc::~SlabAlloc(){
+	assert(false, "I'm not quite sure what to do here");
 }
 
-void slabFree(void* ptr){
-	SlabSize size;
-	for(int i = 0; i < 5; i++){
-		if(i == 4){
-			assert(false, "Attempted to free slab outside of pools");
-		}
-		if(ptr >= slabs[i] && ptr < (slabs[i] + slab_alloc_sizes[i])){
-			size = (SlabSize)i;
-			break;
-		}
+void* SlabAlloc::alloc(){
+	void* out = this -> free_ptr;
+	void* next = (void*)*((uint32_t*) out);
+	assert(next != NULL, "Error: out of memory in slab allocator");
+	if(freed_map){
+		assert(GET_FREED_MAP_BIT(PTR_TO_INDEX(next)) == 0, "Error: next freed slab isn't actually free");
+		SET_FREED_MAP_BIT(PTR_TO_INDEX(out), 1);
 	}
-
-	#ifdef SLAB_ALLOC_DOUBLE_FREE_GUARD
-    assert(!freedmap[size][DOUBLE_FREE_INDEX(ptr, size)], "Error: double freed pointer");
-    assert(freedmap[size][DOUBLE_FREE_INDEX(slabFreePtr[size], size)], "Error: somehow next freed pointer isn't free");
-	freedmap[size][DOUBLE_FREE_INDEX(ptr, size)] = true;
-	#endif  
-
-	
-	*((void**)ptr) = slabFreePtr[size];
-	slabFreePtr[size] = ptr;
-
-	#ifdef SLAB_ALLOC_IMPLEMENTATION_DEBUG
-	printer << "Freeing pointer " << ptr << "\n";
-	printer << "Size class " << size << "\n";
-	printer << "Setting value of slab to ptr " << *((void**)ptr) << "\n";
-	printer << "slabFreePtr[size] = " << slabFreePtr[size] << "\n";
+	 
+	#ifdef ZERO_MEMORY
+	memset(out, 0, slab_size);
 	#endif
+	this -> free_ptr = next;
+	return out;
 }
 
-void* slabAlloc(size_t size){
-	assert(size <= 64, "Error: attemped to use slab allocator on size > 64");
-	for(int i = 0; i < 4; i++){
-		if(size <= sizes[i]){
-			return allocFromSlab((SlabSize)i);
-		}
-	}	
+void SlabAlloc::free(void* ptr){
+	assert(this -> isPtrInRange(ptr), "Error: tried to free ptr outside of slab allocator buffer range");
+	if(freed_map){
+		assert(GET_FREED_MAP_BIT(PTR_TO_INDEX(ptr)) == 1, "Error: double free");
+	}
+	assert(((uint32_t) ptr - (uint32_t)buffer) % slab_size == 0, "Error: attempted to free misaligned pointer");
+	WRITE_FREE_SLAB(PTR_TO_INDEX(ptr), free_ptr);
+	if(freed_map){
+		SET_FREED_MAP_BIT(PTR_TO_INDEX(ptr), 0);
+	}
+	free_ptr = ptr;
+}
+
+bool SlabAlloc::isPtrInRange(void* ptr){
+	return ((uint32_t) ptr >= (uint32_t) buffer) && ((uint32_t)ptr < (uint32_t)buffer + buffer_size);
+}
+
+size_t SlabAlloc::getSlabSize(){
+	return slab_size;
 }

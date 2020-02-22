@@ -22,10 +22,13 @@ extern "C" [[noreturn]] void kernel_init(unsigned int multiboot_magic, mboot_inf
 
 	SerialPrinter p(COMPort::COM1);
 	p << "\nMultiboot magic verified\n";
-	initSlabAllocator();
-	initHeapAllocator();
+	initKalloc();
 	
 	p << "Memory allocators initialized\n";
+	for(int i = 0; i < 64; i++){
+		auto p = new uint8_t[i];
+		delete p;
+	}
 	p << (void*)kernel_init << "\n";
 	p << "Installing the GDT\n";
 	installGDT();

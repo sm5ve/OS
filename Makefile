@@ -20,8 +20,8 @@ INCLUDE=-I./include
 
 .PHONY: all clean run kernel term
 
-WARNINGS := -Wall -Wextra -pedantic -Wshadow -Wpointer-arith -Wcast-align \
-            -Wwrite-strings -Wmissing-declarations \
+WARNINGS := -Wall -Wextra -pedantic -Wshadow -Wcast-align \
+            -Wwrite-strings \
             -Wredundant-decls -Winline -Wno-long-long \
             -Wconversion
 
