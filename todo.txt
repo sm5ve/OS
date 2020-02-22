@@ -1,9 +1,16 @@
-Memory:
-	Wrap heap allocator in a class so we can have different allocation pools if we want.
-	Bump allocator
-CPU functionality:
-	IDT
-	Higher-half
-Debugging:
-	Symbolicator/ELF parser/DWARF parser
-	Stack Traces
+1. Rewrite multiboot.h so all structs are properly packed
+2. Load and parse the multiboot memory map
+3. Page frame allocator (linked list in each page, should be really simple and easy)
+4. Paging
+5. Remap IO/whatever into sensible ranges
+6. Write proper interrupt handlers
+
+Medium-sized less immediate goals:
+Basic scheduler - really quick and dirty, just to try out context switching and establish a thread data structure
+PCI, ACHI
+File system stuff
+ELF parsing
+Loader
+
+
+:]Can we move the kernel base declaration into flags.h? Does that somehow work with the linker script?

@@ -6,11 +6,11 @@ The goal of this project is to create a basic kernel capable of loading ELF bina
 * A slab and heap allocator
 * A basic flat GDT
 * Basic interrupt support
+* Higher half kernel
 
 Important milestones I hope to achieve in the near-ish future are (in roughly the order I wish to accomplish them):
 
 * Writing a basic interrupt handling framework
-* Switching to a higher-half kernel
+* Paging
+* PCI enumeration
 * Basic scheduler (kernel tasks only, for now)
-
-

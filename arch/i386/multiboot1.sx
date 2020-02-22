@@ -68,7 +68,10 @@ boot_page_table1:
     .skip 4096
 boot_page_table2:
     .skip 4096
-
+boot_page_table3:
+	.skip 4096
+boot_page_table4:
+	.skip 4096
 
 .section .text
 .global _start
@@ -76,17 +79,24 @@ boot_page_table2:
 .extern higher
 
 _start:
+	#backup the multiboot information
 	movl %eax, (mboot_magic - 0xC0000000)
+	addl $0xC0000000, %ebx
 	movl %ebx, (mboot_header - 0xC0000000)
 
+	#setup our stack before we enable paging
     mov $(stack_top - 0xC0000000), %esp
 
-    pushl $(boot_page_table2 - 0xC0000000)
+	#push pointers to the page tables so our C code can populate them
+    pushl $(boot_page_table4 - 0xC0000000)
+	pushl $(boot_page_table3 - 0xC0000000)
+	pushl $(boot_page_table2 - 0xC0000000)
     pushl $(boot_page_table1 - 0xC0000000)
     pushl $(boot_page_directory - 0xC0000000)
 
    	call higher
 		
+	#set the page table
 	movl $(boot_page_directory - 0xC0000000), %ecx
 	movl %ecx, %cr3
 
@@ -98,11 +108,6 @@ _start:
 	# Jump to higher half with an absolute jump. 
 	lea 4f, %ecx
 	jmp *%ecx
-
-
-	#sti	
-
-    #cli
 
     4:
 	# At this point, paging is fully set up and enabled.

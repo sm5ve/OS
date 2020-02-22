@@ -32,13 +32,6 @@ SerialPrinter& SerialPrinter::operator<<(const char* c){
 	return *this;
 }
 
-SerialPrinter& SerialPrinter::operator<<(const int i){
-	char str[100];
-	itoa(i, str, 10);
-	*this << str;
-	return *this;
-}
-
 SerialPrinter& SerialPrinter::operator<<(const void* ptr){
 	char str[100];
 	paddedItoa((uint32_t)ptr, str, 16, 8);
@@ -53,5 +46,19 @@ SerialPrinter& SerialPrinter::operator<<(const bool b){
 	else{
 		*this << "false";
 	}
+	return *this;
+}
+
+SerialPrinter& SerialPrinter::operator<<(const int i){
+	char str[100];
+	itoa(i, str, 10);
+	*this << str;
+	return *this;
+}
+
+SerialPrinter& SerialPrinter::operator<<(const uint32_t i){
+	char str[100];
+	itoa(i, str, 10);
+	*this << str;
 	return *this;
 }

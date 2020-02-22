@@ -12,6 +12,9 @@ void kfree(void* ptr){
 	if(ptr >= (void*) kheap && ptr < (void*)((int)kheap + KERNEL_HEAP_SIZE)){
 		heapFree(ptr);
 	}
+	else if(ptr >= (void*) bumpHeap && ptr < (void*)((int)bumpHeap + KERNEL_NOFREE_SIZE)){
+		assert(false, "Error: tried to free unfreeable pointer\n");
+	}
 	else{
 		slabFree(ptr);
 	}

@@ -74,13 +74,10 @@ constexpr uint8_t segmentFlags(bool kernel, bool system, bool executable, bool r
 #include <klib/SerialPrinter.h>
 
 void installGDT(){
-	SerialPrinter p(COMPort::COM1);
 	writeSegment(0, 0x00000000, 0x00000000, 0); //GDT must start with null segment
 	uint8_t codeFlags = segmentFlags(true, false, true, true);
 	writeSegment(1, 0x00000000, 0xffffffff, codeFlags);
 	uint8_t dataFlags = segmentFlags(true, false, false, true);
 	writeSegment(2, 0x00000000, 0xffffffff, dataFlags);
 	flushGDT();
-
-	p << "GDT located at " << (void*)gdt << "\n";
 }
