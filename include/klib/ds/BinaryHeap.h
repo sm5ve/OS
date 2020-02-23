@@ -30,6 +30,7 @@ BinaryHeap<T>::~BinaryHeap(){
 template <class T>
 void BinaryHeap<T>::rebalance(BinaryTreeNode<T>* node){
 	assert(node, "Error: tried to rebalance null node");
+	SerialPrinter p(COMPort::COM1);
 	if(node -> getParent() != NULL){
 	//First we'll make sure the given node satisfies the desired relation with its parent
 	//If it does not, we'll swap them, and keep going up.
@@ -80,20 +81,20 @@ void BinaryHeap<T>::rebalance(BinaryTreeNode<T>* node){
 		BinaryTreeNode<T>* to_swap = NULL;
         if(node -> left() != NULL){
         	if(node -> right() != NULL){
-                BinaryTreeNode<T>* smaller = (node -> right() -> getValue() < node -> left() ->
+                BinaryTreeNode<T>* bigger = (node -> right() -> getValue() > node -> left() ->
  getValue()) ? node -> right() : node -> left();
-                if(smaller -> getValue() < node -> getValue()){
-                    to_swap = smaller;
+                if(bigger -> getValue() > node -> getValue()){
+                    to_swap = bigger;
                 }
             }
             else{
-                if(node -> left() -> getValue() < node -> getValue()){
+                if(node -> left() -> getValue() > node -> getValue()){
                     to_swap = node -> left();
                 }
             }
         }
         else if(node -> right() != NULL){
-            if(node -> right() -> getValue() < node -> getValue()){
+            if(node -> right() -> getValue() > node -> getValue()){
                 to_swap = node -> right();
             }
         }

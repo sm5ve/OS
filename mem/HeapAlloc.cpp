@@ -81,27 +81,51 @@ bool HeapAlloc::isInHeap(void* ptr){
 }
 
 void* HeapAlloc::alloc(size_t size){
+	size = alignSize(size);
 	BinaryTreeNode<size_t>* to_shrink = findNextBiggestNode(size);
 	shrinkNode(to_shrink, size);
 	memset((void*)to_shrink, 0, size);
 	return (void*)to_shrink;	
 }
 
-#include <klib/SerialPrinter.h>
-
 bool HeapAlloc::isPtrFree(void* ptr){
-	return !isInHeap((void*)node_ptrs[ptrToIndex(ptr)]);
+	return isInHeap((void*)node_ptrs[ptrToIndex(ptr)]);
+}
+
+void HeapAlloc::mergeAdjacentChunks(BinaryTreeNode<size_t>* left, BinaryTreeNode<size_t>* right){
+	assert(left < right, "Error: mixed up arguments for mergeAdjacentChunks");
+	assert((uint32_t)left + left -> getValue() == (uint32_t) right, "Error: chunks not adjacent");
+	
+	size_t combined_size = left -> getValue() + right -> getValue();
+
+	heap -> removeNode(left);
+	heap -> removeNode(right);
+
+	BinaryTreeNode<size_t>* new_node = heap -> makeNode(combined_size, NULL, (void*)left);
+	updatePtrBuffer((void*)new_node, combined_size, true);
 }
 
 void HeapAlloc::free(void* ptr){
 	assert(isInHeap(ptr), "Error: tried to free heap outside of pointer");
-	assert(isPtrFree(ptr), "Error: double free");
+	assert(!isPtrFree(ptr), "Error: double free");
 	
 	size_t size = node_ptrs[ptrToIndex(ptr)];
-
+	
 	BinaryTreeNode<size_t>* node = heap -> makeNode(size, NULL, ptr);
 	updatePtrBuffer((void*)node, size, true);
 	//Now we need to merge any adjacent free nodes
 	
-	assert(false, "Unimplemented");
+	BinaryTreeNode<size_t>* next = (BinaryTreeNode<size_t>*)((uint32_t)node + size);
+	if((uint32_t)next < (uint32_t) buffer + buffer_size){
+		uint32_t val = node_ptrs[ptrToIndex(next)];
+		if(isPtrFree(next)){
+			mergeAdjacentChunks(node, next);
+		}
+	}
+	if((uint32_t)node != (uint32_t)buffer){
+		BinaryTreeNode<size_t>* prev = (BinaryTreeNode<size_t>*)node_ptrs[ptrToIndex(node) - 1];
+		if(isInHeap(prev)){
+			mergeAdjacentChunks(prev, node);
+		}
+	}
 }
