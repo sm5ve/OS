@@ -11,10 +11,10 @@ public:
 
 	BinaryTreeNode<T>* makeNode(T value, BinaryTreeNode<T>* parent = NULL, void* where = NULL);
 	void removeNode(BinaryTreeNode<T>* node);
-	private:
-		bool smallest_at_root;	
-	
-		void rebalance(BinaryTreeNode<T>* node);
+private:
+	bool smallest_at_root;	
+
+	void rebalance(BinaryTreeNode<T>* node);
 };
 
 template <class T>

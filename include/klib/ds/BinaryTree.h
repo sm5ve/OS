@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <mem.h>
+#include <assert.h>
 
 template <class T>
 class BinaryTreeNode;
@@ -251,7 +252,7 @@ void BinaryTreeNode<T>::swap(BinaryTreeNode<T>* node){
 
 template <class T>
 BinaryTree<T>::BinaryTree(){
-
+	root = NULL;
 }
 
 template <class T>
@@ -295,7 +296,6 @@ BinaryTreeNode<T>* BinaryTree<T>::makeNode(T value, BinaryTreeNode<T>* parent, v
 		out = new BinaryTreeNode(value, this);
 	}
 	if(parent == NULL){
-		assert(root == NULL, "Error: somehow adding parentless node to nonempty tree");
 		root = out;
 	}
 	else{

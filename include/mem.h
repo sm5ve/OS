@@ -3,6 +3,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <flags.h>
+#include <klib/ds/BinaryHeap.h>
 
 extern uint8_t kheap[KERNEL_HEAP_SIZE];
 extern uint8_t bumpHeap[KERNEL_NOFREE_SIZE];
@@ -27,25 +28,31 @@ private:
 
 class HeapAlloc{
 public:
-	HeapAlloc(void* buffer, size_t buffer_size);
+	HeapAlloc(void* buffer, size_t buffer_size, uint32_t* ptr_buffer, size_t granularity);
 	~HeapAlloc();
 
 	void* alloc(size_t size);
 	void free(void* ptr);
 	
 	void validateHeap();
-	
+	bool isInHeap(void* ptr);	
 private:
-	void* heap;
+	void* buffer;
+	uint32_t* node_ptrs;
+	size_t buffer_size;
+	size_t granularity;
+	uint8_t uninitialized_heap[sizeof(BinaryHeap<size_t>)];
+	BinaryHeap<size_t>* heap;
+
+	uint32_t ptrToIndex(void* ptr);
+	void updatePtrBuffer(void* ptr, size_t size, bool free);
+	BinaryTreeNode<size_t>* findNextBiggestNode(size_t size, BinaryTreeNode<size_t>* node = NULL);
+	size_t alignSize(size_t);
+	void* shrinkNode(BinaryTreeNode<size_t>*, size_t by_amount);
 };
 
 void memset(void* ptr, uint8_t val, size_t size);
 void memcpy(void* dest, void* src, size_t size);
-
-void initHeapAllocator();
-void* heapAlloc(size_t size);
-void heapFree(void* ptr);
-void validateHeap();
 
 void initKalloc();
 void* kalloc(size_t size);

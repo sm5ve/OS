@@ -26,6 +26,13 @@ extern "C" [[noreturn]] void kernel_init(unsigned int multiboot_magic, mboot_inf
 	p << "\nMultiboot magic verified\n";
 	initKalloc();
 	p << "Memory allocators initialized\n";
+	
+	p << "Testing the heap allocator\n";
+
+	for(int i = 0; i < 100; i++){
+		p << new int[100] << "\n";
+	}
+
 	p << (void*)kernel_init << "\n";
 	p << "Installing the GDT\n";
 	installGDT();
@@ -44,11 +51,11 @@ extern "C" [[noreturn]] void kernel_init(unsigned int multiboot_magic, mboot_inf
 	p << "Done!\n";
 	p << "_kend at " << &_kend << "\n";
 
-	sti();
+	//sti();
 
-	for(;;){
-		asm("hlt");
-	}
+	//for(;;){
+	//	asm("hlt");
+	//}
 	//DisableInterrupts d;
 	
 	outw(0x604, 0x2000); //shutdown qemu
