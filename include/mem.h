@@ -26,7 +26,17 @@ private:
 };
 
 class HeapAlloc{
+public:
+	HeapAlloc(void* buffer, size_t buffer_size);
+	~HeapAlloc();
+
+	void* alloc(size_t size);
+	void free(void* ptr);
 	
+	void validateHeap();
+	
+private:
+	void* heap;
 };
 
 void memset(void* ptr, uint8_t val, size_t size);

@@ -9,6 +9,8 @@
 
 #include <mem.h>
 
+#include <klib/ds/BinaryTree.h>
+
 extern uint32_t _kend;
 
 //TODO the kernel's allocating a lot of memory as soon as it's loaded. Are we ever at risk of intersecting an important page of memory? Or does multiboot's memory map suggest we're good to use everything past 1 MB?
@@ -25,10 +27,6 @@ extern "C" [[noreturn]] void kernel_init(unsigned int multiboot_magic, mboot_inf
 	initKalloc();
 	
 	p << "Memory allocators initialized\n";
-	for(int i = 0; i < 64; i++){
-		auto p = new uint8_t[i];
-		delete p;
-	}
 	p << (void*)kernel_init << "\n";
 	p << "Installing the GDT\n";
 	installGDT();
