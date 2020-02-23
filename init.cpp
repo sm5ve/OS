@@ -23,7 +23,8 @@ extern "C" [[noreturn]] void kernel_init(unsigned int multiboot_magic, mboot_inf
 	#endif
 
 	SerialPrinter p(COMPort::COM1);
-	p << "\nMultiboot magic verified\n";
+	p << "\n";
+	p << "Multiboot magic verified\n";
 	initKalloc();
 	p << "Memory allocators initialized\n";
 

@@ -6,8 +6,6 @@
 #include <assert.h>
 #include <klib/hash.h>
 
-#include <klib/SerialPrinter.h>
-
 template <class K, class V>
 class HashMap{
 public:
@@ -29,6 +27,7 @@ private:
 
 	void resizeIfNecessary();
 	void resize(size_t);
+	static bool put(K,V,LinkedList<Tuple<K,V>>*,size_t);
 };
 
 template <class K, class V>
@@ -36,32 +35,53 @@ HashMap<K,V>::HashMap(size_t initial_capacity, float load){
 	data = new LinkedList<Tuple<K,V>>[initial_capacity];
 	capacity = initial_capacity;
 	load_factor = load;
-	size = 0;	
+	size = 0;
 }
 
 template <class K, class V>
 HashMap<K,V>::~HashMap(){
-	
+		
 }
 
 template <class K, class V>
 void HashMap<K, V>::resize(size_t new_size){
-	assert(false, "Unimplemented");
+	LinkedList<Tuple<K,V>>* newLists = new LinkedList<Tuple<K,V>>[new_size];
+
+	for(int i = 0; i < capacity; i++){
+		LinkedList<Tuple<K,V>>* list = &data[i];
+		LinkedListNode<Tuple<K,V>>* node = list -> head();
+		while(node != list -> end()){
+			put(node -> value.a, node -> value.b, newLists, new_size);
+			node = node -> next();
+		}
+	} 
+	//assert(false, "Good so far!");	
+	delete[] data;
+	data = newLists;
+	capacity = new_size;
+	//assert(false, "Yay!");
 }
 
 template <class K, class V>
-void HashMap<K,V>::put(K key, V value){
-	LinkedList<Tuple<K,V>>* list = &data[hash<K>{}(key) % capacity];
+bool HashMap<K,V>::put(K key, V value, LinkedList<Tuple<K,V>>* dat, size_t cap){
+	LinkedList<Tuple<K,V>>* list = &dat[hash<K>{}(key) % cap];
 	LinkedListNode<Tuple<K,V>>* node = list -> head();
 	while(node != list -> end()){
 		if(node -> value.a == key){
 			node -> value.b = value;
-			return;
+			false;
 		}
 	}
 	list -> add(Tuple(key, value));
-	size++;
-	resizeIfNecessary();
+	return true;
+}
+
+template <class K, class V>
+void HashMap<K,V>::put(K key, V value){
+	if(put(key, value, data, capacity)){
+		size++;
+		resizeIfNecessary();
+	}
 }
 
 template <class K, class V>
@@ -112,8 +132,12 @@ size_t HashMap<K, V>::getSize(){
 }
 
 template <class K, class V>
-void HashMap<K,V>::resizeIfNecessary(){
-	
+void HashMap<K,V>::resizeIfNecessary(){	
+	float load = ((float)size) / ((float)capacity);
+	if(load > load_factor){
+		resize(capacity * 1.5); //TODO do this much more intelligently
+	}
+	//TODO do we want to shrink the array if the load gets sufficiently small?
 }
 
 #endif
