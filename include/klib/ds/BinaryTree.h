@@ -169,10 +169,6 @@ void BinaryTreeNode<T>::switchOut(BinaryTreeNode<T>* node){
 	if(node == this)
 		return;
 	
-	assert(this -> parent != node, "Huh");
-	assert(node -> parent != this, "huh");
-	assert(this -> parent != this, "SAFASDF");
-	assert(node -> parent != node, "DAFSDFAS");
 	//First we swap the children
 	BinaryTreeNode<T>* nleft = node -> l;
 	BinaryTreeNode<T>* nright = node -> r;
@@ -205,28 +201,12 @@ void BinaryTreeNode<T>::switchOut(BinaryTreeNode<T>* node){
 	node -> nodes_below = old_count;
 	nodes_below = ncount;
 
-	if(this -> parent != NULL){
-        assert(this -> parent -> l == this || this -> parent -> r == this, "Oh fuck");
-    }
-	if(node -> parent != NULL){
-        assert(node -> parent -> l == node || node -> parent -> r == node, "Oh fuck");
-    }
-
 	//Swap parent references
 	BinaryTreeNode<T>* nparent = node -> parent;
 	BinaryTreeNode<T>* old_parent = parent;
 
 	node -> parent = old_parent;
 	parent = nparent;
-
-	if(node -> parent != NULL){
-        assert(node -> parent -> l == this || node -> parent -> r == this, "Oh fuck");
-    }
- if(this -> parent != NULL){
-        assert(this -> parent -> l == node || this -> parent -> r == node, "Oh fuck");
-    }
-
-
 
 	//Make sure to update tree root if applicable
 	if(node -> tree -> root == node){
@@ -245,7 +225,7 @@ void BinaryTreeNode<T>::switchOut(BinaryTreeNode<T>* node){
 			node -> parent ->r = node;
 		}
 		else{
-			assert(false, "Error: parent does not know of child1");
+			assert(false, "Error: parent does not know of child");
 		}
 	}
 	if(parent != NULL){
@@ -256,29 +236,21 @@ void BinaryTreeNode<T>::switchOut(BinaryTreeNode<T>* node){
 			parent -> r = this;
 		}
 		else{	
-			assert(false, "Error: parent does not know of child2");
+			assert(false, "Error: parent does not know of child");
 		}
 	}
 }
-
-#include <klib/SerialPrinter.h>
 
 template <class T>
 void BinaryTreeNode<T>::swap(BinaryTreeNode<T>* node){
 	assert(node -> tree == this -> tree, "Error: tried to swap nodes between 2 different trees. This makes no sense!");
    	if(node == this) return;
-	SerialPrinter p(COMPort::COM1);
 	BinaryTreeNode<T> temp1;
 	BinaryTreeNode<T> temp2;
-	//p << "1\n";
 	switchOut(&temp1);
-	//p << "2\n";
 	node -> switchOut(&temp2);
-	//p << "3\n";
 	switchOut(&temp2);
-	//p << "4\n";
 	node -> switchOut(&temp1);
-	//p << "5\n";
 }
 
 template <class T>

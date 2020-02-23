@@ -30,7 +30,6 @@ BinaryHeap<T>::~BinaryHeap(){
 template <class T>
 void BinaryHeap<T>::rebalance(BinaryTreeNode<T>* node){
 	assert(node, "Error: tried to rebalance null node");
-	SerialPrinter p(COMPort::COM1);
 	if(node -> getParent() != NULL){
 	//First we'll make sure the given node satisfies the desired relation with its parent
 	//If it does not, we'll swap them, and keep going up.
