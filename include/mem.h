@@ -49,6 +49,7 @@ private:
 	BinaryTreeNode<size_t>* findNextBiggestNode(size_t size, BinaryTreeNode<size_t>* node = NULL);
 	size_t alignSize(size_t);
 	void* shrinkNode(BinaryTreeNode<size_t>*, size_t by_amount);
+	bool isPtrFree(void*);
 };
 
 void memset(void* ptr, uint8_t val, size_t size);

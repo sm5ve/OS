@@ -29,53 +29,82 @@ BinaryHeap<T>::~BinaryHeap(){
 
 template <class T>
 void BinaryHeap<T>::rebalance(BinaryTreeNode<T>* node){
-	if(node -> getParent() == NULL){
-		return;
-	}
+	assert(node, "Error: tried to rebalance null node");
+	if(node -> getParent() != NULL){
 	//First we'll make sure the given node satisfies the desired relation with its parent
 	//If it does not, we'll swap them, and keep going up.
-	if(smallest_at_root){
-		if(node -> getParent() -> getValue() > node -> getValue()){
-			node -> swap(node -> getParent());
+		if(smallest_at_root){
+			if(node -> getParent() -> getValue() > node -> getValue()){
+				node -> swap(node -> getParent());
+				rebalance(node);
+				return;
+			}
 		}
-		rebalance(node);
-		return;
-	}
-	else{
-		if(node -> getParent() -> getValue() < node -> getValue()){
-			node -> swap(node -> getParent());
+		else{
+			BinaryTreeNode<T>* old_parent = node -> getParent();
+			if(node -> getParent() -> getValue() < node -> getValue()){
+				node -> swap(node -> getParent());
+				rebalance(node);
+				return;
+			}
 		}
-		rebalance(node);
-		return;
 	}
 	//Otherwise we'll check that the desired relationships hold with the children
 	if(smallest_at_root){
-		if(node -> left() -> getValue() < node -> getValue() || node -> right() -> getValue() < node -> getValue()){
-			BinaryTreeNode<T>* toSwap;
-			if(node -> left() -> getValue() < node -> right() -> getValue()){
-				toSwap = node -> left();
+		BinaryTreeNode<T>* to_swap = NULL;
+		if(node -> left() != NULL){
+			if(node -> right() != NULL){
+				BinaryTreeNode<T>* smaller = (node -> right() -> getValue() < node -> left() -> getValue()) ? node -> right() : node -> left();
+				if(smaller -> getValue() < node -> getValue()){
+					to_swap = smaller;
+				}
 			}
 			else{
-				toSwap = node -> right();
+				if(node -> left() -> getValue() < node -> getValue()){
+					to_swap = node -> left();
+				}
 			}
-			node -> swap(toSwap);
+		}
+		else if(node -> right() != NULL){
+			if(node -> right() -> getValue() < node -> getValue()){
+				to_swap = node -> right();
+			}
+		}
+		if(to_swap){
+			node -> swap(to_swap);
 			rebalance(node);
 			return;
 		}
 	}
 	else{
-		if(node -> right() -> getValue() > node -> getValue() || node -> left() -> getValue() > node -> getValue()){
-			BinaryTreeNode<T>* toSwap;
-			if(node -> left() -> getValue() > node -> right() -> getValue()){
-				toSwap = node -> left();
-			}
-			else{
-				toSwap = node -> right();
-			}
-			node -> swap(toSwap);
-			rebalance(node);
+		BinaryTreeNode<T>* to_swap = NULL;
+        if(node -> left() != NULL){
+        	if(node -> right() != NULL){
+                BinaryTreeNode<T>* smaller = (node -> right() -> getValue() < node -> left() ->
+ getValue()) ? node -> right() : node -> left();
+                if(smaller -> getValue() < node -> getValue()){
+                    to_swap = smaller;
+                }
+            }
+            else{
+                if(node -> left() -> getValue() < node -> getValue()){
+                    to_swap = node -> left();
+                }
+            }
+        }
+        else if(node -> right() != NULL){
+            if(node -> right() -> getValue() < node -> getValue()){
+                to_swap = node -> right();
+            }
+        }
+		else{
 			return;
 		}
+        if(to_swap){
+            node -> swap(to_swap);
+            rebalance(node);
+            return;
+        }
 	}
 }
 

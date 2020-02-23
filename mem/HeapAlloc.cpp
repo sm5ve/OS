@@ -24,6 +24,7 @@ uint32_t HeapAlloc::ptrToIndex(void* ptr){
 void HeapAlloc::updatePtrBuffer(void* ptr, size_t size, bool free){
 	for(int i = 0; i < size/granularity; i++){
 		uint32_t ind = ptrToIndex(ptr) + i;
+		assert((ind >= 0) && (ind < buffer_size / granularity), "Error: index out of bounds");
 		if(!free){
 			node_ptrs[ind] = (uint32_t)size;
 		}
@@ -82,9 +83,25 @@ bool HeapAlloc::isInHeap(void* ptr){
 void* HeapAlloc::alloc(size_t size){
 	BinaryTreeNode<size_t>* to_shrink = findNextBiggestNode(size);
 	shrinkNode(to_shrink, size);
+	memset((void*)to_shrink, 0, size);
 	return (void*)to_shrink;	
 }
 
+#include <klib/SerialPrinter.h>
+
+bool HeapAlloc::isPtrFree(void* ptr){
+	return !isInHeap((void*)node_ptrs[ptrToIndex(ptr)]);
+}
+
 void HeapAlloc::free(void* ptr){
+	assert(isInHeap(ptr), "Error: tried to free heap outside of pointer");
+	assert(isPtrFree(ptr), "Error: double free");
+	
+	size_t size = node_ptrs[ptrToIndex(ptr)];
+
+	BinaryTreeNode<size_t>* node = heap -> makeNode(size, NULL, ptr);
+	updatePtrBuffer((void*)node, size, true);
+	//Now we need to merge any adjacent free nodes
+	
 	assert(false, "Unimplemented");
 }

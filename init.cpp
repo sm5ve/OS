@@ -27,10 +27,16 @@ extern "C" [[noreturn]] void kernel_init(unsigned int multiboot_magic, mboot_inf
 	initKalloc();
 	p << "Memory allocators initialized\n";
 	
+	p << "sizeof(BinaryHeap<size_t>) = " << sizeof(BinaryHeap<size_t>) << "\n";
+    p << "sizeof(BinaryTree<size_t>) = " << sizeof(BinaryTree<size_t>) << "\n";
+
+	
 	p << "Testing the heap allocator\n";
 
 	for(int i = 0; i < 100; i++){
-		p << new int[100] << "\n";
+		auto pt = new int[100];
+		p << "Deleting pointer " << pt << "\n";
+		delete pt;
 	}
 
 	p << (void*)kernel_init << "\n";
