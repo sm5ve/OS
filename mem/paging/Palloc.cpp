@@ -4,10 +4,9 @@
 #include <klib/SerialPrinter.h>
 #include <stddef.h>
 
-extern uint32_t _kend;
-
 bool isAddressSystemReserved(uint32_t paddr){
-	if(paddr < 0x10000000){
+	if(paddr < 0x01000000){
+		//We'll just reserve all of low RAM, the first 14 MB of high RAM, as well as the ISA sinkhole
 		return true;
 	}
 	return false;

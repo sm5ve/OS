@@ -3,7 +3,14 @@
 
 #include <multiboot/multiboot.h>
 
-void initPalloc(mboot_mmap_entry* entries, uint32_t len);
+class PageAlloc{
+public:
+	PageAlloc(mboot_mmap_entry* entries, uint32_t entries_length);
+	~PageAlloc();
 
-void enterMirroredFlatPaging();
+	static PageAlloc the();
+private:
+	
+};
+
 #endif

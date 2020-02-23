@@ -1,9 +1,12 @@
-1. Rewrite multiboot.h so all structs are properly packed
-2. Load and parse the multiboot memory map
-3. Page frame allocator (linked list in each page, should be really simple and easy)
-4. Paging
-5. Remap IO/whatever into sensible ranges
-6. Write proper interrupt handlers
+1. Load and parse the multiboot memory map
+2. Page frame allocator
+3. Paging
+4. Remap IO/whatever into sensible ranges
+5. Write proper interrupt handlers
+
+Nice things:
+Hash map
+Wrap GDT and IDT in classes
 
 Medium-sized less immediate goals:
 Basic scheduler - really quick and dirty, just to try out context switching and establish a thread data structure
@@ -13,4 +16,4 @@ ELF parsing
 Loader
 
 
-:]Can we move the kernel base declaration into flags.h? Does that somehow work with the linker script?
+Can we move the kernel base declaration into flags.h? Does that somehow work with the linker script?
