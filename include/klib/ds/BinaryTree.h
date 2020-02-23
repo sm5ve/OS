@@ -29,12 +29,14 @@ class BinaryTreeNode{
 	public:
 		BinaryTreeNode<T>* left();
 		BinaryTreeNode<T>* right();
-
+		BinaryTreeNode<T>* getParent();
+	
 		T getValue();
 		uint32_t getNumberOfNodesBelow();
 	
 		bool isChild(BinaryTreeNode<T>* ptr);
-
+		bool isLeaf();
+	
 		void swap(BinaryTreeNode<T>* node);
 	private:
 		BinaryTree<T>* tree;
@@ -54,9 +56,12 @@ class BinaryTreeNode{
 		~BinaryTreeNode();
 
 		void remove(BinaryTreeNode<T>* ptr);
-		void replace(BinaryTreeNode<T>* child, BinaryTreeNode<T>* with);
 		void add(BinaryTreeNode<T>* ptr);
 		bool hasRoom();
+	private:
+		BinaryTreeNode();
+		
+		void switchOut(BinaryTreeNode<T>* node);
 };
 
 template <class T>
@@ -71,9 +76,24 @@ BinaryTreeNode<T>::BinaryTreeNode(T v, BinaryTree<T>* t){
 	nodes_below = 0;
 }
 
+//Only for internal use for implementing swap()
+template <class T>
+BinaryTreeNode<T>::BinaryTreeNode(){
+	tree = NULL;
+	parent = NULL;
+	l = NULL;
+	r = NULL;
+	nodes_below = 0;
+}
+
 template <class T>
 T BinaryTreeNode<T>::getValue(){
 	return value;
+}
+
+template <class T>
+BinaryTreeNode<T>* BinaryTreeNode<T>::getParent(){
+	return parent;
 }
 
 template <class T>
@@ -102,6 +122,11 @@ bool BinaryTreeNode<T>::isChild(BinaryTreeNode<T>* ptr){
 }
 
 template <class T>
+bool BinaryTreeNode<T>::isLeaf(){
+	return r == NULL && l == NULL;
+}
+
+template <class T>
 void BinaryTreeNode<T>::remove(BinaryTreeNode<T>* ptr){
    	assert(ptr -> tree == tree, "Error: tried to remove node from another tree");
 	if(l == ptr){
@@ -118,25 +143,6 @@ void BinaryTreeNode<T>::remove(BinaryTreeNode<T>* ptr){
 }
 
 template <class T>
-void BinaryTreeNode<T>::replace(BinaryTreeNode<T>* child, BinaryTreeNode<T>* with){
-    assert(child != NULL, "Error: tried to swap out null child.");
-	assert(with -> tree == tree, "Error: tried to swap out node with BinaryTreeNode from other tree");
-	if(l == child){
-        l = with;
-    }
-    else if(r == child){
-        r = with;
-    }
-    else{
-        assert(false, "Error: tried to swap out non-existent child from BinaryTreeNode");
-    }
-    child -> parent = NULL;
-    with -> parent = this;
-	this -> nodes_below -= child -> nodes_below;
-	this -> nodes_below += with -> nodes_below;
-}
-
-template <class T>
 void BinaryTreeNode<T>::add(BinaryTreeNode<T>* ptr){
 	assert(ptr -> tree == tree, "Error: tried to add BinaryTreeNode from other tree. This doesn't make sense!");
 	if(l == NULL){
@@ -148,7 +154,7 @@ void BinaryTreeNode<T>::add(BinaryTreeNode<T>* ptr){
 	else{
 		assert(false, "Error: tried to insert node into full BinaryTreeNode");
 	}
-	l -> parent = this;
+	ptr -> parent = this;
 	nodes_below++;
 }
 
@@ -158,71 +164,89 @@ bool BinaryTreeNode<T>::hasRoom(){
 }
 
 template <class T>
-void BinaryTreeNode<T>::swap(BinaryTreeNode<T>* node){
-	assert(node -> tree == this -> tree, "Error: tried to swap nodes between 2 different trees. This makes no sense!");
-    //Always make sure that if there's a parent-child relationship with the argument that this argument is the parent
-	//This simplifies the swapping code below
-	if(node -> parent == this){
-		node -> swap(this);
-	}
-	//Swap the values, nodes_below counter, and children
+void BinaryTreeNode<T>::switchOut(BinaryTreeNode<T>* node){
+	if(node == this)
+		return;
+	//First we swap the children
 	BinaryTreeNode<T>* nleft = node -> l;
 	BinaryTreeNode<T>* nright = node -> r;
-	T nval = node -> value;
-	uint32_t ncount = node -> nodes_below;
-
 	BinaryTreeNode<T>* old_left = l;
 	BinaryTreeNode<T>* old_right = r;
-	T old_val = value;
-	uint32_t old_count = nodes_below;
-
+	
+	if(node -> tree == NULL){
+		node -> tree = tree;
+	}
+	
 	node -> l = old_left;
 	node -> r = old_right;
-	node -> value = old_val;
-	node -> nodes_below = old_count;
-
 	l = nleft;
 	r = nright;
-	value = nval;
+	
+	//Update the children's parents
+	if(node -> l != NULL)
+		node -> l -> parent = node;
+	if(node -> r != NULL)
+		node -> r -> parent = node;
+	if(l != NULL)
+		l -> parent = this;
+	if(r != NULL)
+		r -> parent = this;
+
+	//Swap the nodes_below counts
+	uint32_t ncount = node -> nodes_below;
+	uint32_t old_count = nodes_below;
+	
+	node -> nodes_below = old_count;
 	nodes_below = ncount;
 
-	//We know that if there's a nontrivial parent-child relationship with the argument, that the argument will always be the parent. Since we've swapped the children and this was a child of node, this will be a child of itself. We need to swap this out for a reference to the former-parent
-	if(parent == node){
-		if(l == this){
-			l = node;
+	//Swap parent references
+	BinaryTreeNode<T>* nparent = node -> parent;
+	BinaryTreeNode<T>* old_parent = parent;
+
+	node -> parent = old_parent;
+	parent = nparent;
+
+	//Make sure to update tree root if applicable
+	if(node -> tree -> root == node){
+		node -> tree -> root = this;
+	}
+	else if(tree -> root == this){
+		tree -> root = node;
+	}
+
+	//Finally update parents' children
+	if(node -> parent != NULL){
+		if(node -> parent -> l == this){
+			node -> parent -> l = node;
 		}
-		else if(r == this){
-			r = node;
+		else if(node -> parent -> r == this){
+			node -> parent ->r = node;
 		}
 		else{
-			assert(false, "Error: swapped node with parent, but parent did not seem to have reference to child");
+			assert(false, "Error: parent does not know of child");
 		}
 	}
-	
-	//Back up the old parent so we can swap the parent pointers
-	BinaryTreeNode<T>* old_parent = parent;
-	//Finally swap the parents
-	//If the argument's parent is null, we verify that it's the root of the tree and then swap the parents and update the tree's root
-	if(node -> parent == NULL){
-		assert(tree -> root == node, "Error: tried to swap with orphan non-root node");
-		tree -> root = this;
+	if(parent != NULL){
+		if(parent -> l == node){
+			parent -> l = this;
+		}
+		else if(parent -> r == node){
+			parent -> r = this;
+		}
+		else{	
+			assert(false, "Error: parent does not know of child");
+		}
+	}
+}
 
-		this -> parent = NULL;
-		old_parent -> parent = this;
-	}
-	//We do the same if in fact this is already the root
-	else if(this -> parent == NULL){
-		assert(tree -> root == this, "Error: tried to swap with orphan non-root node");
-		tree -> root = node;
-	
-		this -> parent = node -> parent;
-		node -> parent = NULL;
-	}
-	//Otherwise, we can just swap their parents like normal
-	else{
-		this -> parent = node -> parent;
-		node -> parent = old_parent;
-	}
+template <class T>
+void BinaryTreeNode<T>::swap(BinaryTreeNode<T>* node){
+	assert(node -> tree == this -> tree, "Error: tried to swap nodes between 2 different trees. This makes no sense!");
+   	if(node == this) return;
+	BinaryTreeNode<T> temp;
+	switchOut(&temp);
+	temp.switchOut(node);
+	temp.switchOut(this);
 }
 
 template <class T>

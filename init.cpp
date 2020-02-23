@@ -9,7 +9,7 @@
 
 #include <mem.h>
 
-#include <klib/ds/BinaryTree.h>
+#include <klib/ds/BinaryHeap.h>
 
 extern uint32_t _kend;
 
@@ -25,7 +25,6 @@ extern "C" [[noreturn]] void kernel_init(unsigned int multiboot_magic, mboot_inf
 	SerialPrinter p(COMPort::COM1);
 	p << "\nMultiboot magic verified\n";
 	initKalloc();
-	
 	p << "Memory allocators initialized\n";
 	p << (void*)kernel_init << "\n";
 	p << "Installing the GDT\n";
