@@ -8,8 +8,7 @@
 #include <assert.h>
 
 #include <mem.h>
-
-#include <klib/ds/HashMap.h>
+#include <klib/ds/Intervals.h>
 
 extern uint32_t _kend;
 
@@ -28,6 +27,22 @@ extern "C" [[noreturn]] void kernel_init(unsigned int multiboot_magic, mboot_inf
 	initKalloc();
 	p << "Memory allocators initialized\n";
 
+	IntervalSet<int> set;
+	IntervalSet<int> set2;
+	
+	set.add(Interval<int>(-2,-1));
+	set.add(Interval<int>(1,2));
+
+	set2.add(Interval<int>(-1,1));
+	set2.add(Interval<int>(2,5));
+
+	p << set << "\n";
+	p << set2 << "\n";
+	
+	set.subtract(set2);
+	
+	p << set << "\n";
+	
 	p << "Installing the GDT\n";
 	installGDT();
 	p << "GDT installed!\n";	

@@ -55,11 +55,10 @@ void HashMap<K, V>::resize(size_t new_size){
 			node = node -> next();
 		}
 	} 
-	//assert(false, "Good so far!");	
+
 	delete[] data;
 	data = newLists;
 	capacity = new_size;
-	//assert(false, "Yay!");
 }
 
 template <class K, class V>
