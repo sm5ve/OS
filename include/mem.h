@@ -60,6 +60,7 @@ void initKalloc();
 void* kalloc(size_t size);
 void kfree(void* ptr);
 
+void initBumpHeap();
 void* kalloc_permanent(size_t size);
 void* kalloc_permanent(size_t, uint32_t alignment);
 

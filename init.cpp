@@ -50,6 +50,10 @@ extern "C" [[noreturn]] void kernel_init(unsigned int multiboot_magic, mboot_inf
 	installIDT();
 	p << "IDT installed!\n";
 
+	p << "Installing kernel page directory\n";
+	initializeKernelPaging();
+	p << "Installed!\n";
+	//for(;;);
 	p << (char*)((mboot -> bootloader_name) + 0xC0000000) << "\n";
 	
 	mboot_mmap_entry* entries = (mboot_mmap_entry*)((uint32_t)(mboot -> mmap_ptr) + 0xC0000000);
@@ -60,11 +64,11 @@ extern "C" [[noreturn]] void kernel_init(unsigned int multiboot_magic, mboot_inf
 	p << "Done!\n";
 	p << "_kend at " << &_kend << "\n";
 
-	//sti();
+	/*sti();
 
-	//for(;;){
-	//	asm("hlt");
-	//}
+	for(;;){
+		asm("hlt");
+	}*/
 	//DisableInterrupts d;
 	
 	outw(0x604, 0x2000); //shutdown qemu

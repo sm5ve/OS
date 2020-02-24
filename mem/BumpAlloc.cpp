@@ -2,11 +2,16 @@
 #include <flags.h>
 
 uint8_t bumpHeap[KERNEL_NOFREE_SIZE];
-void* bumpPtr = &bumpHeap;
+void* bumpPtr;
+
+void initBumpHeap(){
+	bumpPtr = bumpHeap;
+}
 
 void* kalloc_permanent(size_t size){
 	void* ret = bumpPtr;
 	bumpPtr += size;
+	memset(ret, 0, size);
 	return ret;
 }
 

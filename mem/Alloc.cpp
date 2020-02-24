@@ -29,6 +29,7 @@ void initKalloc(){
 	
 	heap_alloc = (HeapAlloc*)uninitialized_heap_alloc;
 	new (heap_alloc) HeapAlloc(KERNEL_HEAP, KERNEL_HEAP_SIZE, KERNEL_HEAP_PTRS, KERNEL_HEAP_GRANULARITY);
+	initBumpHeap();
 }
 
 void* kalloc(size_t size){
