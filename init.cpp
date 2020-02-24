@@ -53,6 +53,7 @@ extern "C" [[noreturn]] void kernel_init(unsigned int multiboot_magic, mboot_inf
 	p << "Installing kernel page directory\n";
 	initializeKernelPaging();
 	p << "Installed!\n";
+	
 	//for(;;);
 	p << (char*)((mboot -> bootloader_name) + 0xC0000000) << "\n";
 	
