@@ -14,7 +14,7 @@ OBJFILES := $(CPPOBJFILES) $(ASMOBJFILES)
 DEPFILES    := $(patsubst %.cpp,%.d,$(CPPFILES))
 
 CC := i686-elf-gcc
-CPPFLAGS ?=  
+CPPFLAGS ?= 
 
 INCLUDE=-I./include
 
@@ -30,12 +30,12 @@ CPPFLAGS := -ffreestanding -fno-exceptions -fno-rtti
 all: kernel
 
 kernel: $(OBJFILES)
-	$(CC) -T linker.ld -o kernel -ffreestanding -nostdlib $(OBJFILES) -lgcc
+	$(CC) -T linker.ld -o kernel -ffreestanding -nostdlib $(OBJFILES) -lgcc -g
 
 -include $(DEPFILES)
 
 %.cppo: %.cpp Makefile
-	@$(CC) $(CPPFLAGS) $(INCLUDE) $(WARNINGS) -fno-sized-deallocation -std=gnu++2a -c $< -o $@
+	@$(CC) $(CPPFLAGS) $(INCLUDE) $(WARNINGS) -fno-sized-deallocation -std=gnu++2a -c $< -o $@ -g
 
 %.sxo: %.sx Makefile
 	@$(CC) $(INCLUDE) -ffreestanding -c $< -o $@

@@ -65,6 +65,9 @@ extern "C" [[noreturn]] void kernel_init(unsigned int multiboot_magic, mboot_inf
 	p << "Done!\n";
 	p << "_kend at " << &_kend << "\n";
 
+	p << "Has ELF symbols " << ((mboot -> flags) & 0x20) << "\n";
+	p << (void*)(mboot -> elf_section_header.ptr) << "\n";
+		
 	/*sti();
 
 	for(;;){

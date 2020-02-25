@@ -37,6 +37,11 @@ SECTIONS
 		*(COMMON)
 		*(.bss)
 	}
+	
+	.debug_info ALIGN(4K) : AT(ADDR(.debug_info) - 0xC0000000)
+	{
+		*(.debug_info)
+	}
 	_kend = (. - 0xC0000000); 
 	/* The compiler may produce other sections, by default it will put them in
 	   a segment with the same name. Simply add stuff here as needed. */

@@ -1,0 +1,37 @@
+#define ISR_NO_ERR(x) \
+.global isr_ ##x ;\
+isr_ ##x ##: \
+cli;     \
+push $0; \
+push $x; \
+jmp isr_common;
+
+#define ISR_ERR(x) \
+.global isr_ ##x ;\
+isr_ ##x ##: \
+cli;     \
+push $x; \
+jmp isr_common; 
+
+ISR_NO_ERR(0)
+ISR_NO_ERR(1)
+ISR_NO_ERR(2)
+ISR_NO_ERR(3)
+ISR_NO_ERR(4)
+ISR_NO_ERR(5)
+ISR_NO_ERR(6)
+ISR_NO_ERR(7)
+ISR_ERR(8)
+ISR_NO_ERR(9)
+ISR_ERR(10)
+ISR_ERR(11)
+ISR_ERR(12)
+ISR_ERR(13)
+ISR_ERR(14)
+ISR_NO_ERR(15)
+
+.extern handleISR
+
+isr_common:
+
+hlt

@@ -69,6 +69,27 @@ void writeDescriptor(int index, uint16_t segmentSelector, uint32_t offset, bool 
 	}
 }
 
+#define INC_ISR(x) extern "C" void  isr_ ## x(); 
+#define INST_ISR(x) writeDescriptor(x, 0x08, (uint32_t)isr_ ##x, true, 0, GateType::INTERRUPT);
+
+INC_ISR(0)
+INC_ISR(1)
+INC_ISR(2)
+INC_ISR(3)
+INC_ISR(4)
+INC_ISR(5)
+INC_ISR(6)
+INC_ISR(7)
+INC_ISR(8)
+INC_ISR(9)
+INC_ISR(10)
+INC_ISR(11)
+INC_ISR(12)
+INC_ISR(13)
+INC_ISR(14)
+INC_ISR(15)
+
+
 void installIDT(){
 	//Initialize IDT to a state where no segments are present
 	SerialPrinter p(COMPort::COM1);
@@ -79,6 +100,23 @@ void installIDT(){
 	for(int i = 0; i < 256; i++){
 		writeDescriptor(i, 0x08, (uint32_t)test, true, 0, GateType::INTERRUPT);
 	}
+
+	INST_ISR(0)
+	INST_ISR(1)
+	INST_ISR(2)
+	INST_ISR(3)
+	INST_ISR(4)
+	INST_ISR(5)
+	INST_ISR(6)
+	INST_ISR(7)
+	INST_ISR(8)
+	INST_ISR(9)
+	INST_ISR(10)
+	INST_ISR(11)
+	INST_ISR(12)
+	INST_ISR(13)
+	INST_ISR(14)
+	INST_ISR(15)
 	flushIDT();
 }
 
