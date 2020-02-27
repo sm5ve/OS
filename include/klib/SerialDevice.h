@@ -12,23 +12,23 @@ enum COMPort : uint16_t{
 	COM4 = 0x2e8
 };
 
-class SerialPrinter;
+class SerialDevice;
 
-namespace SP{
-	SerialPrinter& the();
+namespace SD{
+	SerialDevice& the();
 	void init();
 }
 
-class SerialPrinter : public virtual PrintStream{
+class SerialDevice : public virtual PrintStream{
 public:
-	static SerialPrinter& the();
-	static SerialPrinter& the(COMPort);
+	static SerialDevice& the();
+	static SerialDevice& the(COMPort);
 	void put_char(const char c) override;
-	SerialPrinter();
+	SerialDevice();
 private:
 	bool isTransmitEmpty();
-	friend void SP::init();
-	SerialPrinter(COMPort p);
+	friend void SD::init();
+	SerialDevice(COMPort p);
 	COMPort port;		
 };
 #endif

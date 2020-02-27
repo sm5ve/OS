@@ -71,8 +71,6 @@ constexpr uint8_t segmentFlags(bool kernel, bool system, bool executable, bool r
 	(0 << 0);                    //CPU sets this flag if the segment is ever accessed
 }
 
-#include <klib/SerialPrinter.h>
-
 void installGDT(){
 	writeSegment(0, 0x00000000, 0x00000000, 0); //GDT must start with null segment
 	uint8_t codeFlags = segmentFlags(true, false, true, true);

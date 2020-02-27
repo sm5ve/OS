@@ -2,7 +2,6 @@
 #define PAGING
 
 #include <multiboot/multiboot.h>
-#include <klib/SerialPrinter.h>
 
 typedef void* phys_addr;
 typedef void* virt_addr;

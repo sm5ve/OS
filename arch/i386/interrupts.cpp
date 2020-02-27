@@ -1,6 +1,6 @@
 #include <arch/i386/proc.h>
 
-#include <klib/SerialPrinter.h>
+#include <klib/SerialDevice.h>
 
 struct __attribute__((__packed__)) idt_table_descriptor{
 	uint16_t size;
@@ -19,8 +19,8 @@ idt_table_descriptor idtDescriptor;
 int counter = 0;
 
 extern "C" void ibody(){
-	SP::the() << "Here!\n";
-	SP::the() << counter++ << "\n";
+	SD::the() << "Here!\n";
+	SD::the() << counter++ << "\n";
 	outb(0x20, 0x20);
 }
 

@@ -1,12 +1,12 @@
-#include <klib/SerialPrinter.h>
+#include <klib/SerialDevice.h>
 #include <arch/i386/proc.h>
 #include <klib/util/str.h>
 
 #include <mem.h>
 
-SerialPrinter ps[4];
+SerialDevice ps[4];
 
-SerialPrinter::SerialPrinter(COMPort p){
+SerialDevice::SerialDevice(COMPort p){
 	port = p;
 	outb(port + 1, (char) 0x00);    // Disable all interrupts
 	outb(port + 3, (char) 0x80);    // Enable DLAB (set baud rate divisor)
@@ -17,25 +17,25 @@ SerialPrinter::SerialPrinter(COMPort p){
 	outb(port + 4, (char) 0x0B);    // IRQs enabled, RTS/DSR set
 }
 
-SerialPrinter::SerialPrinter(){}
+SerialDevice::SerialDevice(){}
 
-bool SerialPrinter::isTransmitEmpty(){
+bool SerialDevice::isTransmitEmpty(){
 	return (inb(port + 5) & 20) == 0;
 }
 
-void SerialPrinter::put_char(const char c){
+void SerialDevice::put_char(const char c){
 	while(!isTransmitEmpty());
 	outb(port, c);
 }
 
-void SP::init(){
-	new (&ps[0]) SerialPrinter(COMPort::COM1);
-	new (&ps[1]) SerialPrinter(COMPort::COM2);
-	new (&ps[2]) SerialPrinter(COMPort::COM3);
-	new (&ps[3]) SerialPrinter(COMPort::COM4);
+void SD::init(){
+	new (&ps[0]) SerialDevice(COMPort::COM1);
+	new (&ps[1]) SerialDevice(COMPort::COM2);
+	new (&ps[2]) SerialDevice(COMPort::COM3);
+	new (&ps[3]) SerialDevice(COMPort::COM4);
 }
 
-SerialPrinter& SerialPrinter::the(COMPort c){
+SerialDevice& SerialDevice::the(COMPort c){
 	switch(c){
 	case COMPort::COM1:
 		return ps[0];
@@ -48,10 +48,10 @@ SerialPrinter& SerialPrinter::the(COMPort c){
 	}
 }
 
-SerialPrinter& SerialPrinter::the(){
+SerialDevice& SerialDevice::the(){
 	return the(COMPort::COM1);
 }
 
-SerialPrinter& SP::the(){
-	return SerialPrinter::the();
+SerialDevice& SD::the(){
+	return SerialDevice::the();
 }

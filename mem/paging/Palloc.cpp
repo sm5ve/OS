@@ -1,7 +1,7 @@
 #include <paging.h>
 #include <mem.h>
 #include <multiboot/multiboot.h>
-#include <klib/SerialPrinter.h>
+#include <klib/SerialDevice.h>
 #include <stddef.h>
 
 bool isAddressSystemReserved(uint32_t paddr){
@@ -15,7 +15,7 @@ bool isAddressSystemReserved(uint32_t paddr){
 void* nextFree = NULL;
 
 void initMemoryRegion(uint32_t addr, uint32_t len){
-	SerialPrinter::the() << "initializing memory region at " << (void*) addr << " with length " << (void*)len << "\n";
+	SD::the() << "initializing memory region at " << (void*) addr << " with length " << (void*)len << "\n";
 	for(uint32_t page = addr & ~(0xfff); page < addr + len; page += 4096){
 		if(!isAddressSystemReserved(page)){
 			*((void**)page) = nextFree;

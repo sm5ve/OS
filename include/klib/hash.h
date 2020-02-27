@@ -1,6 +1,8 @@
 #ifndef HASH
 #define HASH
 
+#include <stddef.h>
+
 template <class T>
 struct hash{};
 
