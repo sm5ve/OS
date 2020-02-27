@@ -15,8 +15,7 @@ bool isAddressSystemReserved(uint32_t paddr){
 void* nextFree = NULL;
 
 void initMemoryRegion(uint32_t addr, uint32_t len){
-	SerialPrinter p(COMPort::COM1);
-	p << "initializing memory region at " << (void*) addr << " with length " << (void*)len << "\n";
+	SerialPrinter::the() << "initializing memory region at " << (void*) addr << " with length " << (void*)len << "\n";
 	for(uint32_t page = addr & ~(0xfff); page < addr + len; page += 4096){
 		if(!isAddressSystemReserved(page)){
 			*((void**)page) = nextFree;

@@ -2,7 +2,9 @@
 #include <arch/i386/proc.h>
 #include <klib/util/str.h>
 
-SerialPrinter::SerialPrinter(){}
+#include <mem.h>
+
+SerialPrinter ps[4];
 
 SerialPrinter::SerialPrinter(COMPort p){
 	port = p;
@@ -15,50 +17,41 @@ SerialPrinter::SerialPrinter(COMPort p){
 	outb(port + 4, (char) 0x0B);    // IRQs enabled, RTS/DSR set
 }
 
+SerialPrinter::SerialPrinter(){}
+
 bool SerialPrinter::isTransmitEmpty(){
 	return (inb(port + 5) & 20) == 0;
 }
 
-SerialPrinter& SerialPrinter::operator<<(const char c){
+void SerialPrinter::put_char(const char c){
 	while(!isTransmitEmpty());
 	outb(port, c);
-	return *this;
 }
 
-SerialPrinter& SerialPrinter::operator<<(const char* c){
-	for(;*c != 0; c++){
-		*this << *c;
+void SP::init(){
+	new (&ps[0]) SerialPrinter(COMPort::COM1);
+	new (&ps[1]) SerialPrinter(COMPort::COM2);
+	new (&ps[2]) SerialPrinter(COMPort::COM3);
+	new (&ps[3]) SerialPrinter(COMPort::COM4);
+}
+
+SerialPrinter& SerialPrinter::the(COMPort c){
+	switch(c){
+	case COMPort::COM1:
+		return ps[0];
+	case COMPort::COM2:
+		return ps[1];
+	case COMPort::COM3:
+		return ps[2];
+	case COMPort::COM4:
+		return ps[3];
 	}
-	return *this;
 }
 
-SerialPrinter& SerialPrinter::operator<<(const void* ptr){
-	char str[100];
-	paddedItoa((uint32_t)ptr, str, 16, 8);
-	*this << "0x" << str;
-	return *this;
+SerialPrinter& SerialPrinter::the(){
+	return the(COMPort::COM1);
 }
 
-SerialPrinter& SerialPrinter::operator<<(const bool b){
-	if(b){
-		*this << "true";
-	}
-	else{
-		*this << "false";
-	}
-	return *this;
-}
-
-SerialPrinter& SerialPrinter::operator<<(const int i){
-	char str[100];
-	itoa(i, str, 10);
-	*this << str;
-	return *this;
-}
-
-SerialPrinter& SerialPrinter::operator<<(const uint32_t i){
-	char str[100];
-	itoa(i, str, 10);
-	*this << str;
-	return *this;
+SerialPrinter& SP::the(){
+	return SerialPrinter::the();
 }

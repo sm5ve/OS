@@ -1,6 +1,8 @@
 #ifndef STRUTIL
 #define STRUTIL
 
+#include <stddef.h>
+
 extern const char* digits;// = "0123456789abcdefghijklmnopqrstuvwxyz";
 
 template <class T>
@@ -57,4 +59,10 @@ void paddedItoa(T value, char* str, int base, int length){
         str[i] = b;
     }
 }
+
+size_t strlen(const char*);
+char* strcpy(char*, const char*);
+int strcmp(const char*, const char*);
+char* strcat(char*, const char*);
+
 #endif

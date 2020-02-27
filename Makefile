@@ -14,6 +14,7 @@ OBJFILES := $(CPPOBJFILES) $(ASMOBJFILES)
 DEPFILES    := $(patsubst %.cpp,%.d,$(CPPFILES))
 
 CC := i686-elf-gcc
+NM := i686-elf-nm
 CPPFLAGS ?= 
 
 INCLUDE=-I./include
@@ -32,6 +33,9 @@ all: kernel
 kernel: $(OBJFILES)
 	$(CC) -T linker.ld -o kernel -ffreestanding -nostdlib $(OBJFILES) -lgcc -g
 
+kernel.map: kernel
+	$(NM) kernel > kernel.map
+
 -include $(DEPFILES)
 
 %.cppo: %.cpp Makefile
@@ -44,10 +48,10 @@ run: kernel
 	@qemu-system-x86_64 -m 1G -serial stdio -kernel kernel
 
 term: kernel
-	@qemu-system-x86_64 -m 1G -nographic -no-reboot -d cpu_reset -kernel kernel
+	@qemu-system-x86_64 -m 1G -nographic -no-reboot -d cpu_reset -kernel kernel -initrd "kernel"
 
 ints: kernel
 	@qemu-system-x86_64 -m 1G -nographic -d int,cpu_reset -no-reboot -kernel kernel
 
 clean:
-	-@$(RM) $(wildcard $(OBJFILES) kernel)
+	-@$(RM) $(wildcard $(OBJFILES) kernel kernel.map)

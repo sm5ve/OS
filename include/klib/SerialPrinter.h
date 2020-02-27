@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <klib/util/str.h>
+#include <klib/PrintStream.h>
 
 enum COMPort : uint16_t{
 	COM1 = 0x3f8,
@@ -11,19 +12,23 @@ enum COMPort : uint16_t{
 	COM4 = 0x2e8
 };
 
-class SerialPrinter{
-	public:
-		SerialPrinter(COMPort p);
-		SerialPrinter();
-		
-		SerialPrinter& operator<<(const char c);
-		SerialPrinter& operator<<(const char* c);			
-		SerialPrinter& operator<<(const void* ptr);
-		SerialPrinter& operator<<(const bool b);
-		SerialPrinter& operator<<(const int i);
-		SerialPrinter& operator<<(const uint32_t i);
-	private:
-		bool isTransmitEmpty();
-		COMPort port;		
+class SerialPrinter;
+
+namespace SP{
+	SerialPrinter& the();
+	void init();
+}
+
+class SerialPrinter : public virtual PrintStream{
+public:
+	static SerialPrinter& the();
+	static SerialPrinter& the(COMPort);
+	void put_char(const char c) override;
+	SerialPrinter();
+private:
+	bool isTransmitEmpty();
+	friend void SP::init();
+	SerialPrinter(COMPort p);
+	COMPort port;		
 };
 #endif

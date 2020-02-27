@@ -1,7 +1,7 @@
 #ifndef TUPLE
 #define TUPLE
 
-#include <klib/SerialPrinter.h>
+#include <klib/PrintStream.h>
 
 template <class A, class B>
 class Tuple{
@@ -27,7 +27,7 @@ template <class A, class B>
 Tuple<A,B>::~Tuple(){}
 
 template <class A, class B>
-SerialPrinter& operator<<(SerialPrinter& p, Tuple<A,B> t){
+PrintStream& operator<<(PrintStream& p, Tuple<A,B> t){
 	p << "Tuple(" << t.a << ", " << t.b << ")";
 	return p;
 }

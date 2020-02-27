@@ -5,7 +5,7 @@
 #include <klib/ds/Tuple.h>
 #include <klib/ds/Maybe.h>
 
-#include <klib/SerialPrinter.h>
+#include <klib/PrintStream.h>
 
 template <class T>
 class Interval{
@@ -180,13 +180,13 @@ T Interval<T>::getEnd() const{
 }
 
 template <class T>
-SerialPrinter& operator<<(SerialPrinter& p, const Interval<T>& i){
+PrintStream& operator<<(PrintStream& p, const Interval<T>& i){
 	p << "Interval(" << i.getStart() << ", " << i.getEnd() << ")";
 	return p;
 }
 
 template <class T>
-SerialPrinter& operator<<(SerialPrinter& p, IntervalSet<T>& s){
+PrintStream& operator<<(PrintStream& p, IntervalSet<T>& s){
 	LinkedList<Interval<T>>* list = s.getIntervals();
 	LinkedListNode<Interval<T>>* node = list -> head();
 	p << "IntervalSet(";

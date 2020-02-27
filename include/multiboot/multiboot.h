@@ -25,7 +25,7 @@
 
 #include <stdint.h>
 
-typedef struct __attribute__((packed)) mboot_info{
+struct __attribute__((packed)) mboot_info{
 	uint32_t flags;
 
 	uint32_t mem_lower;
@@ -103,6 +103,13 @@ struct __attribute__((packed)) mboot_mmap_entry{
 	uint64_t addr;
 	uint64_t len;
 	uint32_t type;
+};
+
+struct __attribute__((packed)) mboot_module{
+	uint32_t start_addr;
+	uint32_t end_addr;
+	uint32_t name_ptr;
+	uint32_t reserved;
 };
 
 #endif

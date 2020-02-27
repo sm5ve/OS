@@ -19,9 +19,8 @@ idt_table_descriptor idtDescriptor;
 int counter = 0;
 
 extern "C" void ibody(){
-	SerialPrinter p(COMPort::COM1);
-	p << "Here!\n";
-	p << counter++ << "\n";
+	SP::the() << "Here!\n";
+	SP::the() << counter++ << "\n";
 	outb(0x20, 0x20);
 }
 
@@ -92,7 +91,6 @@ INC_ISR(15)
 
 void installIDT(){
 	//Initialize IDT to a state where no segments are present
-	SerialPrinter p(COMPort::COM1);
 	for(int i = 0; i < 256; i++){
 		writeDescriptor(i, 0, 0, false, 0, GateType::INTERRUPT);
 	}

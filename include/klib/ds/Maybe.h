@@ -1,7 +1,7 @@
 #ifndef MAYBE
 #define MAYBE
 
-#include <klib/SerialPrinter.h>
+#include <klib/PrintStream.h>
 
 template <class T>
 class Maybe{
@@ -49,7 +49,7 @@ T Maybe<T>::value() const{
 }
 
 template <class T>
-SerialPrinter& operator<<(SerialPrinter& p, const Maybe<T>& m){
+PrintStream& operator<<(PrintStream& p, const Maybe<T>& m){
 	if(m.has_value()){
 		p << "Maybe(" << m.value() << ")";
 	}
