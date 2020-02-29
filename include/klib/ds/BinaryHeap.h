@@ -41,7 +41,6 @@ void BinaryHeap<T>::rebalance(BinaryTreeNode<T>* node){
 			}
 		}
 		else{
-			BinaryTreeNode<T>* old_parent = node -> getParent();
 			if(node -> getParent() -> getValue() < node -> getValue()){
 				node -> swap(node -> getParent());
 				rebalance(node);

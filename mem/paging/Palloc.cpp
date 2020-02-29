@@ -4,7 +4,10 @@
 #include <klib/SerialDevice.h>
 #include <stddef.h>
 
-bool isAddressSystemReserved(uint32_t paddr){
+//This whole Palloc interface is probably going to get thrown away next week, so we'll just
+//comment it out for now
+
+/*bool isAddressSystemReserved(uint32_t paddr){
 	if(paddr < 0x01000000){
 		//We'll just reserve all of low RAM, the first 14 MB of high RAM, as well as the ISA sinkhole
 		return true;
@@ -41,6 +44,6 @@ void* getPage(){
 void installPD(void* pd){
     __asm__ volatile("movl %0, %%cr3\n" \
                     :: "r"(pd));
-}
+}*/
 
 

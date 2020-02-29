@@ -112,4 +112,6 @@ PrintStream& operator<<(PrintStream& p, const ELFHeader32* h){
 	p << "Start of section headers:\t" << (h -> section_header_off) << " bytes from start\n";
 	p << "Section header entry size:\t" << (h -> section_header_entry_size) << " bytes\n";
 	p << "Section header entry count:\t" << (h -> section_header_entry_count) << "\n";
+
+	return p;
 }

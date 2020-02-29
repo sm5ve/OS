@@ -10,7 +10,7 @@ String::String() : String(""){}
 String::String(const char* str){
 	len = strlen(str);
 	if(len != 0){
-		cap = len * 1.5;
+		cap = len + (len >> 1);
 	}
 	else{
 		cap = 16;
@@ -85,7 +85,7 @@ String::String(long n, int base){
 
 String::String(uint64_t n, int base){
 	size_t size = 0;
-	int m = n;
+	uint64_t m = n;
 	while(m > 0){
 		size++;
 		m /= base;
@@ -96,11 +96,11 @@ String::String(uint64_t n, int base){
 	itoa(n, buffer, base);
 }
 
-String::String(float x){
+String::String(__attribute__((unused)) float x){
 	assert(false, "Unimplemented!");
 }
 
-String::String(double x){
+String::String(__attribute__((unused)) double x){
 	assert(false, "Unimplemented!");
 }
 

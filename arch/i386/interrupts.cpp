@@ -43,17 +43,17 @@ void writeDescriptor(int index, uint16_t segmentSelector, uint32_t offset, bool 
 	uint8_t* entry = &idt[index * 8];
 
 	//Set the segment selector
-	entry[2] = segmentSelector & 0xff;
-	entry[3] = (segmentSelector >> 8) & 0xff;
+	entry[2] = (uint8_t)(segmentSelector & 0xff);
+	entry[3] = (uint8_t)((segmentSelector >> 8) & 0xff);
 	//Set the offset (unused when type = TASK)
-	entry[0] = offset & 0xff;
-	entry[1] = (offset >> 8) & 0xff;
-	entry[6] = (offset >> 16) & 0xff;
-	entry[7] = (offset >> 24) & 0xff;
+	entry[0] = (uint8_t)(offset & 0xff);
+	entry[1] = (uint8_t)((offset >> 8) & 0xff);
+	entry[6] = (uint8_t)((offset >> 16) & 0xff);
+	entry[7] = (uint8_t)((offset >> 24) & 0xff);
 	//Set flags
 	entry[5] = 0;
-	entry[5] |= (present ? (1 << 7) : 0);
-	entry[5] |= (ring << 5);
+	entry[5] |= (uint8_t)((present ? (1 << 7) : 0));
+	entry[5] |= (uint8_t)(ring << 5);
 	entry[4] = 0;
 	//Finally set the type of the descriptor
 	switch(type){

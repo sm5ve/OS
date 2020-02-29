@@ -24,6 +24,11 @@ private:
 	size_t slab_size;
 	uint8_t* freed_map;
 	void* free_ptr;
+
+	void writeFreeSlab(uint32_t index, void* nextFree);
+	void setFreedState(uint32_t index, bool bit);
+	bool isSlabFree(uint32_t index);
+	uint32_t ptrToIndex(void* ptr);
 };
 
 class HeapAlloc{
@@ -66,6 +71,6 @@ void* kalloc_permanent(size_t, uint32_t alignment);
 
 inline void *operator new(size_t, void *p)     throw() { return p; }
 inline void *operator new[](size_t, void *p)   throw() { return p; }
-inline void  operator delete  (void *, void *) throw() { };
-inline void  operator delete[](void *, void *) throw() { };
+inline void  operator delete  (void *, void *) throw() { }
+inline void  operator delete[](void *, void *) throw() { }
 #endif

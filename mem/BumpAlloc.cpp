@@ -10,7 +10,7 @@ void initBumpHeap(){
 
 void* kalloc_permanent(size_t size){
 	void* ret = bumpPtr;
-	bumpPtr += size;
+	bumpPtr = (void*)((uint32_t)bumpPtr + size);
 	memset(ret, 0, size);
 	return ret;
 }
@@ -20,6 +20,6 @@ void* kalloc_permanent(size_t size, uint32_t alignment){
 	offset = offset % alignment;
 	offset = alignment - offset;
 	offset = offset % alignment;
-	bumpPtr += offset;
+	bumpPtr = (void*)((uint32_t)bumpPtr + offset);
 	return kalloc_permanent(size);
 }

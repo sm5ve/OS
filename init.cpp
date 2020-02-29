@@ -12,10 +12,14 @@
 #include <klib/ds/String.h>
 #include <elf/elf.h>
 
+//Since kernel_init has a lot of testing code, we sometimes get used variables for older tests that are commented out
+//Hence, while the kernel's still largely in flux, we'll disable unused variable warnings for now
+#pragma GCC diagnostic ignored "-Wunused-variable"
+
 extern uint32_t _kend;
 
 void load_modules(mboot_module* modules, uint32_t count){
-	for(int i = 0; i < count; i++){
+	for(uint32_t i = 0; i < count; i++){
 		String modName((char*)(modules[i].name_ptr + 0xC0000000));
 		SD::the() << modName << "\n";
 		if(modName == "kernel"){
@@ -53,26 +57,21 @@ extern "C" [[noreturn]] void kernel_init(unsigned int multiboot_magic, mboot_inf
 	SD::the() << "Installed!\n";
 	
 	//for(;;);
-	SD::the() << (char*)((mboot -> bootloader_name) + 0xC0000000) << "\n";
-	
 	mboot_mmap_entry* entries = (mboot_mmap_entry*)((uint32_t)(mboot -> mmap_ptr) + 0xC0000000);
 	uint32_t len = mboot -> mmap_len;
 	//enterMirroredFlatPaging();
 	
-	//initPalloc(entries, len);
-	SD::the() << "Done!\n";
-	SD::the() << "_kend at " << &_kend << "\n";
-	
+	//initPalloc(entries, len);	
 	load_modules((mboot_module*)(mboot -> mods_ptr + 0xC0000000), mboot -> mods_count);
 
-	/*sti();
-
-	for(;;){
-		asm("hlt");
-	}*/
+	//sti();
 	//DisableInterrupts d;
 	
 	outw(0x604, 0x2000); //shutdown qemu
-
+	for(;;){
+		__asm__ ("hlt");
+	}
 }
+
+#pragma GCC diagnostic pop
 

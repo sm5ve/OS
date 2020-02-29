@@ -9,7 +9,7 @@ HeapAlloc::HeapAlloc(void* b, size_t s, uint32_t* pbuff, size_t gran){
 	buffer_size = s;
 	node_ptrs = pbuff;
 	granularity = gran;
-	BinaryTreeNode<size_t>* base = heap -> makeNode(s, NULL, buffer);
+	heap -> makeNode(s, NULL, buffer); //Set up the initial unallocated heap
 	updatePtrBuffer(buffer, buffer_size, true);
 }
 
@@ -22,9 +22,9 @@ uint32_t HeapAlloc::ptrToIndex(void* ptr){
 }
 
 void HeapAlloc::updatePtrBuffer(void* ptr, size_t size, bool free){
-	for(int i = 0; i < size/granularity; i++){
+	for(uint32_t i = 0; i < size/granularity; i++){
 		uint32_t ind = ptrToIndex(ptr) + i;
-		assert((ind >= 0) && (ind < buffer_size / granularity), "Error: index out of bounds");
+		assert((ind < buffer_size / granularity), "Error: index out of bounds");
 		if(!free){
 			node_ptrs[ind] = (uint32_t)size;
 		}
@@ -117,7 +117,6 @@ void HeapAlloc::free(void* ptr){
 	
 	BinaryTreeNode<size_t>* next = (BinaryTreeNode<size_t>*)((uint32_t)node + size);
 	if((uint32_t)next < (uint32_t) buffer + buffer_size){
-		uint32_t val = node_ptrs[ptrToIndex(next)];
 		if(isPtrFree(next)){
 			mergeAdjacentChunks(node, next);
 		}

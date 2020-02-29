@@ -6,7 +6,7 @@
 
 bool first_panic_layer = true;
 
-void [[noreturn]] panic(const char* message){
+void panic(const char* message){
 	if(!first_panic_layer){
 		SD::the() << "KERNEL DOUBLE PANIC\n";
 		SD::the() << message << "\n";
@@ -21,7 +21,7 @@ void [[noreturn]] panic(const char* message){
 	for(;;);
 }
 
-void [[noreturn]] panic(const char* message, const char* filename, const char* func, int lineno){
+void panic(const char* message, const char* filename, const char* func, int lineno){
 	if(!first_panic_layer){
 		SD::the() << "KERNEL DOUBLE PANIC\n";
 		SD::the() << "FILE:   " << filename << "\n";

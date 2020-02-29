@@ -46,6 +46,8 @@ SerialDevice& SerialDevice::the(COMPort c){
 	case COMPort::COM4:
 		return ps[3];
 	}
+	assert(false, "Invalid COM number");
+	return ps[0]; //FIXME is there a better way to supress the GCC warning here?
 }
 
 SerialDevice& SerialDevice::the(){

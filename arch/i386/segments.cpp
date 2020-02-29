@@ -34,8 +34,8 @@ void writeSegment(int index, uint32_t base, uint32_t limit, uint8_t access){
 	entry[3] = (base >> 8) & 0xff;
 	entry[4] = (base >> 16) & 0xff;
 	entry[5] = access;
-	entry[6] = ((limit >> 16) & 0x0f) | (0xc0);
-	entry[7] = (base >> 24) & 0xff;
+	entry[6] = (uint8_t)(((limit >> 16) & 0x0f) | (0xc0));
+	entry[7] = (uint8_t)((base >> 24) & 0xff);
 }
 
 void flushGDT(){
@@ -61,14 +61,14 @@ void flushGDT(){
 }
 
 constexpr uint8_t segmentFlags(bool kernel, bool system, bool executable, bool rw){
-	return
+	return (uint8_t)(
 	(1 << 7)                    |//Set 'present' flag (required for all valid segment selectors
 	((kernel ? 0 : 3) << 5)     |//Set privilege level of segment
 	((system ? 0 : 1) << 4)     |//If bit 4 is unset, we declare this a system segment
 	((executable ? 1 : 0) << 3) |
 	(0 << 2)                    |//We'll always assume our segment grows up
 	((rw ? 1 : 0) << 1)         |//If this is a code segment, rw = false prevents reading from the segment, if this is a data segment, rw = false prevents writing to this segment
-	(0 << 0);                    //CPU sets this flag if the segment is ever accessed
+	(0 << 0));                    //CPU sets this flag if the segment is ever accessed
 }
 
 void installGDT(){
