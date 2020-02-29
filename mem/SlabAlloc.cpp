@@ -34,6 +34,7 @@ SlabAlloc::~SlabAlloc(){
 
 void* SlabAlloc::alloc(){
 	void* out = this -> free_ptr;
+	assert(out != NULL, "Error: out is somehow null. This is insane\n");
 	void* next = (void*)*((uint32_t*) out);
 	assert(next != NULL, "Error: out of memory in slab allocator");
 	if(freed_map){

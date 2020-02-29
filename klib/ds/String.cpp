@@ -3,6 +3,7 @@
 #include <mem.h>
 #include <assert.h>
 #include <stddef.h>
+#include <klib/SerialDevice.h>
 
 String::String() : String(""){}
 
@@ -184,6 +185,19 @@ bool String::operator>(const String& str) const{
 
 bool String::operator==(const String& str) const{
 	return strcmp(buffer, str.buffer) == 0;
+}
+
+bool String::operator==(const char*& str) const{
+	return *this == String(str);
+}
+
+String& String::operator=(const String& str){
+	delete buffer;
+	buffer = new char[str.cap];
+	cap = str.cap;
+	len = str.len;
+	strcpy(buffer, str.buffer);
+	return *this;
 }
 
 PrintStream& operator<<(PrintStream& p, const String& str){

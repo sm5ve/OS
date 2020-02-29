@@ -1,5 +1,9 @@
 #include <mem.h>
 #include <assert.h>
+#include <klib/SerialDevice.h>
+#include <debug.h>
+
+//#define DEBUG_PRINTS
 
 uint8_t SLAB_8_BUFF[KERNEL_SLAB_8_SIZE];
 uint8_t SLAB_16_BUFF[KERNEL_SLAB_16_SIZE];
@@ -33,15 +37,34 @@ void initKalloc(){
 }
 
 void* kalloc(size_t size){
+	void* out = NULL;
 	for(int i = 0; i < 4; i++){
 		if(size <= slab_allocs[i].getSlabSize()){
-			return slab_allocs[i].alloc();
+			out = slab_allocs[i].alloc();
+			#ifdef DEBUG_PRINTS
+			SD::the() << "Malloc'd using slab allocator of size " << slab_allocs[i].getSlabSize() << " for ptr ";
+			#endif
+			break;
 		}
 	}
-	return heap_alloc -> alloc(size);
+	if(out == NULL){
+		#ifdef DEBUG_PRINTS
+		SD::the() << "Malloc'd using heap allocator for ptr ";
+		#endif
+		out = heap_alloc -> alloc(size);
+	}
+	#ifdef DEBUG_PRINTS
+	SD::the() << out << "\n";
+	stackTrace();
+	#endif
+	return out;
 }
 
 void kfree(void* ptr){
+	#ifdef DEBUG_PRINTS
+	SD::the() << "Freeing " << ptr << "\n";
+	stackTrace();
+	#endif
 	if(heap_alloc -> isInHeap(ptr)){
 		heap_alloc -> free(ptr);
 		return;

@@ -5,7 +5,7 @@
 #include <klib/ds/LinkedList.h>
 #include <assert.h>
 #include <klib/hash.h>
-
+#include <klib/SerialDevice.h>
 template <class K, class V>
 class HashMap{
 public:
@@ -46,7 +46,7 @@ HashMap<K,V>::~HashMap(){
 template <class K, class V>
 void HashMap<K, V>::resize(size_t new_size){
 	LinkedList<Tuple<K,V>>* newLists = new LinkedList<Tuple<K,V>>[new_size];
-
+	//SD::the() << "Resizing hashmap\n";
 	for(int i = 0; i < capacity; i++){
 		LinkedList<Tuple<K,V>>* list = &data[i];
 		LinkedListNode<Tuple<K,V>>* node = list -> head();

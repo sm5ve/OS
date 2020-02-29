@@ -12,6 +12,8 @@ public:
 
 	A a;
 	B b;
+
+	Tuple<A,B>& operator=(const Tuple<A,B>&);
 };
 
 template <class A, class B>
@@ -30,6 +32,13 @@ template <class A, class B>
 PrintStream& operator<<(PrintStream& p, Tuple<A,B> t){
 	p << "Tuple(" << t.a << ", " << t.b << ")";
 	return p;
+}
+
+template <class A, class B>
+Tuple<A,B>& Tuple<A,B>::operator=(const Tuple<A,B>& t){
+	this -> a = t.a;
+	this -> b = t.b;
+	return *this;
 }
 
 #endif

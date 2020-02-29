@@ -1,6 +1,9 @@
 #ifndef LINKED_LIST
 #define LINKED_LIST
 
+#include <assert.h>
+#include <klib/SerialDevice.h>
+
 template <class T>
 class LinkedList;
 
@@ -40,6 +43,8 @@ public:
 
 	LinkedListNode<T>* find(T);
 
+	LinkedListNode<T>* get(uint32_t);
+
 	void remove(LinkedListNode<T>*);
 private:
 	LinkedListNode<T> first;
@@ -54,6 +59,7 @@ LinkedList<T>::LinkedList(){
 
 template <class T>
 LinkedList<T>::~LinkedList(){
+	//SD::the() << "Deleting linked list\n";
 	while(head() != end()){
 		remove(head());
 	}
@@ -154,5 +160,17 @@ LinkedListNode<T>* LinkedListNode<T>::next(){
 template <class T>
 LinkedListNode<T>* LinkedListNode<T>::previous(){
 	return p;
+}
+
+template <class T>
+LinkedListNode<T>* LinkedList<T>::get(uint32_t index){
+	LinkedListNode<T>* out = this -> head();
+	for(int i = 0; i < index; i++){
+		if(out == this -> end()){
+			return NULL;
+		}
+		out = out -> next();
+	}
+	return out;
 }
 #endif

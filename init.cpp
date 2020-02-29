@@ -10,12 +10,20 @@
 #include <mem.h>
 #include <klib/ds/Intervals.h>
 #include <klib/ds/String.h>
+#include <elf/elf.h>
 
 extern uint32_t _kend;
 
 void load_modules(mboot_module* modules, uint32_t count){
 	for(int i = 0; i < count; i++){
-		SD::the() << (char*)(modules[i].name_ptr + 0xC0000000) << "\n";
+		String modName((char*)(modules[i].name_ptr + 0xC0000000));
+		SD::the() << modName << "\n";
+		if(modName == "kernel"){
+			SD::the() << "Found the kernel!" << "\n";
+			void* kstart = (void*)(modules[i].start_addr + 0xC0000000);
+			ELF elf(kstart);
+			SD::the() << elf.getHeader32() << "\n";
+		}
 	}
 }
 
@@ -32,22 +40,6 @@ extern "C" [[noreturn]] void kernel_init(unsigned int multiboot_magic, mboot_inf
 	SD::the() << "Multiboot magic verified\n";
 	initKalloc();
 	SD::the() << "Memory allocators initialized\n";
-
-	IntervalSet<int> set;
-	IntervalSet<int> set2;
-	
-	set.add(Interval<int>(-2,-1));
-	set.add(Interval<int>(1,2));
-
-	set2.add(Interval<int>(-1,1));
-	set2.add(Interval<int>(2,5));
-
-	SD::the() << set << "\n";
-	SD::the() << set2 << "\n";
-	
-	set.subtract(set2);
-	
-	SD::the() << set << "\n";
 	
 	SD::the() << "Installing the GDT\n";
 	installGDT();
@@ -71,13 +63,6 @@ extern "C" [[noreturn]] void kernel_init(unsigned int multiboot_magic, mboot_inf
 	SD::the() << "Done!\n";
 	SD::the() << "_kend at " << &_kend << "\n";
 	
-	SD::the() << "Testing strings\n";
-	String hello = String("Hello ");
-	String world = String("world! ");
-	String val = String(69 + 420);
-
-	SD::the() << hello + world << "\n";
-
 	load_modules((mboot_module*)(mboot -> mods_ptr + 0xC0000000), mboot -> mods_count);
 
 	/*sti();
