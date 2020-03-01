@@ -111,6 +111,7 @@ void HeapAlloc::mergeAdjacentChunks(BinaryTreeNode<size_t>* left, BinaryTreeNode
 void HeapAlloc::free(void* ptr){
 	assert(isInHeap(ptr), "Error: tried to free heap outside of pointer");
 	assert(!isPtrFree(ptr), "Error: double free");
+	assert(((uint32_t)ptr - (uint32_t)buffer) % granularity != 4, "Error: I think you deleted where you should've delete[]'d");
 	assert(((uint32_t)ptr - (uint32_t)buffer) % granularity == 0, "Error: tried to free misaligned pointer");
 
 	size_t size = node_ptrs[ptrToIndex(ptr)];

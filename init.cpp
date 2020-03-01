@@ -47,13 +47,8 @@ extern "C" [[noreturn]] void kernel_init(unsigned int multiboot_magic, mboot_inf
 	initKalloc();
 	SD::the() << "Memory allocators initialized\n";
 
-	SD::the() << "Stress-testing vectors\n";
-	Vector<int> vec;
-	for(int i = 0; i < 100; i++){
-		vec.push(i);
-	}
-	SD::the() << "Done!\n";
-
+	auto arr = new Vector<int>[20];
+	delete arr;
 	
 	SD::the() << "Installing the GDT\n";
 	installGDT();
