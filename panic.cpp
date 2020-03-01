@@ -1,6 +1,7 @@
 #include <panic.h>
 #include <interrupts.h>
 #include <klib/SerialDevice.h>
+#include <debug.h>
 
 #include <arch/i386/proc.h> //temp
 
@@ -18,6 +19,7 @@ void panic(const char* message){
 	SD::the() << "KERNEL PANIC\n";
 	SD::the() << message << "\n";
 	outw(0x604, 0x2000); //temporary
+	stackTrace();
 	for(;;);
 }
 
@@ -38,6 +40,7 @@ void panic(const char* message, const char* filename, const char* func, int line
 	SD::the() << "FUNC:   " << func << "\n";
 	SD::the() << "LINENO: " << lineno << "\n";
 	SD::the() << message << "\n";
+	stackTrace();
 	outw(0x604, 0x2000); //temporary
 	for(;;);
 }

@@ -1,6 +1,8 @@
 #ifndef VECTOR
 #define VECTOR
 
+#include <mem.h>
+
 template <class T>
 class Vector{
 public:
@@ -14,7 +16,7 @@ public:
 	void push(T);
 	T pop();
 	size_t size();
-private:
+//private:
 	T* buffer;
 	size_t count;
 	size_t capacity;
@@ -30,7 +32,8 @@ template <class T>
 Vector<T>::Vector(size_t initial_capacity){
 	count = 0;
 	capacity = initial_capacity;
-	buffer = new T[capacity];
+	void* buff = new T[initial_capacity];//kalloc(sizeof(T) * initial_capacity);
+	buffer = (T*)buff;
 }
 
 template <class T>
@@ -86,8 +89,9 @@ void Vector<T>::resize(size_t newSize){
 	assert(newSize >= count, "Error: resized to be too small");
 	T* newBuffer = new T[newSize];
 	memcpy(newBuffer, buffer, capacity * sizeof(T));
+	memset(buffer, 0, capacity * sizeof(T));
 	capacity = newSize;
-	delete buffer;
+	delete [] buffer;
 	buffer = newBuffer;
 }
 

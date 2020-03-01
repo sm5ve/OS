@@ -2,6 +2,8 @@
 #include <klib/SerialDevice.h>
 
 DWARF::DWARF(ELF& elf){
+	SD::the() << "ranges buffer at " << ranges.buffer << "\n";
+//	assert(false, "");
 	auto aranges = elf.getSectionHeader(".debug_aranges");
 	assert(aranges != NULL, "Error: missing aranges");
 	void* ptr = elf.getSectionBase(aranges);

@@ -1,11 +1,13 @@
 #include <mem.h>
 #include <klib/ds/BinaryHeap.h>
 #include <assert.h>
+#include <klib/SerialDevice.h>
 
 HeapAlloc::HeapAlloc(void* b, size_t s, uint32_t* pbuff, size_t gran){
 	heap = (BinaryHeap<size_t>*)uninitialized_heap;
 	new (heap) BinaryHeap<size_t>(false);
 	buffer = b;
+	SD::the() << "Heap buffer aligned at " << b << "\n";
 	buffer_size = s;
 	node_ptrs = pbuff;
 	granularity = gran;
@@ -85,6 +87,7 @@ void* HeapAlloc::alloc(size_t size){
 	BinaryTreeNode<size_t>* to_shrink = findNextBiggestNode(size);
 	shrinkNode(to_shrink, size);
 	memset((void*)to_shrink, 0, size);
+	assert(((uint32_t)to_shrink - (uint32_t)buffer) % granularity == 0, "Error: allocated misaligned memory\n");
 	return (void*)to_shrink;	
 }
 
@@ -108,7 +111,8 @@ void HeapAlloc::mergeAdjacentChunks(BinaryTreeNode<size_t>* left, BinaryTreeNode
 void HeapAlloc::free(void* ptr){
 	assert(isInHeap(ptr), "Error: tried to free heap outside of pointer");
 	assert(!isPtrFree(ptr), "Error: double free");
-	
+	assert(((uint32_t)ptr - (uint32_t)buffer) % granularity == 0, "Error: tried to free misaligned pointer");
+
 	size_t size = node_ptrs[ptrToIndex(ptr)];
 	
 	BinaryTreeNode<size_t>* node = heap -> makeNode(size, NULL, ptr);
@@ -124,6 +128,7 @@ void HeapAlloc::free(void* ptr){
 	if((uint32_t)node != (uint32_t)buffer){
 		BinaryTreeNode<size_t>* prev = (BinaryTreeNode<size_t>*)node_ptrs[ptrToIndex(node) - 1];
 		if(isInHeap(prev)){
+			//This is where we're having our issue
 			mergeAdjacentChunks(prev, node);
 		}
 	}

@@ -88,7 +88,7 @@ void *operator new(size_t size)
  
 void *operator new[](size_t size)
 {
-    return kalloc(size);
+	return kalloc(size);
 }
  
 void operator delete(void *p)
