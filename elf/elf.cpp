@@ -54,6 +54,10 @@ ELFSectionHeader32* ELF::getSectionHeader(String sectionName){
 	return NULL;
 }
 
+void* ELF::getSectionBase(ELFSectionHeader32* hdr){
+	return (void*)((uint32_t)base + hdr -> offset);
+}
+
 PrintStream& operator<<(PrintStream& p, const ELFHeader32* h){
 	p << "ELF class:\t\t\t";
 	switch(h -> elf_class){

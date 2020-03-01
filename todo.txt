@@ -1,12 +1,17 @@
+Debugging stuff:
+
+Stack traces
+	Addr2line
+		DWARF
+			LEB128 decoder
+			Line Number Program simulator
+i686-elf-objdump --dwarf=str kernel  | less			
+
 1. Load and parse the multiboot memory map
 2. Page frame allocator
 3. Paging
 4. Remap IO/whatever into sensible ranges
 5. Write proper interrupt handlers
-
-Nice things:
-Hash map
-Wrap GDT and IDT in classes
 
 Medium-sized less immediate goals:
 Basic scheduler - really quick and dirty, just to try out context switching and establish a thread data structure
@@ -14,6 +19,5 @@ PCI, ACHI
 File system stuff
 ELF parsing
 Loader
-
 
 Can we move the kernel base declaration into flags.h? Does that somehow work with the linker script?

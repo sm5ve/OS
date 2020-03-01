@@ -53,6 +53,7 @@ public:
 	String getSectionNameForIndex(uint32_t);
 	String getStringForIndex(uint32_t);
 
+	void* getSectionBase(ELFSectionHeader32*);
 private:
 	void* base; 
 };

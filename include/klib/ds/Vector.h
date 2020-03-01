@@ -43,7 +43,7 @@ Vector<T>::Vector(T* elems, size_t ct){
 
 template <class T>
 Vector<T>::~Vector(){
-	delete buffer;
+	delete [] buffer;
 }
 
 template <class T>
@@ -63,7 +63,7 @@ template <class T>
 void Vector<T>::push(T elem){
 	count++;
 	//I do not understand why, but the preceeding this -> seems to be necessary here, and only here
-	this -> resizeIfNeccesary();
+	resizeIfNecessary();
 	buffer[count - 1] = elem;
 }
 

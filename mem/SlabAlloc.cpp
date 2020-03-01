@@ -1,6 +1,7 @@
 #include <flags.h>
 #include <mem.h>
 #include <assert.h>
+#include <debug.h>
 
 #define ZERO_MEMORY
 
@@ -43,6 +44,9 @@ void* SlabAlloc::alloc(){
 void SlabAlloc::free(void* ptr){
 	assert(this -> isPtrInRange(ptr), "Error: tried to free ptr outside of slab allocator buffer range");
 	if(freed_map){
+		if(isSlabFree(ptrToIndex(ptr))){
+			stackTrace();
+		}
 		assert(!isSlabFree(ptrToIndex(ptr)), "Error: double free");
 	}
 	assert(((uint32_t) ptr - (uint32_t)buffer) % slab_size == 0, "Error: attempted to free misaligned pointer");

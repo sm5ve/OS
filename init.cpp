@@ -11,6 +11,7 @@
 #include <klib/ds/Intervals.h>
 #include <klib/ds/String.h>
 #include <elf/elf.h>
+#include <elf/dwarf.h>
 
 //Since kernel_init has a lot of testing code, we sometimes get used variables for older tests that are commented out
 //Hence, while the kernel's still largely in flux, we'll disable unused variable warnings for now
@@ -27,6 +28,7 @@ void load_modules(mboot_module* modules, uint32_t count){
 			void* kstart = (void*)(modules[i].start_addr + 0xC0000000);
 			ELF elf(kstart);
 			SD::the() << elf.getHeader32() << "\n";
+			DWARF dwarf(elf);
 		}
 	}
 }
