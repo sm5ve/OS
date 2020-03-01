@@ -37,6 +37,8 @@ public:
 	void subtract(Interval<T> in);
 	void subtract(IntervalSet<T>& ints);
 	
+	bool in(T elem);
+
 	LinkedList<Interval<T>>* getIntervals(); //TODO maybe make a read-only view for linked lists
 private:
 	LinkedList<Interval<T>> intervals;
@@ -106,6 +108,18 @@ void IntervalSet<T>::subtract(IntervalSet<T>& set){
 		subtract(node -> value);
 		node = node -> next();
 	}
+}
+
+template <class T>
+bool IntervalSet<T>::in(T elem){
+	auto node = this -> intervals.head();
+	while(node != this -> intervals.end()){
+		if(node -> value.in(elem)){
+			return true;
+		}
+		node = node -> nex();
+	}
+	return false;
 }
 
 template<class T>
