@@ -2,6 +2,7 @@
 #define LINKED_LIST
 
 #include <assert.h>
+#include <stddef.h>
 #include <klib/SerialDevice.h>
 
 template <class T>
@@ -46,6 +47,8 @@ public:
 	LinkedListNode<T>* get(uint32_t);
 
 	void remove(LinkedListNode<T>*);
+
+	size_t length();
 private:
 	LinkedListNode<T> first;
 	LinkedListNode<T> last;
@@ -170,6 +173,17 @@ LinkedListNode<T>* LinkedList<T>::get(uint32_t index){
 			return NULL;
 		}
 		out = out -> next();
+	}
+	return out;
+}
+
+template <class T>
+size_t LinkedList<T>::length(){
+	size_t out = 0;
+	auto node = head();
+	while(node != end()){
+		out++;
+		node = node -> next();
 	}
 	return out;
 }

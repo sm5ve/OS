@@ -1,12 +1,46 @@
 #include <elf/dwarf.h>
+#include <elf/dwarf_consts.h>
 #include <klib/SerialDevice.h>
 
-DWARF::DWARF(ELF& elf){
-	SD::the() << "ranges buffer at " << ranges.buffer << "\n";
-//	assert(false, "");
-	auto aranges = elf.getSectionHeader(".debug_aranges");
+uint32_t decodeULEB128(void*& ptr){
+	uint32_t out = 0;
+	for(int i = 0;; i++){
+		assert(i < 5, "Error: attempted to decode ULEB128 integer larger than uint32_t");
+		uint8_t byte = *(char*)ptr;
+		ptr = (void*)((uint32_t)ptr + 1);
+		out |= (byte & 0x7f) << (7 * i);
+		if((byte & 0x80) == 0){
+			break;
+		}
+	}
+	return out;
+}
+
+int decodeSLEB128(void*& ptr){
+	int out = 0;
+	int shift = 0;
+	uint8_t byte;
+	while(true){
+		assert(shift < 32, "Error: attempted to decode SLEB128 integer larger than int");
+		byte = *(char*)ptr;
+		ptr = (void*)((uint32_t)ptr + 1);
+		out |= (byte & 0x7f) << shift;
+		shift += 7;
+		if((byte & 0x80) == 0){
+			break;
+		}
+	}
+	if((shift < 32) && ((byte & 0x40) != 0)){
+		out |= (~0 << shift);
+	}
+	return out;
+}
+
+DWARF::DWARF(ELF* e){
+	elf = e;
+	auto aranges = elf -> getSectionHeader(".debug_aranges");
 	assert(aranges != NULL, "Error: missing aranges");
-	void* ptr = elf.getSectionBase(aranges);
+	void* ptr = elf -> getSectionBase(aranges);
 	uint32_t end = (uint32_t)ptr + aranges -> size;
 	while((uint32_t)ptr < end){
 		DWARF_aranges_header header = *(DWARF_aranges_header*)ptr;
@@ -16,18 +50,81 @@ DWARF::DWARF(ELF& elf){
 		ptr = (void*)((uint32_t)ptr + header.length + 4);
 		auto set = new IntervalSet<uint32_t>();
 		for(uint32_t i = 0; (addrs[i] != 0) || (addrs[i + 1] != 0); i += 2){
-			set -> add(Interval<uint32_t>(addrs[i], addrs[i] + addrs[i + 1]));
+			set -> add(Interval<uint32_t>(addrs[i], addrs[i] + addrs[i + 1] - 1));
 		}
 		ranges.push(DWARFRange(set, header.info_offset, header.version));
-	}
-	for(uint32_t i = 0; i < ranges.size(); i++){
-		SD::the() << (void*)ranges[i].info_offset << "\n";
-		SD::the() << *ranges[i].ranges << "\n";
 	}
 }
 
 DWARF::~DWARF(){
 	
+}
+
+uint32_t DWARF::getCUOffsetForAddr(void* ptr){
+	for(uint32_t i = 0; i < ranges.size(); i++){
+		if(ranges[i].ranges -> in((uint32_t)ptr)){
+			return ranges[i].info_offset;
+		}
+	}
+	return CU_NOT_FOUND;
+}
+
+Tuple<uint32_t, char*> DWARF::getLineForAddr(void* ptr){
+	SD::the() << "Addr " << ptr << "\n";	
+	uint32_t cuOffset = getCUOffsetForAddr(ptr);
+	SD::the() << "CU offset " << (void*)cuOffset << "\n";
+	auto info = elf -> getSectionHeader(".debug_info");
+	void* sectionStart = elf -> getSectionBase(info);
+	void* cuStart = (void*)((uint32_t)sectionStart + cuOffset);
+	DWARF_info_header* header = (DWARF_info_header*)cuStart;
+	SD::the() << "CU length     " << (void*)(header -> length) << "\n";
+	SD::the() << "CU version    " << header -> version << "\n";
+	SD::the() << "Abbrev offset " << (void*)(header -> abbrev_offset) << "\n";
+	SD::the() << "Addr size     " << header -> addr_size << "\n";
+
+	assert(header -> version == 4, "Error: don't know how to parse CU's with version != 4");
+	assert(header -> addr_size == 4, "Error: don't know how to handle differently sized addresses");
+
+	auto abbrevs = decodeAbbrev(header -> abbrev_offset);
+	void* p = (void*)((uint32_t)header + sizeof(DWARF_info_header));
+
+	void* p_backup = p;
+	uint32_t name = decodeULEB128(p_backup);
+	assert(abbrevs -> contains(name) && (abbrevs -> get(name) -> tag_type == DW_TAG_compile_unit), "Error: somehow CU doesn't start with compilation unit");
+
+	//TODO we have to delete the DWARFSchemas too.
+	//Or perhaps just make a new memory allocator for this - that's probably a better solution
+	delete abbrevs;
+
+	return Tuple<uint32_t, char*>(0, NULL);
+}
+
+DWARFSchema* tryParseDWARFSchema(void*& ptr){
+	void* p = ptr;
+	uint32_t name = decodeULEB128(p);
+	void* pt = p;
+	uint32_t type = decodeULEB128(pt);
+	if(name == 0){
+		ptr = pt;
+		return NULL;
+	}
+	return new DWARFSchema(ptr);
+}
+
+HashMap<uint32_t, DWARFSchema*>* DWARF::decodeAbbrev(uint32_t offset){
+	auto abbrevHeader = elf -> getSectionHeader(".debug_abbrev");
+	void* sectionStart = elf -> getSectionBase(abbrevHeader);
+	void* ptr = (void*)((uint32_t)sectionStart + offset);
+	
+	auto list = new HashMap<uint32_t, DWARFSchema*>();
+	while(true){
+		DWARFSchema* schema = tryParseDWARFSchema(ptr);
+		if(schema == NULL){
+			break;
+		}
+		list -> put(schema -> abbrev_code, schema);
+	}
+	return list;
 }
 
 DWARFRange::DWARFRange(IntervalSet<uint32_t>* set, uint32_t offset, uint16_t ver){
@@ -42,4 +139,28 @@ DWARFRange::DWARFRange(){
 
 DWARFRange::~DWARFRange(){
 	//delete ranges;
+}
+
+DWARFSchema::DWARFSchema(void*& ptr){
+	abbrev_code = decodeULEB128(ptr);
+	tag_type = decodeULEB128(ptr);
+	char c = *(char*)ptr;
+	ptr = (void*)((uint32_t)ptr + 1);
+	if(c == DW_CHILDREN_no){
+		has_children = false;
+	}
+	else if(c == DW_CHILDREN_yes){
+		has_children = true;
+	}
+	else{
+		assert(false, "Error: malformed DWARF schema");
+	}
+	while(true){
+		uint32_t name = decodeULEB128(ptr);
+		uint32_t form = decodeULEB128(ptr);
+		if((name == 0) && (form == 0)){
+			break;
+		}
+		schema.put(name, form);
+	}
 }

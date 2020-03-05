@@ -16,7 +16,7 @@ public:
 	void push(T);
 	T pop();
 	size_t size();
-//private:
+private:
 	T* buffer;
 	size_t count;
 	size_t capacity;

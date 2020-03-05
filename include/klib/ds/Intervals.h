@@ -117,7 +117,7 @@ bool IntervalSet<T>::in(T elem){
 		if(node -> value.in(elem)){
 			return true;
 		}
-		node = node -> nex();
+		node = node -> next();
 	}
 	return false;
 }

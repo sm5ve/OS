@@ -14,6 +14,20 @@ size_t operator()(const int i){
 }
 };
 
+template<> struct hash<uint32_t>
+{
+size_t operator()(const uint32_t i){
+	return (size_t)i;
+}
+};
+
+template<> struct hash<uint64_t>
+{
+size_t operator()(const uint64_t i){
+	return (size_t)i;
+}
+};
+
 /*template<> struct hash<void*>
 {
 size_t operator()(const void* ptr){

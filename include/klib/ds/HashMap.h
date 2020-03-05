@@ -7,6 +7,8 @@
 #include <klib/hash.h>
 #include <klib/SerialDevice.h>
 template <class K, class V>
+
+//TODO maybe add a method to delete all values and/or keys?
 class HashMap{
 public:
 	HashMap(size_t initial_capacity = 10, float load_factor = 0.75);
@@ -46,7 +48,6 @@ HashMap<K,V>::~HashMap(){
 template <class K, class V>
 void HashMap<K, V>::resize(size_t new_size){
 	LinkedList<Tuple<K,V>>* newLists = new LinkedList<Tuple<K,V>>[new_size];
-	//SD::the() << "Resizing hashmap\n";
 	for(int i = 0; i < capacity; i++){
 		LinkedList<Tuple<K,V>>* list = &data[i];
 		LinkedListNode<Tuple<K,V>>* node = list -> head();
@@ -70,6 +71,7 @@ bool HashMap<K,V>::put(K key, V value, LinkedList<Tuple<K,V>>* dat, size_t cap){
 			node -> value.b = value;
 			false;
 		}
+		node = node -> next();
 	}
 	list -> add(Tuple(key, value));
 	return true;

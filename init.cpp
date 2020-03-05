@@ -28,7 +28,8 @@ void load_modules(mboot_module* modules, uint32_t count){
 			void* kstart = (void*)(modules[i].start_addr + 0xC0000000);
 			ELF elf(kstart);
 			SD::the() << elf.getHeader32() << "\n";
-			DWARF dwarf(elf);
+			DWARF dwarf(&elf);
+			dwarf.getLineForAddr((void*)load_modules);
 		}
 	}
 }
@@ -36,19 +37,12 @@ void load_modules(mboot_module* modules, uint32_t count){
 extern "C" [[noreturn]] void kernel_init(unsigned int multiboot_magic, mboot_info* mboot){	
 	SD::init();
 
-	#ifndef MULTIBOOT_2
 	assert(multiboot_magic == MULTIBOOT_BOOTLOADER_MAGIC, "Error: Multiboot magic does not match. Aborting boot.");
-	#else
-	assert(multiboot_magic == MULTIBOOT2_BOOTLOADER_MAGIC, "Error: Multiboot 2 magic does not match. Aborting boot.");
-	#endif
 
 	SD::the() << "\n";
 	SD::the() << "Multiboot magic verified\n";
 	initKalloc();
 	SD::the() << "Memory allocators initialized\n";
-
-	auto arr = new Vector<int>[20];
-	delete arr;
 	
 	SD::the() << "Installing the GDT\n";
 	installGDT();
