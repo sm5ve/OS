@@ -38,7 +38,7 @@ public:
 	bool operator==(const char*&) const;
 	String& operator=(const String&); //I'm not quite sure if this is the behavior that I want, but I think it might be.
 	friend PrintStream& operator<<(PrintStream&, const String& str);
-
+	friend PrintStream& operator<<(PrintStream&, const String* str);
 private:
 	int cap;
 	int len;

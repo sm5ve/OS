@@ -203,3 +203,7 @@ String& String::operator=(const String& str){
 PrintStream& operator<<(PrintStream& p, const String& str){
 	return p << str.buffer;
 }
+
+PrintStream& operator<<(PrintStream& p, const String* str){
+	return p << *str;
+}

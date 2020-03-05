@@ -33,9 +33,6 @@ all: kernel
 kernel: $(OBJFILES)
 	$(CC) -T linker.ld -o kernel -ffreestanding -nostdlib $(OBJFILES) -lgcc -g
 
-kernel.map: kernel
-	$(NM) kernel > kernel.map
-
 -include $(DEPFILES)
 
 %.cppo: %.cpp Makefile
@@ -45,13 +42,17 @@ kernel.map: kernel
 	@$(CC) $(INCLUDE) -ffreestanding -c $< -o $@
 
 run: kernel
-	@qemu-system-x86_64 -m 1G -serial stdio -kernel kernel
+	@objcopy --only-keep-debug kernel kernel.sym
+	@objcopy --strip-debug kernel
+	@qemu-system-x86_64 -m 1G -serial stdio -kernel kernel -initrd "kernel.sym"
 
 term: kernel
-	@qemu-system-x86_64 -m 1G -nographic -no-reboot -d cpu_reset -kernel kernel -initrd "kernel"
+	@objcopy --only-keep-debug kernel kernel.sym
+	@objcopy --strip-debug kernel
+	@qemu-system-x86_64 -m 1G -nographic -no-reboot -d cpu_reset -kernel kernel -initrd "kernel.sym"
 
 ints: kernel
 	@qemu-system-x86_64 -m 1G -nographic -d int,cpu_reset -no-reboot -kernel kernel
 
 clean:
-	-@$(RM) $(wildcard $(OBJFILES) kernel kernel.map)
+	-@$(RM) $(wildcard $(OBJFILES) kernel kernel.sym)

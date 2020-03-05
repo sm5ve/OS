@@ -92,6 +92,11 @@ Tuple<uint32_t, char*> DWARF::getLineForAddr(void* ptr){
 	uint32_t name = decodeULEB128(p_backup);
 	assert(abbrevs -> contains(name) && (abbrevs -> get(name) -> tag_type == DW_TAG_compile_unit), "Error: somehow CU doesn't start with compilation unit");
 
+	DWARFDIE die(p, abbrevs, elf);
+
+	SD::the() << "Source file " << (String*)die.value(DW_AT_name) << "\n";
+	SD::the() << "Statment list offset " << (void*)*(uint32_t*)die.value(DW_AT_stmt_list) << "\n";
+	
 	//TODO we have to delete the DWARFSchemas too.
 	//Or perhaps just make a new memory allocator for this - that's probably a better solution
 	delete abbrevs;
@@ -161,6 +166,85 @@ DWARFSchema::DWARFSchema(void*& ptr){
 		if((name == 0) && (form == 0)){
 			break;
 		}
-		schema.put(name, form);
+		fields.push(Tuple<uint32_t, uint32_t>(name, form));
 	}
+}
+
+String* getDWARFString(uint32_t offset, ELF* elf){
+	auto header = elf -> getSectionHeader(".debug_str");
+	void* ptr = elf -> getSectionBase(header);
+	char* c_str = (char*)((uint32_t)ptr + offset);
+	return new String(c_str);
+}
+
+void* parseDIETag(void*& ptr, uint32_t type, ELF* elf){
+	switch(type){
+		case DW_FORM_addr:
+			{
+				void** addr = new void*;
+				*addr = (void*)*(uint32_t*)ptr;
+				ptr = (void*)((uint32_t)ptr + 4);
+				return addr;
+			}
+		case DW_FORM_data2:
+			{
+				uint64_t* val = new uint64_t;
+				*val = (uint64_t)*(uint16_t*)ptr;
+				ptr = (void*)((uint32_t)ptr + 2);
+				return val;
+			}
+		case DW_FORM_data4:
+			{
+				uint64_t* val = new uint64_t;
+				*val = (uint64_t)*(uint32_t*)ptr;
+				ptr = (void*)((uint32_t)ptr + 4);
+				return val;
+			}
+		case DW_FORM_data8:
+			{
+				uint64_t* val = new uint64_t;
+				*val = *(uint64_t*)ptr;
+				ptr = (void*)((uint32_t)ptr + 8);
+				return val;
+			}
+		case DW_FORM_data1:
+			{
+				uint64_t* val = new uint64_t;
+				*val = (uint64_t)*(uint8_t*)ptr;
+				ptr = (void*)((uint32_t)ptr + 1);
+				return val;
+			}
+		case DW_FORM_strp:
+			{ 
+				uint32_t offset = *(uint32_t*)ptr; 
+				ptr = (void*)((uint32_t)ptr + 4); 
+				return getDWARFString(offset, elf);
+			}
+		case DW_FORM_sec_offset:
+			{
+				uint32_t* out = new uint32_t;
+				*out = *(uint32_t*)ptr;
+				ptr = (void*)((uint32_t)ptr + 4);
+				return out;
+			}
+		default: assert(false, "Unimplemented DWARF tag type");
+	}
+}
+
+DWARFDIE::DWARFDIE(void*& ptr, HashMap<uint32_t, DWARFSchema*>* schemas, ELF* elf){
+	uint32_t abbrev_type = decodeULEB128(ptr);
+	assert(schemas -> contains(abbrev_type), "Error: unknown schema type");
+	DWARFSchema* schema = schemas -> get(abbrev_type);
+	for(int i = 0; i < schema -> fields.size(); i++){
+		auto field = schema -> fields[i];
+		SD::the() << "name " << field.a << " type " << field.b << "\n";
+		map.put(field.a, parseDIETag(ptr, field.b, elf));
+	}
+}
+
+void* DWARFDIE::value(uint32_t name){
+	if(map.contains(name)){
+		return map.get(name);
+	}
+	return NULL;
 }

@@ -40,14 +40,45 @@ public:
 	uint32_t abbrev_code;
 	uint32_t tag_type;
 	bool has_children;
-	HashMap<uint32_t, uint32_t> schema;
+	Vector<Tuple<uint32_t, uint32_t>> fields;
 };
 
 class DWARFDIE{
 public:
-	DWARFDIE(void*& ptr, Vector<DWARFSchema*>*);
+	DWARFDIE(void*& ptr, HashMap<uint32_t, DWARFSchema*>*, ELF*);
+	void* value(uint32_t name);
 private:
-	DWARFSchema* schema;
+	HashMap<uint32_t, void*> map;
+};
+
+class DWARFLineStateMachine{
+public:
+	DWARFLineStateMachine(void*& ptr);
+	Maybe<Tuple<uint32_t, char*>> getLineForAddr(void*);
+private:
+	void* statements_start;
+	void* section_end;
+	bool default_it_stmt;
+	uint8_t min_inst_len;
+	int8_t line_base;
+	uint8_t line_range;
+	uint8_t opcode_base;
+	
+	uint32_t addr;
+	uint32_t op_index;
+	uint32_t file;
+	uint32_t line;
+	uint32_t col;
+	bool is_stmt;
+	bool basic_block;
+	bool end_seq;
+	bool prologue_end;
+	bool epilogue_begin;
+	uint32_t isa;
+	uint32_t discriminator;
+
+	void reset();
+	void advance();
 };
 
 class DWARF{

@@ -23,13 +23,14 @@ void load_modules(mboot_module* modules, uint32_t count){
 	for(uint32_t i = 0; i < count; i++){
 		String modName((char*)(modules[i].name_ptr + 0xC0000000));
 		SD::the() << modName << "\n";
-		if(modName == "kernel"){
-			SD::the() << "Found the kernel!" << "\n";
+		if(modName == "kernel.sym"){
+			SD::the() << "Found the kernel symbols!" << "\n";
 			void* kstart = (void*)(modules[i].start_addr + 0xC0000000);
 			ELF elf(kstart);
 			SD::the() << elf.getHeader32() << "\n";
 			DWARF dwarf(&elf);
 			dwarf.getLineForAddr((void*)load_modules);
+			dwarf.getLineForAddr((void*)kalloc);
 		}
 	}
 }
