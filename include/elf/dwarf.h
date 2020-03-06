@@ -76,7 +76,7 @@ private:
 class DWARFLineStateMachine{
 public:
 	DWARFLineStateMachine(uint32_t index, ELF* e);
-	Maybe<Tuple<uint32_t, char*>> getLineForAddr(void*);
+	Maybe<Tuple<uint32_t, String>> getLineForAddr(void*);
 private:
 	void* statements_start;
 	void* section_end;
@@ -114,7 +114,7 @@ public:
 	DWARF(ELF*);
 	~DWARF();
 
-	Tuple<uint32_t, char*> getLineForAddr(void*);
+	Tuple<uint32_t, String> getLineForAddr(void*);
 private:
 	Vector<DWARFRange> ranges;
 	ELF* elf;

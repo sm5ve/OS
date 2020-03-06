@@ -69,19 +69,12 @@ uint32_t DWARF::getCUOffsetForAddr(void* ptr){
 	return CU_NOT_FOUND;
 }
 
-Tuple<uint32_t, char*> DWARF::getLineForAddr(void* ptr){
-	SD::the() << "Addr " << ptr << "\n";	
+Tuple<uint32_t, String> DWARF::getLineForAddr(void* ptr){
 	uint32_t cuOffset = getCUOffsetForAddr(ptr);
-	SD::the() << "CU offset " << (void*)cuOffset << "\n";
 	auto info = elf -> getSectionHeader(".debug_info");
 	void* sectionStart = elf -> getSectionBase(info);
 	void* cuStart = (void*)((uint32_t)sectionStart + cuOffset);
 	DWARF_info_header* header = (DWARF_info_header*)cuStart;
-	SD::the() << "CU length     " << (void*)(header -> length) << "\n";
-	SD::the() << "CU version    " << header -> version << "\n";
-	SD::the() << "Abbrev offset " << (void*)(header -> abbrev_offset) << "\n";
-	SD::the() << "Addr size     " << header -> addr_size << "\n";
-
 	assert(header -> version == 4, "Error: don't know how to parse CU's with version != 4");
 	assert(header -> addr_size == 4, "Error: don't know how to handle differently sized addresses");
 
@@ -93,19 +86,16 @@ Tuple<uint32_t, char*> DWARF::getLineForAddr(void* ptr){
 	assert(abbrevs -> contains(name) && (abbrevs -> get(name) -> tag_type == DW_TAG_compile_unit), "Error: somehow CU doesn't start with compilation unit");
 
 	DWARFDIE die(p, abbrevs, elf);
-
-	SD::the() << "Source file " << (String*)die.value(DW_AT_name) << "\n";
-	SD::the() << "Statment list offset " << (void*)*(uint32_t*)die.value(DW_AT_stmt_list) << "\n";
-
 	DWARFLineStateMachine sm(*(uint32_t*)die.value(DW_AT_stmt_list), elf);
 	
 	//TODO we have to delete the DWARFSchemas too.
 	//Or perhaps just make a new memory allocator for this - that's probably a better solution
 	delete abbrevs;
 
-	sm.getLineForAddr(ptr);
+	auto result = sm.getLineForAddr(ptr);
+	SD::the() << result << "\n";
 
-	return Tuple<uint32_t, char*>(0, NULL);
+	return Tuple<uint32_t, String>(0, "");
 }
 
 DWARFSchema* tryParseDWARFSchema(void*& ptr){
@@ -241,7 +231,6 @@ DWARFDIE::DWARFDIE(void*& ptr, HashMap<uint32_t, DWARFSchema*>* schemas, ELF* el
 	DWARFSchema* schema = schemas -> get(abbrev_type);
 	for(int i = 0; i < schema -> fields.size(); i++){
 		auto field = schema -> fields[i];
-		SD::the() << "name " << field.a << " type " << field.b << "\n";
 		map.put(field.a, parseDIETag(ptr, field.b, elf));
 	}
 }
@@ -258,7 +247,6 @@ DWARFLineStateMachine::DWARFLineStateMachine(uint32_t index, ELF* e){
 	void* ptr = e -> getSectionBase(lines_section_header);
 	ptr = (void*)((uint32_t)ptr + index);
 	DWARF_line_header* header = (DWARF_line_header*)ptr;
-	SD::the() << "Version " << header -> version << "\n";
 	assert(header -> opcode_base == 13, "Error: don't know how to deal with nonstandard opcodes"); //FIXME this is kind of a hack
 	
 	statements_start = (void*)((uint32_t)&(header -> min_instruction_length) + (header -> header_length));
@@ -310,27 +298,27 @@ void DWARFLineStateMachine::reset(){
 	just_ended_sequence = false;
 }
 
-Maybe<Tuple<uint32_t, char*>> DWARFLineStateMachine::getLineForAddr(void* ptr){
+Maybe<Tuple<uint32_t, String>> DWARFLineStateMachine::getLineForAddr(void* ptr){
 	reset();
 	void* ip = statements_start;	
 
 	while(ip < section_end){
 		if(step(ip)){
 			if(addr == (uint32_t)ptr){
-				SD::the() << "line " << line << "\n";
-				assert(false, "Found it!");
+				auto fe = files[file - 1];
+				String fname(fe.name);
+				String dir(directories[fe.directory - 1]);
+				String path = dir + "/" + fname;
+				return Maybe<Tuple<uint32_t, String>>(Tuple<uint32_t, String>(line, path));
 			}
-			SD::the() << "addr " << (void*) addr << "\n";
-			SD::the() << "line " << line << "\n";
 		}
 	}
-	return Maybe<Tuple<uint32_t, char*>>();
+	return Maybe<Tuple<uint32_t, String>>();
 }
 
 bool DWARFLineStateMachine::step(void*& ip){
 	uint8_t opcode = *(uint8_t*)ip;
 	ip = (void*)((uint32_t)ip + 1);
-	SD::the() << "opcode " << (uint32_t)opcode << "\n";
 	if(did_copy || did_special){
 		discriminator = 0;
 		basic_block = false;
@@ -391,7 +379,6 @@ bool DWARFLineStateMachine::step(void*& ip){
 		ip = (void*)((uint32_t)ip + 1);
 		uint8_t ext_opcode = *(uint8_t*)ip;
 		ip = (void*)((uint32_t)ip + 1);
-		SD::the() << "extended opcode " << (uint32_t)ext_opcode << "\n";
 		switch(ext_opcode){
 			case DW_LNE_end_sequence:
 				end_seq = true;
@@ -416,10 +403,8 @@ bool DWARFLineStateMachine::step(void*& ip){
 		uint8_t special_opcode = opcode - opcode_base;
 		addr += (special_opcode / line_range) * min_inst_len;
 		line += line_base + (special_opcode % line_range);
-		SD::the() << "Added to line " << line_base + (special_opcode % line_range) << "\n";
 		did_special = true;
 		return true;
-		assert(false, "Unimplemented!");	
 	}
 	return false;
 }

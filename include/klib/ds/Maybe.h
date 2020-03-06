@@ -13,17 +13,13 @@ public:
 	bool has_value() const;
 	T value() const;
 private:
-	union{
-		T val;
-		int garbage;
-	};
+	T val;
 	bool has;
 };
 
 template <class T>
 Maybe<T>::Maybe(){
 	has = false;
-	garbage = 0;
 }
 
 template <class T>

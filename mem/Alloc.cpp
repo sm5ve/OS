@@ -78,6 +78,7 @@ void kfree(void* ptr){
 			return;
 		}
 	}
+	SD::the() << ptr << "\n";
 	assert(false, "Error: attemped to free unallocated pointer");
 }
 
