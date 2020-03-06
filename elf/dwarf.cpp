@@ -96,10 +96,14 @@ Tuple<uint32_t, char*> DWARF::getLineForAddr(void* ptr){
 
 	SD::the() << "Source file " << (String*)die.value(DW_AT_name) << "\n";
 	SD::the() << "Statment list offset " << (void*)*(uint32_t*)die.value(DW_AT_stmt_list) << "\n";
+
+	DWARFLineStateMachine sm(*(uint32_t*)die.value(DW_AT_stmt_list), elf);
 	
 	//TODO we have to delete the DWARFSchemas too.
 	//Or perhaps just make a new memory allocator for this - that's probably a better solution
 	delete abbrevs;
+
+	sm.getLineForAddr(ptr);
 
 	return Tuple<uint32_t, char*>(0, NULL);
 }
@@ -247,4 +251,175 @@ void* DWARFDIE::value(uint32_t name){
 		return map.get(name);
 	}
 	return NULL;
+}
+
+DWARFLineStateMachine::DWARFLineStateMachine(uint32_t index, ELF* e){
+	auto lines_section_header = e -> getSectionHeader(".debug_line");
+	void* ptr = e -> getSectionBase(lines_section_header);
+	ptr = (void*)((uint32_t)ptr + index);
+	DWARF_line_header* header = (DWARF_line_header*)ptr;
+	SD::the() << "Version " << header -> version << "\n";
+	assert(header -> opcode_base == 13, "Error: don't know how to deal with nonstandard opcodes"); //FIXME this is kind of a hack
+	
+	statements_start = (void*)((uint32_t)&(header -> min_instruction_length) + (header -> header_length));
+	section_end = (void*)((uint32_t)&(header -> version) + (header -> length));
+	default_is_stmt = (header -> default_is_stmt != 0);
+	min_inst_len = header -> min_instruction_length; 
+	line_base = header -> line_base;
+	line_range = header -> line_range;
+	opcode_base = header -> opcode_base;
+
+	ptr = (void*)((uint32_t)ptr + sizeof(DWARF_line_header));
+	while(strlen((char*)ptr) > 0){
+		directories.push((char*)ptr);
+		ptr = (void*)((uint32_t)ptr + strlen((char*)ptr) + 1);
+	}
+	ptr = (void*)((uint32_t)ptr + 1);
+	while(strlen((char*)ptr) > 0){
+		char* name = (char*)ptr;
+		ptr = (void*)((uint32_t)ptr + strlen((char*)ptr) + 1);
+		uint32_t dir = decodeULEB128(ptr);
+		uint32_t last_modified = decodeULEB128(ptr);
+		uint32_t file_size = decodeULEB128(ptr);
+		files.push({name, dir, last_modified, file_size});
+	}
+
+	/*for(int i = 0; i < directories.size(); i++){
+		SD::the() << directories[i] << "\n";
+	}
+	for(int i = 0; i < files.size(); i++){
+		SD::the() << files[i].name << "\n";
+	}*/
+}
+
+void DWARFLineStateMachine::reset(){
+	addr = 0;
+	op_index = 0;
+	file = 1;
+	line = 1;
+	col = 0;
+	is_stmt = default_is_stmt;
+	basic_block = false;
+	end_seq = false;
+	prologue_end = false;
+	epilogue_begin = false;
+	isa = 0;
+	discriminator = 0;
+	did_copy = false;
+	did_special = false;
+	just_ended_sequence = false;
+}
+
+Maybe<Tuple<uint32_t, char*>> DWARFLineStateMachine::getLineForAddr(void* ptr){
+	reset();
+	void* ip = statements_start;	
+
+	while(ip < section_end){
+		if(step(ip)){
+			if(addr == (uint32_t)ptr){
+				SD::the() << "line " << line << "\n";
+				assert(false, "Found it!");
+			}
+			SD::the() << "addr " << (void*) addr << "\n";
+			SD::the() << "line " << line << "\n";
+		}
+	}
+	return Maybe<Tuple<uint32_t, char*>>();
+}
+
+bool DWARFLineStateMachine::step(void*& ip){
+	uint8_t opcode = *(uint8_t*)ip;
+	ip = (void*)((uint32_t)ip + 1);
+	SD::the() << "opcode " << (uint32_t)opcode << "\n";
+	if(did_copy || did_special){
+		discriminator = 0;
+		basic_block = false;
+		prologue_end = false;
+		epilogue_begin = false;
+		did_copy = false;
+		did_special = false;
+	}
+	if(just_ended_sequence){
+		reset();
+	}
+	if(1 <= opcode && opcode <= 12){
+		switch(opcode){
+			case DW_LNS_copy: did_copy = true; return true;
+			case DW_LNS_advance_pc:
+			{
+				uint32_t inc = decodeULEB128(ip);
+				addr += inc * min_inst_len;
+			} break;
+			case DW_LNS_advance_line:
+				line += decodeULEB128(ip);
+				break;
+			case DW_LNS_set_file:
+				file = decodeULEB128(ip);
+				break;
+			case DW_LNS_set_column:
+				col = decodeULEB128(ip);
+				break;
+			case DW_LNS_negate_stmt:
+				is_stmt = !is_stmt;
+				break;
+			case DW_LNS_set_basic_block:
+				basic_block = true;
+				break;
+			case DW_LNS_const_add_pc:
+				addr += min_inst_len * ((255 - opcode_base) / line_range);
+				break;
+			case DW_LNS_fixed_advance_pc:
+			{
+				uint16_t adv = *(uint16_t*)ip;
+				ip = (void*)((uint32_t)ip + 2);
+				addr += adv;
+			} break;
+			case DW_LNS_set_prologue_end:
+				prologue_end = true;
+				break;
+			case DW_LNS_set_epilogue_begin:
+				epilogue_begin = true;
+				break;
+			case DW_LNS_set_isa:
+				isa = decodeULEB128(ip);
+				break;
+		}
+		return false;
+	}
+	else if(opcode == 0){
+		uint8_t opcode_size = *(uint8_t*)ip;
+		ip = (void*)((uint32_t)ip + 1);
+		uint8_t ext_opcode = *(uint8_t*)ip;
+		ip = (void*)((uint32_t)ip + 1);
+		SD::the() << "extended opcode " << (uint32_t)ext_opcode << "\n";
+		switch(ext_opcode){
+			case DW_LNE_end_sequence:
+				end_seq = true;
+				just_ended_sequence = true;
+				return true;
+			case DW_LNE_set_address:
+				addr = *(uint32_t*)ip;
+				ip = (void*)((uint32_t)ip + 4);
+				break;
+			case DW_LNE_define_file:
+				assert(false, "Unimplemented");
+			case DW_LNE_set_discriminator:
+				discriminator = decodeULEB128(ip);
+				break;
+			default:
+				SD::the() << "unknown extended opcode " << ext_opcode << "\n";
+				assert(false, "WUT");
+		}
+		return false;
+	}
+	else{
+		uint8_t special_opcode = opcode - opcode_base;
+		addr += (special_opcode / line_range) * min_inst_len;
+		line += line_base + (special_opcode % line_range);
+		SD::the() << "Added to line " << line_base + (special_opcode % line_range) << "\n";
+		did_special = true;
+		return true;
+		assert(false, "Unimplemented!");	
+	}
+	return false;
 }

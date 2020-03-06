@@ -29,7 +29,7 @@ void load_modules(mboot_module* modules, uint32_t count){
 			ELF elf(kstart);
 			SD::the() << elf.getHeader32() << "\n";
 			DWARF dwarf(&elf);
-			dwarf.getLineForAddr((void*)load_modules);
+			//dwarf.getLineForAddr((void*)load_modules);
 			dwarf.getLineForAddr((void*)kalloc);
 		}
 	}

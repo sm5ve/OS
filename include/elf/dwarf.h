@@ -5,6 +5,7 @@
 #include <klib/ds/Vector.h>
 #include <klib/ds/Tuple.h>
 #include <klib/ds/HashMap.h>
+#include <klib/ds/Maybe.h>
 //#include <mem.h>
 
 #define CU_NOT_FOUND 0xffffffff
@@ -22,6 +23,27 @@ struct __attribute__((packed)) DWARF_info_header{
 	uint16_t version;
 	uint32_t abbrev_offset;
 	uint8_t addr_size;
+};
+
+struct __attribute__((packed)) DWARF_line_header{
+	uint32_t length;
+	uint16_t version;
+	uint32_t header_length;
+	uint8_t min_instruction_length;
+	//This doesn't seem to be in the header even though the standard suggests it is?
+	//uint8_t max_ops_per_inst;
+	uint8_t default_is_stmt;
+	int8_t line_base;
+	uint8_t line_range;
+	uint8_t opcode_base;
+	uint8_t opcodes[12];
+};
+
+struct DWARF_line_file_entry{
+	char* name;
+	uint32_t directory;
+	uint32_t last_modified;
+	uint32_t file_size;
 };
 
 class DWARFRange{
@@ -53,16 +75,19 @@ private:
 
 class DWARFLineStateMachine{
 public:
-	DWARFLineStateMachine(void*& ptr);
+	DWARFLineStateMachine(uint32_t index, ELF* e);
 	Maybe<Tuple<uint32_t, char*>> getLineForAddr(void*);
 private:
 	void* statements_start;
 	void* section_end;
-	bool default_it_stmt;
+	bool default_is_stmt;
 	uint8_t min_inst_len;
 	int8_t line_base;
 	uint8_t line_range;
 	uint8_t opcode_base;
+
+	Vector<char*> directories;
+	Vector<DWARF_line_file_entry> files;
 	
 	uint32_t addr;
 	uint32_t op_index;
@@ -76,9 +101,12 @@ private:
 	bool epilogue_begin;
 	uint32_t isa;
 	uint32_t discriminator;
+	bool did_copy;
+	bool just_ended_sequence;
+	bool did_special;
 
 	void reset();
-	void advance();
+	bool step(void*&);
 };
 
 class DWARF{
