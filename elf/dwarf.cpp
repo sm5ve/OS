@@ -95,7 +95,7 @@ Tuple<uint32_t, String> DWARF::getLineForAddr(void* ptr){
 	//TODO we have to delete the DWARFSchemas too.
 	//Or perhaps just make a new memory allocator for this - that's probably a better solution
 	delete abbrevs;
-
+	
 	auto result = sm.getLineForAddr(ptr);
 	if(result.has_value())
 		return result.value();
@@ -295,6 +295,7 @@ void DWARFLineStateMachine::reset(){
 	just_ended_sequence = false;
 }
 
+//TODO why are we making so many Maybe<Interval>s? This happens elsewhere in this file.
 Maybe<Tuple<uint32_t, String>> DWARFLineStateMachine::getLineForAddr(void* ptr){
 	reset();
 	void* ip = statements_start;	
@@ -309,9 +310,12 @@ Maybe<Tuple<uint32_t, String>> DWARFLineStateMachine::getLineForAddr(void* ptr){
 				String dir = ".";
 				if(fe.directory != 0){
 					dir = String(directories[fe.directory - 1]);
+				
 				}
 				String path = dir + "/" + fname;
-				return Maybe<Tuple<uint32_t, String>>(Tuple<uint32_t, String>(last_line, path));
+				Tuple<uint32_t, String> val = Tuple<uint32_t, String>(last_line, path);
+				Maybe<Tuple<uint32_t, String>> out(val);
+				return out;
 			}
 			last_line = line;
 			last_file = file;

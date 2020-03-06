@@ -5,7 +5,8 @@
 
 extern DWARF* ksyms;
 
-void stackTrace();
-void prettyStackTrace();
+void stackTrace(uint32_t skip = 0);
+void plainStackTrace(uint32_t skip = 0);
+void prettyStackTrace(uint32_t skip = 0);
 
 #endif

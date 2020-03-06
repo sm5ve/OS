@@ -30,8 +30,6 @@ void load_modules(mboot_module* modules, uint32_t count){
 			void* kstart = (void*)(modules[i].start_addr + 0xC0000000);
 			ksyms_elf = new ELF(kstart);
 			ksyms = new DWARF(ksyms_elf);
-			prettyStackTrace();
-			//prettyStackTrace();
 		}
 	}
 }
@@ -64,8 +62,8 @@ extern "C" [[noreturn]] void kernel_init(unsigned int multiboot_magic, mboot_inf
 	
 	//initPalloc(entries, len);	
 	load_modules((mboot_module*)(mboot -> mods_ptr + 0xC0000000), mboot -> mods_count);
-	//prettyStackTrace();
-
+	Vector<int> v;
+	v[27];	
 	//sti();
 	//DisableInterrupts d;
 

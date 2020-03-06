@@ -11,6 +11,7 @@ void panic(const char* message){
 	if(!first_panic_layer){
 		SD::the() << "KERNEL DOUBLE PANIC\n";
 		SD::the() << message << "\n";
+		plainStackTrace(2);
 		for(;;);
 	}
 	first_panic_layer = false;
@@ -19,7 +20,7 @@ void panic(const char* message){
 	SD::the() << "KERNEL PANIC\n";
 	SD::the() << message << "\n";
 	outw(0x604, 0x2000); //temporary
-	stackTrace();
+	stackTrace(2);
 	for(;;);
 }
 
@@ -30,6 +31,7 @@ void panic(const char* message, const char* filename, const char* func, int line
 		SD::the() << "FUNC:   " << func << "\n";
 		SD::the() << "LINENO: " << lineno << "\n";
 		SD::the() << message << "\n";
+		plainStackTrace(2);
 		for(;;);
 	}
 	first_panic_layer = false;
@@ -40,7 +42,7 @@ void panic(const char* message, const char* filename, const char* func, int line
 	SD::the() << "FUNC:   " << func << "\n";
 	SD::the() << "LINENO: " << lineno << "\n";
 	SD::the() << message << "\n";
-	stackTrace();
+	stackTrace(2);
 	outw(0x604, 0x2000); //temporary
 	for(;;);
 }

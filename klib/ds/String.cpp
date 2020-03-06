@@ -4,6 +4,7 @@
 #include <assert.h>
 #include <stddef.h>
 #include <klib/SerialDevice.h>
+#include <debug.h>
 
 String::String() : String(""){}
 
@@ -148,7 +149,9 @@ String String::operator+(const String& str) const{
 	String out;
 	out.len = str.len + len;
 	delete out.buffer;
-	out.buffer = new char[(int)(out.len * 1.5)];
+	size_t newcap = (size_t)(out.len * 1.5);
+	out.buffer = new char[newcap];
+	out.cap = newcap;
 	strcpy(out.buffer, buffer);
 	strcat(out.buffer, str.buffer);
 	return out;

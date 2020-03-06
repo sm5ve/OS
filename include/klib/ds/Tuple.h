@@ -7,6 +7,7 @@ template <class A, class B>
 class Tuple{
 public:
 	Tuple(A, B);
+	Tuple(Tuple<A,B>&);
 	Tuple();
 	~Tuple();	
 
@@ -20,6 +21,12 @@ template <class A, class B>
 Tuple<A,B>::Tuple(A x, B y){
 	a = x;
 	b = y;
+}
+
+template <class A, class B>
+Tuple<A,B>::Tuple(Tuple<A,B>& tup){
+	a = tup.a;
+	b = tup.b;
 }
 
 template <class A, class B>

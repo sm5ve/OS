@@ -8,23 +8,35 @@ struct __attribute__((packed)) StackFrame{
 	uint32_t eip;
 };
 
-void stackTrace(){
+void stackTrace(uint32_t skip){
+	if(ksyms){
+		prettyStackTrace(skip);
+	}
+	else{
+		plainStackTrace(skip);
+	}
+}
+
+void plainStackTrace(uint32_t skip){
 	StackFrame* frame;
 	__asm__ volatile ("movl %%ebp, %0" : "=r"(frame) ::);
 	SD::the() << "Stack trace:\n";
 	for(uint32_t i = 0; (frame != NULL) && (i < 16); i++){
-		SD::the() << "\t" << (void*)(frame -> eip) << "\n";
+		if(i >= skip)
+			SD::the() << "\t" << (void*)(frame -> eip) << "\n";
 		frame = frame -> ebp;
 	}
 }
 
-void prettyStackTrace(){
+void prettyStackTrace(uint32_t skip){
 	StackFrame* frame;
 	__asm__ volatile ("movl %%ebp, %0" : "=r"(frame) ::);
 	SD::the() << "Stack trace:\n";
 	for(uint32_t i = 0; (frame != NULL) && (i < 16); i++){
-		auto symbolicated = ksyms -> getLineForAddr((void*)(frame -> eip));
-		SD::the() << "\t[" << (void*)(frame -> eip) << "]: " << symbolicated.b << " line " << symbolicated.a << "\n";
+		if(i >= skip){
+			auto symbolicated = ksyms -> getLineForAddr((void*)(frame -> eip));
+			SD::the() << "\t[" << (void*)(frame -> eip) << "]: " << symbolicated.b << " line " << symbolicated.a << "\n";
+		}
 		frame = frame -> ebp;
 	}
 }
