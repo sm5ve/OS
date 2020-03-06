@@ -39,7 +39,7 @@ kernel: $(OBJFILES)
 	@$(CC) $(CPPFLAGS) $(INCLUDE) $(WARNINGS) -fno-sized-deallocation -std=gnu++2a -c $< -o $@ -g
 
 %.sxo: %.sx Makefile
-	@$(CC) $(INCLUDE) -ffreestanding -c $< -o $@
+	@$(CC) $(INCLUDE) -ffreestanding -c $< -o $@ -g
 
 run: kernel
 	@objcopy --only-keep-debug kernel kernel.sym

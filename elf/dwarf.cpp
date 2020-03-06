@@ -71,11 +71,15 @@ uint32_t DWARF::getCUOffsetForAddr(void* ptr){
 
 Tuple<uint32_t, String> DWARF::getLineForAddr(void* ptr){
 	uint32_t cuOffset = getCUOffsetForAddr(ptr);
+	if(cuOffset == CU_NOT_FOUND){
+		return Tuple<uint32_t, String>(0, "?");
+	}
 	auto info = elf -> getSectionHeader(".debug_info");
 	void* sectionStart = elf -> getSectionBase(info);
 	void* cuStart = (void*)((uint32_t)sectionStart + cuOffset);
 	DWARF_info_header* header = (DWARF_info_header*)cuStart;
-	assert(header -> version == 4, "Error: don't know how to parse CU's with version != 4");
+	//SD::the() << header -> version << "\n";
+	//assert(header -> version == 4, "Error: don't know how to parse CU's with version != 4");
 	assert(header -> addr_size == 4, "Error: don't know how to handle differently sized addresses");
 
 	auto abbrevs = decodeAbbrev(header -> abbrev_offset);
@@ -93,9 +97,9 @@ Tuple<uint32_t, String> DWARF::getLineForAddr(void* ptr){
 	delete abbrevs;
 
 	auto result = sm.getLineForAddr(ptr);
-	SD::the() << result << "\n";
-
-	return Tuple<uint32_t, String>(0, "");
+	if(result.has_value())
+		return result.value();
+	return Tuple<uint32_t, String>(0, "?");
 }
 
 DWARFSchema* tryParseDWARFSchema(void*& ptr){
@@ -271,13 +275,6 @@ DWARFLineStateMachine::DWARFLineStateMachine(uint32_t index, ELF* e){
 		uint32_t file_size = decodeULEB128(ptr);
 		files.push({name, dir, last_modified, file_size});
 	}
-
-	/*for(int i = 0; i < directories.size(); i++){
-		SD::the() << directories[i] << "\n";
-	}
-	for(int i = 0; i < files.size(); i++){
-		SD::the() << files[i].name << "\n";
-	}*/
 }
 
 void DWARFLineStateMachine::reset(){
@@ -301,19 +298,24 @@ void DWARFLineStateMachine::reset(){
 Maybe<Tuple<uint32_t, String>> DWARFLineStateMachine::getLineForAddr(void* ptr){
 	reset();
 	void* ip = statements_start;	
-
+	uint32_t last_line;
+	uint32_t last_file;
+	uint32_t last_addr;
 	while(ip < section_end){
 		if(step(ip)){
-			if(addr == (uint32_t)ptr){
-				auto fe = files[file - 1];
+			if((addr == (uint32_t)ptr) || ((last_addr < (uint32_t)ptr) && (addr > (uint32_t) ptr))){
+				auto fe = files[last_file - 1];
 				String fname(fe.name);
 				String dir = ".";
 				if(fe.directory != 0){
 					dir = String(directories[fe.directory - 1]);
 				}
 				String path = dir + "/" + fname;
-				return Maybe<Tuple<uint32_t, String>>(Tuple<uint32_t, String>(line, path));
+				return Maybe<Tuple<uint32_t, String>>(Tuple<uint32_t, String>(last_line, path));
 			}
+			last_line = line;
+			last_file = file;
+			last_addr = addr;
 		}
 	}
 	return Maybe<Tuple<uint32_t, String>>();
@@ -342,7 +344,7 @@ bool DWARFLineStateMachine::step(void*& ip){
 				addr += inc * min_inst_len;
 			} break;
 			case DW_LNS_advance_line:
-				line += decodeULEB128(ip);
+				line += decodeSLEB128(ip);
 				break;
 			case DW_LNS_set_file:
 				file = decodeULEB128(ip);

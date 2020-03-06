@@ -12,6 +12,7 @@
 #include <klib/ds/String.h>
 #include <elf/elf.h>
 #include <elf/dwarf.h>
+#include <debug.h>
 
 //Since kernel_init has a lot of testing code, we sometimes get used variables for older tests that are commented out
 //Hence, while the kernel's still largely in flux, we'll disable unused variable warnings for now
@@ -19,16 +20,18 @@
 
 extern uint32_t _kend;
 
+ELF* ksyms_elf = NULL;
+
 void load_modules(mboot_module* modules, uint32_t count){
 	for(uint32_t i = 0; i < count; i++){
 		String modName((char*)(modules[i].name_ptr + 0xC0000000));
 		if(modName == "kernel.sym"){
 			SD::the() << "Found the kernel symbols!" << "\n";
 			void* kstart = (void*)(modules[i].start_addr + 0xC0000000);
-			ELF elf(kstart);
-			DWARF dwarf(&elf);
-			dwarf.getLineForAddr((void*)load_modules);
-			dwarf.getLineForAddr((void*)kalloc);
+			ksyms_elf = new ELF(kstart);
+			ksyms = new DWARF(ksyms_elf);
+			prettyStackTrace();
+			//prettyStackTrace();
 		}
 	}
 }
@@ -61,10 +64,11 @@ extern "C" [[noreturn]] void kernel_init(unsigned int multiboot_magic, mboot_inf
 	
 	//initPalloc(entries, len);	
 	load_modules((mboot_module*)(mboot -> mods_ptr + 0xC0000000), mboot -> mods_count);
+	//prettyStackTrace();
 
 	//sti();
 	//DisableInterrupts d;
-	
+
 	outw(0x604, 0x2000); //shutdown qemu
 	for(;;){
 		__asm__ ("hlt");
