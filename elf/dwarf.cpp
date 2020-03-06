@@ -307,7 +307,10 @@ Maybe<Tuple<uint32_t, String>> DWARFLineStateMachine::getLineForAddr(void* ptr){
 			if(addr == (uint32_t)ptr){
 				auto fe = files[file - 1];
 				String fname(fe.name);
-				String dir(directories[fe.directory - 1]);
+				String dir = ".";
+				if(fe.directory != 0){
+					dir = String(directories[fe.directory - 1]);
+				}
 				String path = dir + "/" + fname;
 				return Maybe<Tuple<uint32_t, String>>(Tuple<uint32_t, String>(line, path));
 			}

@@ -27,7 +27,7 @@ void load_modules(mboot_module* modules, uint32_t count){
 			void* kstart = (void*)(modules[i].start_addr + 0xC0000000);
 			ELF elf(kstart);
 			DWARF dwarf(&elf);
-			//dwarf.getLineForAddr((void*)load_modules);
+			dwarf.getLineForAddr((void*)load_modules);
 			dwarf.getLineForAddr((void*)kalloc);
 		}
 	}
