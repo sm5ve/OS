@@ -26,4 +26,18 @@ void cli(){
 
 void sti(){
 	__asm__ volatile("sti");
+
+}
+
+PrintStream& operator<<(PrintStream& p, registers regs){
+	p << "Register dump:\n";
+	p << "EAX=" << (void*)regs.eax << " EBX=" << (void*)regs.ebx << " ECX=" << (void*)regs.ecx << " EDX=" << (void*)regs.edx << "\n";
+	p << "ESI=" << (void*)regs.esi << " EDI=" << (void*)regs.edi << " EBP=" << (void*)regs.ebp << " ESP=" << (void*)regs.esp << "\n";
+	p << "EIP=" << (void*)regs.fault_eip;
+	p << " User ESP=" << (void*)regs.user_esp << "\n";
+	p << "ES =" << (void*)regs.es << " DS =" << (void*)regs.ds << " GS =" << (void*)regs.gs << " FS =" << (void*)regs.fs << "\n";
+	p << "Interrupt number: " << regs.int_number << "\n";
+	p << "Error code: " << (void*)regs.error_code << "\n";
+	p << "Error flags: " << (void*)regs.error_flags << "\n";
+	return p;
 }

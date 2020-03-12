@@ -52,22 +52,23 @@ extern "C" [[noreturn]] void kernel_init(unsigned int multiboot_magic, mboot_inf
 	SD::the() << "IDT installed!\n";
 
 	SD::the() << "Installing kernel page directory\n";
-	initializeKernelPaging();
+	//initializeKernelPaging();
 	SD::the() << "Installed!\n";
 	
 	//for(;;);
 	mboot_mmap_entry* entries = (mboot_mmap_entry*)((uint32_t)(mboot -> mmap_ptr) + 0xC0000000);
-	uint32_t len = mboot -> mmap_len;
+	//uint32_t len = mboot -> mmap_len;
 	//enterMirroredFlatPaging();
 	
 	//initPalloc(entries, len);	
 	load_modules((mboot_module*)(mboot -> mods_ptr + 0xC0000000), mboot -> mods_count);
-	Vector<int> v;
-	v[27];	
-	//sti();
+	sti();
 	//DisableInterrupts d;
 
-	outw(0x604, 0x2000); //shutdown qemu
+	uint32_t* ptr = (uint32_t*)NULL;
+	SD::the() << *ptr << "\n";
+	
+	//outw(0x604, 0x2000); //shutdown qemu
 	for(;;){
 		__asm__ ("hlt");
 	}

@@ -40,3 +40,17 @@ void prettyStackTrace(uint32_t skip){
 		frame = frame -> ebp;
 	}
 }
+
+void prettyStackTraceFromInterrupt(uint32_t ebp, uint32_t fault_eip){
+	SD::the() << "Stack trace:\n";
+	{
+		auto symbolicated = ksyms -> getLineForAddr((void*)fault_eip);
+		SD::the() << "\t[" << (void*)(fault_eip) << "]: " << symbolicated.b << " line " << symbolicated.a << "\n";
+	}
+	StackFrame* frame = (StackFrame*)ebp;
+	for(uint32_t i = 0; (frame != NULL) && (i < 16); i++){
+		auto symbolicated = ksyms -> getLineForAddr((void*)(frame -> eip));
+		SD::the() << "\t[" << (void*)(frame -> eip) << "]: " << symbolicated.b << " line " << symbolicated.a << "\n";
+		frame = frame -> ebp;
+	}
+}

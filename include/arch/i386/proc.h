@@ -6,6 +6,15 @@
 #endif
 
 #include <stdint.h>
+#include <klib/PrintStream.h>
+
+struct __attribute__((packed)) registers{
+	uint32_t faulting_addr, gs, fs, es, ds, edi, esi, ebp, esp, ebx, edx, ecx, eax;
+	uint32_t int_number, error_code;
+	uint32_t fault_eip, cs, error_flags, user_esp, ss;
+};
+
+PrintStream& operator<<(PrintStream& p, registers);
 
 void outb(uint16_t port, uint8_t c);
 uint8_t inb(uint16_t port);

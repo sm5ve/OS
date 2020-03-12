@@ -3,7 +3,7 @@
 #include <klib/SerialDevice.h>
 #include <debug.h>
 
-#include <arch/i386/proc.h> //temp
+#include <arch/i386/proc.h>
 
 bool first_panic_layer = true;
 
@@ -19,7 +19,7 @@ void panic(const char* message){
 	
 	SD::the() << "KERNEL PANIC\n";
 	SD::the() << message << "\n";
-	outw(0x604, 0x2000); //temporary
+	outw(0x604, 0x2000);
 	stackTrace(2);
 	for(;;);
 }
@@ -43,6 +43,17 @@ void panic(const char* message, const char* filename, const char* func, int line
 	SD::the() << "LINENO: " << lineno << "\n";
 	SD::the() << message << "\n";
 	stackTrace(2);
-	outw(0x604, 0x2000); //temporary
+	outw(0x604, 0x2000);
+	for(;;);
+}
+
+void panic(const char* message, registers regs){
+	DisableInterrupts d;
+
+	SD::the() << "KERNEL PANIC\n";
+	SD::the() << message << "\n";
+	SD::the() << regs << "\n";
+	prettyStackTraceFromInterrupt(regs.ebp, regs.fault_eip);
+	outw(0x604, 0x2000);
 	for(;;);
 }
