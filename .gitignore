@@ -1,5 +1,7 @@
 *.swp
 *.cppo
 *.sxo
-kernel
-kernel.sym
+*.o
+*.ao
+kernel/kernel
+kernel/kernel.sym

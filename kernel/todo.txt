@@ -1,0 +1,38 @@
+1. Page frame allocator
+2. Some sort of rudimentary paging API
+3. ELF loader (let's load a binary from the multiboot modules and try to run it as the kernel!)
+4. Scheduler (multiple binaries?)
+5. Ring 3
+
+============== Important Gate ==============
+
+At this point, the entire project should be
+refactored, and split up more sensibly.
+More care should be put into good and 
+consistent naming, and an overall structure
+and style should be decided upon.
+
+This is my first big C++ project, and first
+big programming project since high school,
+so I have yet to learn good style/practices
+for C++. This will be a major focus
+
+I also would like to break some components
+(Like ELF parsing, data structures) into
+their own separate directories, to later 
+function as userspace libraries as well.
+
+Finally, at this point, a more concrete
+direction for the project should be 
+concieved, with a better understanding of
+the sort of big-picture interfaces and 
+concepts I would like to implement.
+
+I am putting this off until after we get
+to ring 3, as I have a fairly solid
+idea for how I would like to do the VFS,
+for example, but I want to be absolutely
+certain I understand how the core
+components of the OS interact with each
+other before I try to come up with a good
+collection of abstractions for them.
