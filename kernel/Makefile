@@ -7,17 +7,18 @@ OBJS := debug.o \
 		arch/i386/multiboot1.ao \
 		arch/i386/proc.o \
 		arch/i386/segments.o \
-		drivers/pci.o \
+		devices/pci.o \
 		mem/Alloc.o \
 		mem/BumpAlloc.o \
 		mem/HeapAlloc.o \
 		mem/SlabAlloc.o \
 		mem/util.o \
+		mem/paging/MemoryManager.o \
 		mem/paging/PageDirectory.o \
-		mem/paging/Palloc.o \
+		mem/paging/MemoryRegionReference.o \
 		klib/CPPCompat.o \
-		../lib/LibCore/PrintStream.o \
 		klib/SerialDevice.o \
+		../lib/LibCore/PrintStream.o \
 		../lib/LibCore/ds/String.o \
 		../lib/LibCore/util/str.o \
 		../lib/LibELF/dwarf.o \

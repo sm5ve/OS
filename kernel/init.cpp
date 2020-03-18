@@ -52,7 +52,7 @@ extern "C" [[noreturn]] void kernel_init(unsigned int multiboot_magic, mboot_inf
 	SD::the() << "IDT installed!\n";
 
 	SD::the() << "Installing kernel page directory\n";
-	//initializeKernelPaging();
+	MemoryManager::initializeKernelPaging();
 	SD::the() << "Installed!\n";
 	
 	//for(;;);
@@ -65,10 +65,10 @@ extern "C" [[noreturn]] void kernel_init(unsigned int multiboot_magic, mboot_inf
 	sti();
 	//DisableInterrupts d;
 
-	uint32_t* ptr = (uint32_t*)NULL;
-	SD::the() << *ptr << "\n";
+	//uint32_t* ptr = (uint32_t*)NULL;
+	//SD::the() << *ptr << "\n";
 	
-	//outw(0x604, 0x2000); //shutdown qemu
+	outw(0x604, 0x2000); //shutdown qemu
 	for(;;){
 		__asm__ ("hlt");
 	}

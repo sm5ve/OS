@@ -2,10 +2,11 @@
 #include <stddef.h>
 #include <mem.h>
 
-uint32_t* physicalToPageTableAddr(phys_addr v);
-
-PageDirectory* active_page_dir;
-
+using namespace MemoryManager;
+namespace MemoryManager{
+	uint32_t* physicalToPageTableAddr(phys_addr v);
+	PageDirectory* active_page_dir;
+}
 //FIXME Right now we are allocating all page directories and tables in the kernel bump heap. Obviously this is a terrible idea. We need to fix this once we write the page allocator. Moreover, we need a way of converting from physical addresses back to virtual ones when looking up page tables. A simple way of doing so is to just make sure all page tables are stored in some contiguous chunk of memory and then subtracting a fixed offset. Hopefully this will be sufficient.
 
 PageDirectory::PageDirectory(){
@@ -73,29 +74,31 @@ void PageDirectory::install(){
 	__asm__ volatile("movl %0, %%cr3\n" :: "r"(ptr));
 }
 
-phys_addr getPhysicalAddr(virt_addr v){
-	if(active_page_dir == NULL){
-		return (phys_addr)((uint32_t)v - 0xC0000000); //Hacky way of translating kernel virtual addresses to physical ones before we have a page directory built
-	}
-	return active_page_dir -> findPhysicalAddr(v);
-}
-
-//FIXME this is a little tricky. I think we need to store all the page tables in a predefined place in physical memory
-uint32_t* physicalToPageTableAddr(phys_addr p){
-	return (uint32_t*)((uint32_t)p + 0xC0000000);
-}
-
 bool PageDirectory::isActive(){
 	return this == active_page_dir;
 }
 
-void initializeKernelPaging(){
-	active_page_dir = NULL;
-	PageDirectory* pd = new PageDirectory();	
-
-	for(int i = 0x00001000; i < 0x01000000; i += 4096){
-		pd -> addMapping((phys_addr)i, (virt_addr)(i + 0xC0000000), PAGE_ENABLE_WRITE | PAGE_PRESENT);
+namespace MemoryManager{
+	phys_addr getPhysicalAddr(virt_addr v){
+		if(active_page_dir == NULL){
+			return (phys_addr)((uint32_t)v - 0xC0000000); //Hacky way of translating kernel virtual addresses to physical ones before we have a page directory built
+		}
+		return active_page_dir -> findPhysicalAddr(v);
 	}
 
-	pd -> install();
+	//FIXME this is a little tricky. I think we need to store all the page tables in a predefined place in physical memory
+	uint32_t* physicalToPageTableAddr(phys_addr p){
+		return (uint32_t*)((uint32_t)p + 0xC0000000);
+	}
+
+	void initializeKernelPaging(){
+		active_page_dir = NULL;
+		PageDirectory* pd = new PageDirectory();	
+
+		for(int i = 0x00001000; i < 0x01000000; i += 4096){
+			pd -> addMapping((phys_addr)i, (virt_addr)(i + 0xC0000000), PAGE_ENABLE_WRITE | PAGE_PRESENT);
+		}
+		
+		pd -> install();
+	}
 }
