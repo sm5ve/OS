@@ -7,6 +7,8 @@
 #include <hash.h>
 #include <PrintStream.h>
 
+#include <klib/SerialDevice.h>
+
 template <class T>
 class Interval{
 public:
@@ -20,6 +22,7 @@ public:
 
 	T getStart() const;
 	T getEnd() const;
+	T getSize() const;
 
 	bool operator==(Interval<T>& rhs);
 private:
@@ -62,6 +65,7 @@ public:
 	void subtract(IntervalSet<T>& ints);
 	
 	bool in(T elem);
+	Maybe<Interval<T>> findSubintervalOfSize(T size);
 	Maybe<Interval<T>> intervalFor(T elem);
 
 	LinkedList<Interval<T>>* getIntervals(); //TODO maybe make a read-only view for linked lists
@@ -159,6 +163,17 @@ Maybe<Interval<T>> IntervalSet<T>::intervalFor(T elem){
 	return Maybe<Interval<T>>();
 }
 
+template <class T>
+Maybe<Interval<T>> IntervalSet<T>::findSubintervalOfSize(T size){
+	auto node = this -> intervals.head();
+	while(node != intervals.end()){
+		if(node -> value.getSize() >= size){
+			return Maybe<Interval<T>>(Interval(node -> value.getStart(), node -> value.getStart() + size - 1));
+		}
+		node = node -> next();
+	}
+	return Maybe<Interval<T>>();
+}
 template<class T>
 Interval<T>::Interval(T s, T e){
 	start = s;
@@ -211,10 +226,12 @@ Tuple<Maybe<Interval<T>>, Maybe<Interval<T>>> Interval<T>::subtract(Interval<T> 
 	if(i.in(start)){
 		s = i.end + 1;
 	}
+	bool clearedEnd = false;
 	if(i.in(end)){
+		clearedEnd = (i.start <= e);
 		e = i.start - 1;
 	}
-	if(s <= e){
+	if((s <= e) && !clearedEnd){
 		return Tuple(Maybe(Interval(s, e)), Maybe<Interval<T>>());
 	}
 	return Tuple(Maybe<Interval<T>>(), Maybe<Interval<T>>());
@@ -255,6 +272,11 @@ PrintStream& operator<<(PrintStream& p, IntervalSet<T>& s){
 	}
 	p << ")";
 	return p;
+}
+
+template <class T>
+T Interval<T>::getSize() const{
+	return getStart() - getEnd() + 1; //I seriously wonder if we should exclude the endpoint
 }
 
 #endif

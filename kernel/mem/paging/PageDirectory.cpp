@@ -78,6 +78,35 @@ bool PageDirectory::isActive(){
 	return this == active_page_dir;
 }
 
+void PageDirectory::installRegion(MemoryRegion& region, virt_addr starting_addr){
+	regions.add({region, starting_addr});
+	region.install(*this);
+}
+
+void PageDirectory::removeRegion(MemoryRegion& region){
+	auto node = regions.head();
+	while(node != regions.end()){
+		auto oldNode = node;
+		node = node -> next();
+		if(&*(oldNode -> value.region) == &region){
+			regions.remove(oldNode);
+			return;
+		}
+	}
+	assert(false, "Error: tried to remove region not present in page directory");
+}
+
+virt_addr PageDirectory::getRegionBase(MemoryRegion& region){
+	auto node = regions.head();
+	while(node != regions.end()){
+		if(&*(node -> value.region) == &region)
+			return node -> value.base;
+		node = node -> next();
+	}
+	assert(false, "Error: tried to find base of region not present in page directory");
+	return NULL;
+}
+
 namespace MemoryManager{
 	phys_addr getPhysicalAddr(virt_addr v){
 		if(active_page_dir == NULL){
@@ -95,7 +124,7 @@ namespace MemoryManager{
 		active_page_dir = NULL;
 		PageDirectory* pd = new PageDirectory();	
 
-		for(int i = 0x00001000; i < 0x01000000; i += 4096){
+		for(int i = 0x00001000; i < 0x10000000; i += 4096){
 			pd -> addMapping((phys_addr)i, (virt_addr)(i + 0xC0000000), PAGE_ENABLE_WRITE | PAGE_PRESENT);
 		}
 		

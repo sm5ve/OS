@@ -5,6 +5,11 @@
 #include <flags.h>
 #include <ds/BinaryHeap.h>
 
+#define KB (1024)
+#define MB (1024 * 1024)
+#define GB (1024 * 1024 * 1024)
+#define TB (1024 * 1024 * 1024 * 1024)
+
 extern uint8_t kheap[KERNEL_HEAP_SIZE];
 extern uint8_t bumpHeap[KERNEL_NOFREE_SIZE];
 

@@ -60,8 +60,9 @@ extern "C" [[noreturn]] void kernel_init(unsigned int multiboot_magic, mboot_inf
 	//uint32_t len = mboot -> mmap_len;
 	//enterMirroredFlatPaging();
 	
-	//initPalloc(entries, len);	
+	//MemoryManager::init(entries, mboot -> mmap_len);
 	load_modules((mboot_module*)(mboot -> mods_ptr + 0xC0000000), mboot -> mods_count);
+	MemoryManager::init(entries, mboot -> mmap_len);
 	sti();
 	//DisableInterrupts d;
 

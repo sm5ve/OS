@@ -9,6 +9,7 @@ public:
 	Vector();
 	Vector(size_t initial_capacity);
 	Vector(T*, size_t count);
+	Vector(Vector<T>&);
 	~Vector();
 
 	T& operator[](uint32_t index);
@@ -42,6 +43,11 @@ Vector<T>::Vector(T* elems, size_t ct){
 	capacity = ct;
 	buffer = new T[ct];
 	memcpy(buffer, elems, ct * sizeof(T));
+}
+
+template <class T>
+Vector<T>::Vector(Vector<T>& v) : Vector(v.buffer, v.count){
+	
 }
 
 template <class T>

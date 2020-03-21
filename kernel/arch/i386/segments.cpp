@@ -1,7 +1,5 @@
 #include <arch/i386/proc.h>
 
-//I'm not sure if we'll want to dynamically allocate our GDT in the future, but for now
-//we'll just statically allocate room for a predetermined number of entries
 #define TOTAL_GDT_SEGMENTS 3
 
 //For now, the assumed structure is as follows:

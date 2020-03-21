@@ -16,6 +16,7 @@ OBJS := debug.o \
 		mem/paging/MemoryManager.o \
 		mem/paging/PageDirectory.o \
 		mem/paging/MemoryRegionReference.o \
+		mem/paging/MemoryRegion.o \
 		klib/CPPCompat.o \
 		klib/SerialDevice.o \
 		../lib/LibCore/PrintStream.o \

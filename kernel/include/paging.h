@@ -4,6 +4,9 @@
 #include <multiboot/multiboot.h>
 #include <ds/Intervals.h>
 #include <ds/Vector.h>
+#include <ds/LinkedList.h>
+#include <PrintStream.h>
+
 typedef void* phys_addr;
 typedef void* virt_addr;
 
@@ -24,6 +27,11 @@ typedef void* virt_addr;
 typedef uint32_t page_table[PAGE_TABLE_INDICES];
 
 class PageDirectory;
+namespace MemoryManager{
+	class PhysicalMemoryRegion;
+}
+
+PrintStream& operator<<(PrintStream&, MemoryManager::PhysicalMemoryRegion&);
 
 namespace MemoryManager{
 	extern PageDirectory* active_page_dir;
@@ -32,11 +40,11 @@ namespace MemoryManager{
 	
 	void initializeKernelPaging();
 	phys_addr getPhysicalAddr(virt_addr v);
-
-	//page_table_entry 
-
-	class MemoryRegion;
 	
+	page_table* allocatePageTable();
+	void freePageTable(page_table*);
+
+	class MemoryRegion;	
 
 	class MemoryRegionReference{
 	public:
@@ -51,13 +59,14 @@ namespace MemoryManager{
 
 	class MemoryRegion{
 	public:
+		MemoryRegion();
+		virtual ~MemoryRegion();
 		virtual void install(PageDirectory&) = 0;
 		virtual size_t getSize() = 0;
 		virtual void handlePageFault(uint32_t offset) = 0;
 	private:
 		uint32_t refs;
 	private:
-		friend class MemoryRegionReference;
 		void incRef(){
 			refs++;
 		};
@@ -67,20 +76,23 @@ namespace MemoryManager{
 				delete this;
 			}
 		};
+		friend class MemoryRegionReference;
 	};
 
 	class PhysicalMemoryRegion : public MemoryRegion{
 	public:
-		PhysicalMemoryRegion(Vector<page_table*>* ptables, size_t size);
+		PhysicalMemoryRegion(Vector<page_table*> ptables, size_t size);
+		~PhysicalMemoryRegion();
 		virtual void install(PageDirectory&) final override;
 		virtual size_t getSize() final override{
 			return size;
 		};
-		virtual void handlePageFault(uint32_t offset) final override;
+		virtual void handlePageFault(uint32_t offset) final override; //FIXME we probably shouldn't be returning void. Should we pass the relevant directory, or just get that from the global?
 		void grow(Vector<page_table*>& newTables, size_t newSize);
 	private:
-		Vector<page_table*>* ptables;
+		Vector<page_table*> ptables;
 		uint32_t size;
+		friend PrintStream& (::operator<<)(PrintStream&, PhysicalMemoryRegion&); //TODO we need to make this virtual somehow, otherwise once we lose the typing data by wrapping with a referece, we won't be able to use this operator
 	};
 
 	class PageFrameAllocator{
@@ -88,8 +100,12 @@ namespace MemoryManager{
 		PageFrameAllocator(size_t size, uint32_t* buffer, phys_addr start_addr);
 		PageFrameAllocator();
 		uint32_t grow(PhysicalMemoryRegion&, size_t targetSize);
-		void release(phys_addr addr);
+		void release(phys_addr);
 	};
+
+	void growPhysicalMemoryRegion(PhysicalMemoryRegion&, size_t targetSize);
+	void shrinkPhysicalMemoryRegion(PhysicalMemoryRegion&, size_t targetSize);
+	void release(phys_addr);
 }
 
 struct MemoryRegionPlacement{
@@ -109,13 +125,14 @@ public:
 
 	void installRegion(MemoryManager::MemoryRegion& region, virt_addr starting_addr);
 	void removeRegion(MemoryManager::MemoryRegion&);
+	virt_addr getRegionBase(MemoryManager::MemoryRegion&);
 
 	void install();
 	bool isActive();
 
 	uint32_t getRegionOffset(MemoryManager::MemoryRegion&);
 private:
-	Vector<MemoryRegionPlacement> regions;
+	LinkedList<MemoryRegionPlacement> regions;
 	uint32_t* directory;
 };
 
