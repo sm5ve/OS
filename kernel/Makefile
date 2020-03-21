@@ -29,7 +29,7 @@ CC := i686-elf-gcc
 
 INCLUDES := -I./include -I../lib/LibELF/include -I../lib/LibCore/include
 
-CPPFLAGS := -ffreestanding -fno-exceptions -fno-rtti -fno-sized-deallocation -std=gnu++2a -g
+CPPFLAGS := -ffreestanding -fno-exceptions -fno-rtti -fno-sized-deallocation -std=gnu++2a -g -fconcepts
 CPPFLAGS += -Wall -Wextra -pedantic -Wshadow -Wcast-align -Wwrite-strings -Wredundant-decls -Winline -Wno-long-long -Wconversion
 CPPFLAGS += $(INCLUDES)
 
@@ -43,8 +43,8 @@ kernel: $(OBJS)
 	$(CC) -T linker.ld -o kernel -ffreestanding -nostdlib $(OBJS) -lgcc -g
 
 kernel.sym: kernel
-	@objcopy --only-keep-debug kernel kernel.sym
-	@objcopy --strip-debug kernel
+	@i686-elf-objcopy --only-keep-debug kernel kernel.sym
+	@i686-elf-objcopy --strip-debug kernel
 
 %.o: %.cpp Makefile
 	@$(CC) $(CPPFLAGS) -c $< -o $@
