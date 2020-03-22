@@ -12,7 +12,9 @@ namespace MemoryManager{
 	IntervalSet<uint32_t>* memory_regions;
 	SlabAlloc* pageTableAllocator;
 	HashMap<Interval<uint32_t>, PageFrameAllocator>* allocators;
-	
+	phys_addr page_tables_buffer_addr;	
+	virt_addr page_tables_buffer_base;
+
 	Tuple<virt_addr, phys_addr> reserveRangeOfSize(size_t size, IntervalSet<uint32_t>* memory_regions, BootstrapPaging* bspd){
 		auto region = memory_regions -> findSubintervalOfSize(size + PAGE_SIZE);
 		assert(region.has_value(), "Error: memory too fragmented");
@@ -44,9 +46,13 @@ namespace MemoryManager{
 		auto free_ptbls_map_mem = reserveRangeOfSize(8 * MB / (sizeof(page_table) * 8), memory_regions, bspd);
 
 		auto table_store = table_store_mem.a;
+		page_tables_buffer_addr = table_store_mem.b;
+		page_tables_buffer_base = table_store_mem.a;
 		auto free_ptbls_map = (uint8_t*)free_ptbls_map_mem.a;
 		
 		pageTableAllocator = new SlabAlloc(table_store, 8 * MB, sizeof(page_table), free_ptbls_map);
+
+		PageDirectory* pd = new PageDirectory();
 
 		auto range = memory_regions -> getIntervals() -> head();
 		while(range != memory_regions -> getIntervals() -> end()){
@@ -65,4 +71,15 @@ namespace MemoryManager{
 	}
 	
 	PageFrameAllocator::PageFrameAllocator(){}
+
+	phys_addr getPhysicalAddr(virt_addr v){
+		if(active_page_dir == NULL){
+			return (phys_addr)((uint32_t)v - 0xc0000000);
+		}
+		return active_page_dir -> findPhysicalAddr(v);
+	}
+
+	uint32_t* physicalToPageTableAddr(phys_addr p){
+		return (uint32_t*)((uint32_t)p - (uint32_t)page_tables_buffer_addr + (uint32_t)page_tables_buffer_base);
+	}
 }

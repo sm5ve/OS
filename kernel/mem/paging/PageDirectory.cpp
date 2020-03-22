@@ -7,10 +7,10 @@ namespace MemoryManager{
 	uint32_t* physicalToPageTableAddr(phys_addr v);
 	PageDirectory* active_page_dir;
 }
-//FIXME Right now we are allocating all page directories and tables in the kernel bump heap. Obviously this is a terrible idea. We need to fix this once we write the page allocator. Moreover, we need a way of converting from physical addresses back to virtual ones when looking up page tables. A simple way of doing so is to just make sure all page tables are stored in some contiguous chunk of memory and then subtracting a fixed offset. Hopefully this will be sufficient.
 
 PageDirectory::PageDirectory(){
-	directory = (uint32_t*)kalloc_permanent(4096, 4096);
+	directory = (uint32_t*)allocatePageTable();
+	assert(((uint32_t) directory & 0xfff) == 0, "Error: misaligned page directory");
 	memset(directory, 0, 4096);
 }
 
@@ -31,7 +31,7 @@ void PageDirectory::addMapping(phys_addr p, virt_addr v, uint32_t flags){
 	assert((((uint32_t)directory) & 0xfff) == 0, "Error: misaligned directory");
 	
 	if(!isPresent(directory[directoryIndex])){
-		void* pageTable = kalloc_permanent(4096, 4096); //FIXME This is a TERRIBLE way of allocating memory for page tables. We should just allocate a page and stash it in there.
+		void* pageTable = allocatePageTable();
 		assert(((uint32_t)pageTable & 0xfff) == 0, "Error: misaligned page table");
 		uint32_t paddr = (uint32_t)getPhysicalAddr((virt_addr)pageTable);
 		uint32_t directoryEntry = (paddr & (~0xfff)) | flags; //FIXME is this how we want to be setting the table flags? Is there a better interface?
@@ -105,29 +105,4 @@ virt_addr PageDirectory::getRegionBase(MemoryRegion& region){
 	}
 	assert(false, "Error: tried to find base of region not present in page directory");
 	return NULL;
-}
-
-namespace MemoryManager{
-	phys_addr getPhysicalAddr(virt_addr v){
-		if(active_page_dir == NULL){
-			return (phys_addr)((uint32_t)v - 0xC0000000); //Hacky way of translating kernel virtual addresses to physical ones before we have a page directory built
-		}
-		return active_page_dir -> findPhysicalAddr(v);
-	}
-
-	//FIXME this is a little tricky. I think we need to store all the page tables in a predefined place in physical memory
-	uint32_t* physicalToPageTableAddr(phys_addr p){
-		return (uint32_t*)((uint32_t)p + 0xC0000000);
-	}
-
-	void initializeKernelPaging(){
-		active_page_dir = NULL;
-		PageDirectory* pd = new PageDirectory();	
-
-		for(int i = 0x00001000; i < 0x02000000; i += 4096){
-			pd -> addMapping((phys_addr)i, (virt_addr)(i + 0xC0000000), PAGE_ENABLE_WRITE | PAGE_PRESENT);
-		}
-		
-		pd -> install();
-	}
 }

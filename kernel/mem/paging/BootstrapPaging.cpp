@@ -47,8 +47,9 @@ virt_addr BootstrapPaging::mapRangeAfter(Interval<phys_addr> range, virt_addr af
 			found = 0;
 		}	
 		else{
-			if(found == 0)
+			if(found == 0){
 				base = (virt_addr)checking;
+			}
 			found += 4096;
 			if(found > required){
 				mapRange(range, base);
