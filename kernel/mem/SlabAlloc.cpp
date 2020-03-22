@@ -17,7 +17,7 @@ SlabAlloc::SlabAlloc(void* buff, size_t buff_s, size_t slab_s, uint8_t* fmap){
 	}
 	writeFreeSlab(buffer_size / slab_size - 1, NULL);
 	if(freed_map){
-		memset(freed_map, 0xff, buff_s/8); //Make sure everything's set to free
+		memset(freed_map, 0xff, buff_s / (slab_size * 8)); //Make sure everything's set to free
 	}
 }
 

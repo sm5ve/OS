@@ -4,6 +4,7 @@
 #include <klib/SerialDevice.h>
 #include <ds/HashMap.h>
 #include <stddef.h>
+#include <bootstrap.h>
 
 #define PAGE_SIZE 4096
 
@@ -12,16 +13,22 @@ namespace MemoryManager{
 	SlabAlloc* pageTableAllocator;
 	HashMap<Interval<uint32_t>, PageFrameAllocator>* allocators;
 	
-	phys_addr table_store_phys;
-
-	phys_addr reserveRangeOfSize(size_t size, IntervalSet<uint32_t>* memory_regions){
-		auto region = memory_regions -> findSubintervalOfSize(size);
+	void* reserveRangeOfSize(size_t size, IntervalSet<uint32_t>* memory_regions, BootstrapPaging* bspd){
+		auto region = memory_regions -> findSubintervalOfSize(size + PAGE_SIZE);
 		assert(region.has_value(), "Error: memory too fragmented");
-		memory_regions -> subtract(region.value());
-		return (phys_addr)region.value().getStart();
+		memory_regions -> subtract(region.value());\
+		uint32_t start = region.value().getStart();
+		start += PAGE_SIZE - (start % PAGE_SIZE);
+		uint32_t end = start + size;
+		return bspd -> mapRangeAfter(Interval<phys_addr>((phys_addr)start, (phys_addr)end), (virt_addr) 0xc0000000);
 	}
 
 	void init(mboot_mmap_entry* entries, uint32_t len){
+		//Initialize bootstrap page tables
+		BootstrapPaging* bspd = new BootstrapPaging();
+		bspd -> mapRange(Interval<phys_addr>((phys_addr)0, (phys_addr)0x01000000), (virt_addr)0xc0000000);
+		bspd -> install();
+	
 		memory_regions = new IntervalSet<uint32_t>();
 		allocators = new HashMap<Interval<uint32_t>, PageFrameAllocator>();
 		auto ent = entries;
@@ -31,13 +38,10 @@ namespace MemoryManager{
 			}
 			ent = (mboot_mmap_entry*)((uint32_t)ent + (ent -> size) + sizeof(void*));
 		}
-		//TODO actually be smart and reserve important parts of memory for the kernel in some intelligent manner
-		memory_regions -> subtract(Interval<uint32_t>(0x00000000, 0x01000000));
-		table_store_phys = reserveRangeOfSize(8*MB, memory_regions);
-		auto free_ptbls_map_phys = reserveRangeOfSize(8 * MB / sizeof(page_table) / 8, memory_regions);
-		//FIXME this is a bit hacky, but assuming that tble_store_phys is in the lower gigabyte, should've already mapped this into virtual memory
-		void* table_store = (void*)((uint32_t)table_store_phys + 0xc0000000);
-		uint8_t* free_ptbls_map = (uint8_t*)((uint32_t)free_ptbls_map_phys + 0xc0000000);
+		memory_regions -> subtract(Interval<uint32_t>(0x00000000, 0x01000000 - 1));
+		auto table_store = reserveRangeOfSize(8*MB, memory_regions, bspd);
+		auto free_ptbls_map = (uint8_t*)reserveRangeOfSize(8 * MB / (sizeof(page_table) * 8), memory_regions, bspd);
+		
 		pageTableAllocator = new SlabAlloc(table_store, 8 * MB, sizeof(page_table), free_ptbls_map);
 
 
@@ -49,7 +53,13 @@ namespace MemoryManager{
 		SD::the() << "Physical memory map " << *memory_regions << "\n";
 	}
 
-	
+	page_table* allocatePageTable(){
+		return (page_table*)(pageTableAllocator -> alloc());
+	}
+
+	void freePageTable(page_table* ptbl){
+		pageTableAllocator -> free(ptbl);
+	}
 	
 	PageFrameAllocator::PageFrameAllocator(){}
 }

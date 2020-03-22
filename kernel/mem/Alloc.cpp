@@ -22,7 +22,7 @@ uint8_t KERNEL_HEAP[KERNEL_HEAP_SIZE];
 uint32_t KERNEL_HEAP_PTRS[KERNEL_HEAP_SIZE/KERNEL_HEAP_GRANULARITY];
 
 uint16_t uninitialized_heap_alloc[sizeof(HeapAlloc)];
-HeapAlloc* heap_alloc;
+HeapAlloc* heap_alloc; 
 
 void initKalloc(){
 	slab_allocs = (SlabAlloc*)uninitialized_slab_allocs;

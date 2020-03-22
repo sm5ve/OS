@@ -50,10 +50,6 @@ extern "C" [[noreturn]] void kernel_init(unsigned int multiboot_magic, mboot_inf
 	SD::the() << "Installing the IDT\n";
 	installIDT();
 	SD::the() << "IDT installed!\n";
-
-	SD::the() << "Installing kernel page directory\n";
-	MemoryManager::initializeKernelPaging();
-	SD::the() << "Installed!\n";
 	
 	//for(;;);
 	mboot_mmap_entry* entries = (mboot_mmap_entry*)((uint32_t)(mboot -> mmap_ptr) + 0xC0000000);
@@ -62,7 +58,9 @@ extern "C" [[noreturn]] void kernel_init(unsigned int multiboot_magic, mboot_inf
 	
 	//MemoryManager::init(entries, mboot -> mmap_len);
 	load_modules((mboot_module*)(mboot -> mods_ptr + 0xC0000000), mboot -> mods_count);
+	SD::the() << "Initializing memory manager\n";
 	MemoryManager::init(entries, mboot -> mmap_len);
+	SD::the() << "Done!\n";
 	sti();
 	//DisableInterrupts d;
 

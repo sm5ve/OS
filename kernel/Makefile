@@ -13,6 +13,7 @@ OBJS := debug.o \
 		mem/HeapAlloc.o \
 		mem/SlabAlloc.o \
 		mem/util.o \
+		mem/paging/BootstrapPaging.o\
 		mem/paging/MemoryManager.o \
 		mem/paging/PageDirectory.o \
 		mem/paging/MemoryRegionReference.o \

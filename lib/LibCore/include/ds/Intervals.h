@@ -276,7 +276,7 @@ PrintStream& operator<<(PrintStream& p, IntervalSet<T>& s){
 
 template <class T>
 T Interval<T>::getSize() const{
-	return getStart() - getEnd() + 1; //I seriously wonder if we should exclude the endpoint
+	return getEnd() - getStart() + 1; //I seriously wonder if we should exclude the endpoint
 }
 
 #endif

@@ -124,7 +124,7 @@ namespace MemoryManager{
 		active_page_dir = NULL;
 		PageDirectory* pd = new PageDirectory();	
 
-		for(int i = 0x00001000; i < 0x10000000; i += 4096){
+		for(int i = 0x00001000; i < 0x02000000; i += 4096){
 			pd -> addMapping((phys_addr)i, (virt_addr)(i + 0xC0000000), PAGE_ENABLE_WRITE | PAGE_PRESENT);
 		}
 		
