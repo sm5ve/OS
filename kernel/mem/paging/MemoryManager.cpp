@@ -38,12 +38,12 @@ namespace MemoryManager{
 			}
 			ent = (mboot_mmap_entry*)((uint32_t)ent + (ent -> size) + sizeof(void*));
 		}
+
 		memory_regions -> subtract(Interval<uint32_t>(0x00000000, 0x01000000 - 1));
 		auto table_store = reserveRangeOfSize(8*MB, memory_regions, bspd);
 		auto free_ptbls_map = (uint8_t*)reserveRangeOfSize(8 * MB / (sizeof(page_table) * 8), memory_regions, bspd);
 		
 		pageTableAllocator = new SlabAlloc(table_store, 8 * MB, sizeof(page_table), free_ptbls_map);
-
 
 		auto range = memory_regions -> getIntervals() -> head();
 		while(range != memory_regions -> getIntervals() -> end()){
