@@ -51,21 +51,13 @@ extern "C" [[noreturn]] void kernel_init(unsigned int multiboot_magic, mboot_inf
 	installIDT();
 	SD::the() << "IDT installed!\n";
 	
-	//for(;;);
 	mboot_mmap_entry* entries = (mboot_mmap_entry*)((uint32_t)(mboot -> mmap_ptr) + 0xC0000000);
-	//uint32_t len = mboot -> mmap_len;
-	//enterMirroredFlatPaging();
 	
-	//MemoryManager::init(entries, mboot -> mmap_len);
 	load_modules((mboot_module*)(mboot -> mods_ptr + 0xC0000000), mboot -> mods_count);
 	SD::the() << "Initializing memory manager\n";
 	MemoryManager::init(entries, mboot -> mmap_len);
 	SD::the() << "Done!\n";
 	sti();
-	//DisableInterrupts d;
-
-	//uint32_t* ptr = (uint32_t*)NULL;
-	//SD::the() << *ptr << "\n";
 	
 	outw(0x604, 0x2000); //shutdown qemu
 	for(;;){

@@ -13,14 +13,14 @@ namespace MemoryManager{
 	SlabAlloc* pageTableAllocator;
 	HashMap<Interval<uint32_t>, PageFrameAllocator>* allocators;
 	
-	void* reserveRangeOfSize(size_t size, IntervalSet<uint32_t>* memory_regions, BootstrapPaging* bspd){
+	Tuple<virt_addr, phys_addr> reserveRangeOfSize(size_t size, IntervalSet<uint32_t>* memory_regions, BootstrapPaging* bspd){
 		auto region = memory_regions -> findSubintervalOfSize(size + PAGE_SIZE);
 		assert(region.has_value(), "Error: memory too fragmented");
 		memory_regions -> subtract(region.value());\
 		uint32_t start = region.value().getStart();
 		start += PAGE_SIZE - (start % PAGE_SIZE);
 		uint32_t end = start + size;
-		return bspd -> mapRangeAfter(Interval<phys_addr>((phys_addr)start, (phys_addr)end), (virt_addr) 0xc0000000);
+		return Tuple<virt_addr, phys_addr>(bspd -> mapRangeAfter(Interval<phys_addr>((phys_addr)start, (phys_addr)end), (virt_addr) 0xc0000000), (phys_addr)start);
 	}
 
 	void init(mboot_mmap_entry* entries, uint32_t len){
@@ -40,8 +40,11 @@ namespace MemoryManager{
 		}
 
 		memory_regions -> subtract(Interval<uint32_t>(0x00000000, 0x01000000 - 1));
-		auto table_store = reserveRangeOfSize(8*MB, memory_regions, bspd);
-		auto free_ptbls_map = (uint8_t*)reserveRangeOfSize(8 * MB / (sizeof(page_table) * 8), memory_regions, bspd);
+		auto table_store_mem = reserveRangeOfSize(8*MB, memory_regions, bspd);
+		auto free_ptbls_map_mem = reserveRangeOfSize(8 * MB / (sizeof(page_table) * 8), memory_regions, bspd);
+
+		auto table_store = table_store_mem.a;
+		auto free_ptbls_map = (uint8_t*)free_ptbls_map_mem.a;
 		
 		pageTableAllocator = new SlabAlloc(table_store, 8 * MB, sizeof(page_table), free_ptbls_map);
 

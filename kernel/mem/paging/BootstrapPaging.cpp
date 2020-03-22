@@ -5,8 +5,6 @@
 #include <flags.h>
 #include <klib/SerialDevice.h>
 
-//FIXME Right now we are allocating all page directories and tables in the kernel bump heap. Obviously this is a terrible idea. We need to fix this once we write the page allocator. Moreover, we need a way of converting from physical addresses back to virtual ones when looking up page tables. A simple way of doing so is to just make sure all page tables are stored in some contiguous chunk of memory and then subtracting a fixed offset. Hopefully this will be sufficient.
-
 BootstrapPaging::BootstrapPaging(){
 	directory = (uint32_t*)kalloc_permanent(4096, 4096);
 	memset(directory, 0, 4096);
