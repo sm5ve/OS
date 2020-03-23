@@ -61,19 +61,23 @@ namespace MemoryManager{
 	public:
 		MemoryRegion();
 		virtual ~MemoryRegion();
-		virtual void install(PageDirectory&) = 0;
+		virtual void install(PageDirectory&, virt_addr) = 0;
+		virtual void remove(PageDirectory&, virt_addr) = 0;
 		virtual size_t getSize() = 0;
 		virtual void handlePageFault(uint32_t offset) = 0;
 	private:
 		uint32_t refs;
+		bool dirty = false;
 	private:
 		void incRef(){
 			refs++;
+			dirty = true;
 		};
 		void decRef(){
 			refs--;
 			if(refs == 0){
-				delete this;
+				//delete this;
+				//FIXME I *really* need to understand smart pointers
 			}
 		};
 		friend class MemoryRegionReference;
@@ -81,9 +85,10 @@ namespace MemoryManager{
 
 	class PhysicalMemoryRegion : public MemoryRegion{
 	public:
-		PhysicalMemoryRegion(Vector<page_table*> ptables, size_t size);
+		PhysicalMemoryRegion(Vector<page_table*> ptables, size_t size, bool perm = false, uint32_t flags = PAGE_ENABLE_WRITE | PAGE_PRESENT);
 		~PhysicalMemoryRegion();
-		virtual void install(PageDirectory&) final override;
+		virtual void install(PageDirectory&, virt_addr) final override;
+		virtual void remove(PageDirectory&, virt_addr) final override;
 		virtual size_t getSize() final override{
 			return size;
 		};
@@ -92,6 +97,8 @@ namespace MemoryManager{
 	private:
 		Vector<page_table*> ptables;
 		uint32_t size;
+		bool permanent;
+		uint32_t flags;
 		friend PrintStream& (::operator<<)(PrintStream&, PhysicalMemoryRegion&); //TODO we need to make this virtual somehow, otherwise once we lose the typing data by wrapping with a referece, we won't be able to use this operator
 	};
 
@@ -119,13 +126,17 @@ public:
 	//TODO we probably want a copy constructor that just copies the upper gigabyte of kernel page directory entries
 	~PageDirectory();
 
-	void addMapping(phys_addr p, virt_addr v, uint32_t flags);
-	void removeMapping(virt_addr v);
-	phys_addr findPhysicalAddr(virt_addr v);
+	void addMapping(phys_addr, virt_addr, uint32_t flags);
+	void removeMapping(virt_addr);
+	phys_addr findPhysicalAddr(virt_addr);
+	void addPageTable(page_table*, virt_addr, uint32_t flags);
 
 	void installRegion(MemoryManager::MemoryRegion& region, virt_addr starting_addr);
 	void removeRegion(MemoryManager::MemoryRegion&);
 	virt_addr getRegionBase(MemoryManager::MemoryRegion&);
+
+	virt_addr findSpaceBelow(size_t, virt_addr);
+	virt_addr findSpaceAbove(size_t, virt_addr); 
 
 	void install();
 	bool isActive();

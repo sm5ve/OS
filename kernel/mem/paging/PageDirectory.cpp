@@ -1,6 +1,7 @@
 #include <paging.h>
 #include <stddef.h>
 #include <mem.h>
+#include <klib/SerialDevice.h>
 
 using namespace MemoryManager;
 namespace MemoryManager{
@@ -71,6 +72,8 @@ phys_addr PageDirectory::findPhysicalAddr(virt_addr v){
 void PageDirectory::install(){
 	active_page_dir = this;
 	uint32_t ptr = (uint32_t)findPhysicalAddr((virt_addr)directory);
+	SD::the() << "installing page directory at paddr " << (void*)ptr << "\n";
+	SD::the() << "vaddr " << (virt_addr)directory << "\n";
 	__asm__ volatile("movl %0, %%cr3\n" :: "r"(ptr));
 }
 
@@ -80,7 +83,7 @@ bool PageDirectory::isActive(){
 
 void PageDirectory::installRegion(MemoryRegion& region, virt_addr starting_addr){
 	regions.add({region, starting_addr});
-	region.install(*this);
+	region.install(*this, starting_addr);
 }
 
 void PageDirectory::removeRegion(MemoryRegion& region){
@@ -89,6 +92,7 @@ void PageDirectory::removeRegion(MemoryRegion& region){
 		auto oldNode = node;
 		node = node -> next();
 		if(&*(oldNode -> value.region) == &region){
+			region.remove(*this, oldNode -> value.base);
 			regions.remove(oldNode);
 			return;
 		}
@@ -104,5 +108,24 @@ virt_addr PageDirectory::getRegionBase(MemoryRegion& region){
 		node = node -> next();
 	}
 	assert(false, "Error: tried to find base of region not present in page directory");
+	return NULL;
+}
+
+void PageDirectory::addPageTable(page_table* ptr, virt_addr base, uint32_t flags){
+	uint32_t directory_index = ((uint32_t)base >> 22);
+	assert(((uint32_t)base & 0x3fffff) == 0, "Error: misaligned base address");
+	uint32_t paddr = (uint32_t)getPhysicalAddr((virt_addr)ptr);
+	assert(paddr % PAGE_SIZE == 0, "Error: misaligned page table");
+	uint32_t entry = (paddr & (~0xfff)) | flags;
+	directory[directory_index] = entry;
+}
+
+virt_addr PageDirectory::findSpaceBelow(size_t size, virt_addr addr){
+	assert(false, "Unimplemented");
+	return NULL;
+}
+
+virt_addr PageDirectory::findSpaceAbove(size_t size, virt_addr addr){
+	assert(false, "Unimplemented");
 	return NULL;
 }

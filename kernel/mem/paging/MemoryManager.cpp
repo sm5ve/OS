@@ -20,7 +20,8 @@ namespace MemoryManager{
 		assert(region.has_value(), "Error: memory too fragmented");
 		memory_regions -> subtract(region.value());\
 		uint32_t start = region.value().getStart();
-		start += PAGE_SIZE - (start % PAGE_SIZE);
+		if(start % PAGE_SIZE != 0)
+			start += PAGE_SIZE - (start % PAGE_SIZE);
 		uint32_t end = start + size;
 		return Tuple<virt_addr, phys_addr>(bspd -> mapRangeAfter(Interval<phys_addr>((phys_addr)start, (phys_addr)end), (virt_addr) 0xc0000000), (phys_addr)start);
 	}
@@ -53,6 +54,14 @@ namespace MemoryManager{
 		pageTableAllocator = new SlabAlloc(table_store, 8 * MB, sizeof(page_table), free_ptbls_map);
 
 		PageDirectory* pd = new PageDirectory();
+		auto bootstrap_regions = bspd -> getRegions();
+		SD::the() << bootstrap_regions.size() << "\n";
+
+		for(uint32_t i = 0; i < bootstrap_regions.size(); i++){
+			pd -> installRegion(*bootstrap_regions[i], (virt_addr)0xc0000000);
+		}
+
+		pd -> install();
 
 		auto range = memory_regions -> getIntervals() -> head();
 		while(range != memory_regions -> getIntervals() -> end()){

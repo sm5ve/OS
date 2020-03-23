@@ -93,3 +93,23 @@ void BootstrapPaging::install(){
 	uint32_t ptr = (uint32_t)directory - 0xC0000000;
 	__asm__ volatile("movl %0, %%cr3\n" :: "r"(ptr));
 }
+
+Vector<MemoryManager::PhysicalMemoryRegion*> BootstrapPaging::getRegions(){
+	Vector<MemoryManager::PhysicalMemoryRegion*> out;
+	Vector<page_table*>* current_region = new Vector<page_table*>();
+	for(int i = 0; i < 1024; i++){
+		if(!isPresent(directory[i])){
+			if(current_region -> size() > 0){
+				out.push(new MemoryManager::PhysicalMemoryRegion(*current_region, (current_region -> size()) * (1024 * PAGE_SIZE)));
+				delete current_region;
+				current_region = new Vector<page_table*>();
+			}
+		}
+		else{
+			page_table* tbl = (page_table*)physicalToPageTableAddr((phys_addr)(directory[i] & (~0xfff)));
+			current_region -> push(tbl);
+		}
+	}
+	delete current_region;
+	return out;
+}
