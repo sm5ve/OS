@@ -16,6 +16,7 @@ public:
 	void remove(uint32_t index);
 	void push(T);
 	T pop();
+	T top();
 	size_t size();
 private:
 	T* buffer;
@@ -83,6 +84,12 @@ T Vector<T>::pop(){
 	count--;
 	resizeIfNecessary();
 	return out;
+}
+
+template <class T>
+T Vector<T>::top(){
+	assert(count > 0, "Error: tried to get top of empty vector");
+	return buffer[count - 1];
 }
 
 template <class T>

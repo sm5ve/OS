@@ -21,6 +21,7 @@
 extern uint32_t _kend;
 
 ELF* ksyms_elf = NULL;
+ELF* test_program_elf = NULL;
 
 void load_modules(mboot_module* modules, uint32_t count){
 	for(uint32_t i = 0; i < count; i++){
@@ -30,6 +31,11 @@ void load_modules(mboot_module* modules, uint32_t count){
 			void* kstart = (void*)(modules[i].start_addr + 0xC0000000);
 			ksyms_elf = new ELF(kstart);
 			ksyms = new DWARF(ksyms_elf);
+		}
+		if(modName == "test"){
+			SD::the() << "Found the test program\n";
+			void* pstart = (void*)(modules[i].start_addr + 0xC0000000);
+			test_program_elf = new ELF(pstart);
 		}
 	}
 }

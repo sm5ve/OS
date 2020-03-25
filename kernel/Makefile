@@ -40,6 +40,9 @@ ASMFLAGS += $(INCLUDES)
 .PHONY: clean kernel kernel.sym term
 .DEFAULT_GOAL := term
 
+test: test_program/main.cpp
+	$(CC) -ffreestanding -nostdlib -lgcc -fno-exceptions $< -o test
+
 kernel: $(OBJS)
 	$(CC) -T linker.ld -o kernel -ffreestanding -nostdlib $(OBJS) -lgcc -g
 
@@ -54,7 +57,7 @@ kernel.sym: kernel
 	@$(CC) $(ASMFLAGS) -c $< -o $@
 
 clean: 
-	-@$(RM) $(wildcard $(OBJS) kernel kernel.sym)
+	-@$(RM) $(wildcard $(OBJS) kernel kernel.sym test)
 
-term: kernel kernel.sym
-	@qemu-system-x86_64 -m 1G -kernel kernel -initrd "kernel.sym" -nographic -no-reboot -d cpu_reset
+term: kernel kernel.sym test
+	@qemu-system-x86_64 -m 1G -kernel kernel -initrd "kernel.sym,test" -nographic -no-reboot -d cpu_reset

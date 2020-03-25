@@ -5,3 +5,4 @@
 *.ao
 kernel/kernel
 kernel/kernel.sym
+kernel/test

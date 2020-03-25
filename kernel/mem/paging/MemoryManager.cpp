@@ -102,9 +102,9 @@ namespace MemoryManager{
 
 		pd -> install();
 
-		PhysicalMemoryRegion test(Vector<page_table*>(), 0, false);
-		growPhysicalMemoryRegion(test, 3 * MB);
-		pd -> installRegion((MemoryRegion&)test, (virt_addr)0x20000000);
+		PhysicalMemoryRegion* test = new PhysicalMemoryRegion(Vector<page_table*>(), 0, false);
+		growPhysicalMemoryRegion(*test, 3 * MB);
+		pd -> installRegion(*test, (virt_addr)0x20000000);
 
 		SD::the() << "Physical memory map " << *memory_regions << "\n";
 	}
