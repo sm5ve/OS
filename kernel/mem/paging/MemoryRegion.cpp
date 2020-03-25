@@ -10,7 +10,7 @@ MemoryRegion::~MemoryRegion(){
 }
 
 PhysicalMemoryRegion::PhysicalMemoryRegion(Vector<page_table*> pt, size_t s, bool perm, uint32_t flgs) : ptables(pt), size(s), permanent(perm), flags(flgs){
-
+	assert(size % PAGE_SIZE == 0, "Error: misaligned memory region size");
 }
 
 PhysicalMemoryRegion::~PhysicalMemoryRegion(){

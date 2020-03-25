@@ -50,6 +50,7 @@ namespace MemoryManager{
 	public:
 		MemoryRegionReference();
 		MemoryRegionReference(MemoryRegion& reg);
+		MemoryRegionReference(MemoryRegionReference&);
 		~MemoryRegionReference();
 
 		MemoryRegion& operator*();
@@ -57,6 +58,7 @@ namespace MemoryManager{
 		MemoryRegion* region;
 	};
 
+	//TODO we need some way to update the page directories when we modify a memory region
 	class MemoryRegion{
 	public:
 		MemoryRegion();
@@ -83,6 +85,8 @@ namespace MemoryManager{
 		friend class MemoryRegionReference;
 	};
 
+	class PageFrameAllocator;
+
 	class PhysicalMemoryRegion : public MemoryRegion{
 	public:
 		PhysicalMemoryRegion(Vector<page_table*> ptables, size_t size, bool perm = false, uint32_t flags = PAGE_ENABLE_WRITE | PAGE_PRESENT);
@@ -93,21 +97,28 @@ namespace MemoryManager{
 			return size;
 		};
 		virtual void handlePageFault(uint32_t offset) final override; //FIXME we probably shouldn't be returning void. Should we pass the relevant directory, or just get that from the global?
-		void grow(Vector<page_table*>& newTables, size_t newSize);
 	private:
 		Vector<page_table*> ptables;
 		uint32_t size;
 		bool permanent;
 		uint32_t flags;
+		friend class PageFrameAllocator;
 		friend PrintStream& (::operator<<)(PrintStream&, PhysicalMemoryRegion&); //TODO we need to make this virtual somehow, otherwise once we lose the typing data by wrapping with a referece, we won't be able to use this operator
 	};
 
 	class PageFrameAllocator{
 	public:
-		PageFrameAllocator(size_t size, uint32_t* buffer, phys_addr start_addr);
+		PageFrameAllocator(size_t size, phys_addr* ptr_buffer, uint32_t* free_buffer, phys_addr start_addr);
 		PageFrameAllocator();
-		uint32_t grow(PhysicalMemoryRegion&, size_t targetSize);
+		size_t grow(PhysicalMemoryRegion&, size_t targetSize);
 		void release(phys_addr);
+	private:
+		uint32_t free_index;
+		phys_addr* ptr_buff;
+		uint32_t* free_buff;
+		size_t sz;
+		phys_addr base;
+		phys_addr alloc();
 	};
 
 	void growPhysicalMemoryRegion(PhysicalMemoryRegion&, size_t targetSize);

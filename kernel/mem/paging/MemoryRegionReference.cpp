@@ -11,6 +11,11 @@ MemoryRegionReference::MemoryRegionReference(MemoryRegion& reg){
 	region -> incRef();
 }
 
+MemoryRegionReference::MemoryRegionReference(MemoryRegionReference& ref){
+	region = ref.region;
+	region -> incRef();
+}
+
 MemoryRegionReference::~MemoryRegionReference(){
 	if(region)
 		region -> decRef();

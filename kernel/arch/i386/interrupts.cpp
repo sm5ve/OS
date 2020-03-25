@@ -117,6 +117,11 @@ extern "C" void isrHandler(registers regs){
 		panic("Null pointer exception!", regs);
 	}
 
+	if(regs.int_number == 80){
+		SD::the() << "Hello!\n";
+		return;
+	}
+
 	SD::the() << "At " << (void*)regs.faulting_addr << "\n";
 	SD::the() << "ISR!" << regs.int_number << "\n";
 	SD::the() << "IP " << (void*)regs.fault_eip << "\n";
@@ -193,7 +198,7 @@ ISR_NO_ERR(17);
 ISR_NO_ERR(18);
 ISR_NO_ERR(19);
 ISR_NO_ERR(20);
-
+ISR_NO_ERR(80);
 //Create IRQ handlers
 
 IRQ(0);
@@ -240,6 +245,7 @@ void installIDT(){
 	INST_ISR(18)
 	INST_ISR(19)
 	INST_ISR(20)
+	INST_ISR(80)
 	
 	INST_IRQ(0)
 	INST_IRQ(1)

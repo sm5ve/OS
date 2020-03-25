@@ -72,8 +72,6 @@ phys_addr PageDirectory::findPhysicalAddr(virt_addr v){
 void PageDirectory::install(){
 	active_page_dir = this;
 	uint32_t ptr = (uint32_t)findPhysicalAddr((virt_addr)directory);
-	SD::the() << "installing page directory at paddr " << (void*)ptr << "\n";
-	SD::the() << "vaddr " << (virt_addr)directory << "\n";
 	__asm__ volatile("movl %0, %%cr3\n" :: "r"(ptr));
 }
 
