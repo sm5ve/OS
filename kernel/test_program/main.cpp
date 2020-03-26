@@ -1,4 +1,5 @@
 int max = 30;
+char* str = "Hello world!\n";
 
 bool isPrime(int x){
 	if(x < 2){
@@ -11,13 +12,23 @@ bool isPrime(int x){
 	return true;
 }
 
+void print(int x){
+	asm("mov %0, %%eax \n" \
+		"int $81" :: "r"(x));
+}
+
+void print(char* str){
+	asm("mov %0, %%eax \n" \
+		"int $80" :: "r"(str));
+}
+
 extern "C" int _start(){
 	for(int i = 0; i < max; i++){
 		if(isPrime(i)){
-			asm("mov %0, %%eax \n" \
-				"int $81" :: "r"(i));
+			print(i);
 		}
 	}
+	print(str);
 	for(;;);
 	return 0;
 }

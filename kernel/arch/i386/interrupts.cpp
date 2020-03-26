@@ -118,7 +118,7 @@ extern "C" void isrHandler(registers regs){
 	}
 
 	if(regs.int_number == 80){
-		SD::the() << "Hello!\n";
+		SD::the() << (char*)regs.eax;
 		return;
 	}
 	if(regs.int_number == 81){
