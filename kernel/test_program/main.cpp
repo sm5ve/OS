@@ -14,8 +14,8 @@ bool isPrime(int x){
 extern "C" int _start(){
 	for(int i = 0; i < max; i++){
 		if(isPrime(i)){
-			asm("int $81\n" \ 
-				"mov $0, %%eax" : : "r"(i));
+			asm("mov %0, %%eax \n" \
+				"int $81" :: "r"(i));
 		}
 	}
 	for(;;);
