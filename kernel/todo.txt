@@ -33,3 +33,9 @@ certain I understand how the core
 components of the OS interact with each
 other before I try to come up with a good
 collection of abstractions for them.
+
+
+
+VERY IMPORTANT NOTE:
+There will be a window manager, and it
+will be named GNOBLIN
