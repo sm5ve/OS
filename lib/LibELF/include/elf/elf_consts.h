@@ -122,4 +122,8 @@
 #define ELF_PT_LOPROC        0x70000000
 #define ELF_PT_HIPROC        0x7fffffff
 
+#define ELF_PF_X             1
+#define ELF_PF_W             2
+#define ELF_PW_R             4
+
 #endif
