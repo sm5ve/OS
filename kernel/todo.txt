@@ -1,8 +1,5 @@
-1. Page frame allocator
-2. Some sort of rudimentary paging API
-3. ELF loader (let's load a binary from the multiboot modules and try to run it as the kernel!)
-4. Scheduler (multiple binaries?)
-5. Ring 3
+1. Scheduler (multiple binaries?)
+2. Ring 3
 
 ============== Important Gate ==============
 

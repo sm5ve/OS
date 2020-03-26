@@ -21,7 +21,6 @@ namespace Loader{
 				uint32_t seg_start = header -> vaddr;
 				seg_start -= seg_start % PAGE_SIZE;
 
-				//TODO implement flags
 				//TODO handle alignment
 				uint32_t region_offset = (seg_start % (1024 * PAGE_SIZE));
 				auto region = new MemoryManager::PhysicalMemoryRegion(Vector<page_table*>(), 0, region_offset);
@@ -41,6 +40,20 @@ namespace Loader{
 			}
 			else if(header -> type == ELF_PT_LOAD){
 				memcpy((void*)(header -> vaddr), elf.dataAtOffset(header -> offset), header -> file_size);
+				size_t vsize = header -> segment_size;
+				if(vsize % PAGE_SIZE != 0){
+					vsize += PAGE_SIZE - (vsize % PAGE_SIZE);
+				}
+				uint32_t seg_start = header -> vaddr;
+				seg_start -= seg_start % PAGE_SIZE;
+
+				uint32_t flags = PAGE_PRESENT;
+				if((header -> flags) & ELF_PF_W){
+					flags |= PAGE_ENABLE_WRITE;
+				}
+				for(uint32_t addr = seg_start; addr < seg_start + vsize; addr += PAGE_SIZE){
+					composite -> setFlags((virt_addr)addr, flags);
+				}
 			}
 			else{
 				assert(false, "Unimplemented segment type");

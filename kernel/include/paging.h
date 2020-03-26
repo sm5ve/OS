@@ -122,6 +122,7 @@ namespace MemoryManager{
 		virtual void handlePageFault(uint32_t offset) final override;
 
 		void addRegion(PhysicalMemoryRegion& region, virt_addr base);
+		void setFlags(virt_addr addr, uint32_t flags);
 	private:
 		Vector<Tuple<page_table*, virt_addr>> ptables; //TODO get a way of enumerating key-value pairs in a hashmap
 		uint32_t flags;

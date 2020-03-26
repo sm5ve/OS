@@ -106,7 +106,6 @@ namespace MemoryManager{
 		growPhysicalMemoryRegion(*test, 3 * MB);
 		pd -> installRegion(*test, (virt_addr)0x20000000);
 		*/
-		SD::the() << "Physical memory map " << *memory_regions << "\n";
 	}
 
 	page_table* allocatePageTable(){

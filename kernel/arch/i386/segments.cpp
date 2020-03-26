@@ -1,6 +1,6 @@
 #include <arch/i386/proc.h>
 
-#define TOTAL_GDT_SEGMENTS 3
+#define TOTAL_GDT_SEGMENTS 5
 
 //For now, the assumed structure is as follows:
 //[0] Null GDT Entry
@@ -74,6 +74,10 @@ void installGDT(){
 	uint8_t codeFlags = segmentFlags(true, false, true, true);
 	writeSegment(1, 0x00000000, 0xffffffff, codeFlags);
 	uint8_t dataFlags = segmentFlags(true, false, false, true);
-	writeSegment(2, 0x00000000, 0xffffffff, dataFlags);
+	writeSegment(2, 0x00000000, 0xfffffff, dataFlags);
+	uint8_t userCodeFlags = segmentFlags(false, false, true, true);
+	writeSegment(3, 0x00000000, 0xbfffffff, userCodeFlags);
+	uint8_t userDataFlags = segmentFlags(false, false, false, true);
+	writeSegment(4, 0x00000000, 0xbfffffff, userDataFlags);
 	flushGDT();
 }

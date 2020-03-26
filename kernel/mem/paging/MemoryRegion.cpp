@@ -26,7 +26,6 @@ void PhysicalMemoryRegion::install(PageDirectory& dir, virt_addr base){
 		dir.addPageTable(ptables[i], at, flags); 
 		at = (virt_addr)((uint32_t)at + PAGE_SIZE * 1024);
 	}
-	SD::the() << "Installed region at base " << base << "\n";
 }
 
 void PhysicalMemoryRegion::remove(PageDirectory& dir, virt_addr base){
@@ -90,4 +89,13 @@ void CompositeMemoryRegion::addRegion(PhysicalMemoryRegion& region, virt_addr ba
 			}
 		}
 	}
+}
+
+void CompositeMemoryRegion::setFlags(virt_addr addr, uint32_t flags){
+	assert((uint32_t)addr % PAGE_SIZE == 0, "Error: misaligned address");
+	uint32_t base = (uint32_t)addr - ((uint32_t)addr % (1024 * PAGE_SIZE));
+	assert(tbl_map.contains(base), "Error: tried to set flags of non-existent entry");
+	page_table& ptbl = *(page_table*)tbl_map.get(base);
+	uint32_t i = ((uint32_t)addr / PAGE_SIZE) % 1024;
+	ptbl[i] = (ptbl[i] & (~0xfff)) | flags;
 }
