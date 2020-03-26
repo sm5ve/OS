@@ -112,4 +112,14 @@
 #define ELF_OSABI_OPENVMS    13
 #define ELF_OSABI_NSK        14
 
+#define ELF_PT_NULL          0
+#define ELF_PT_LOAD          1
+#define ELF_PT_DYNAMIC       2
+#define ELF_PT_INTERP        3
+#define ELF_PT_NOTE          4
+#define ELF_PT_SHLIB         5
+#define ELF_PT_PHDR          6
+#define ELF_PT_LOPROC        0x70000000
+#define ELF_PT_HIPROC        0x7fffffff
+
 #endif

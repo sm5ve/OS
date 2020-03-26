@@ -5,6 +5,7 @@
 #include <ds/Intervals.h>
 #include <ds/Vector.h>
 #include <ds/LinkedList.h>
+#include <ds/HashMap.h>
 #include <PrintStream.h>
 
 typedef void* phys_addr;
@@ -86,10 +87,11 @@ namespace MemoryManager{
 	};
 
 	class PageFrameAllocator;
+	class CompositeMemoryRegion;
 
 	class PhysicalMemoryRegion : public MemoryRegion{
 	public:
-		PhysicalMemoryRegion(Vector<page_table*> ptables, size_t size, bool perm = false, uint32_t flags = PAGE_ENABLE_WRITE | PAGE_PRESENT);
+		PhysicalMemoryRegion(Vector<page_table*> ptables, size_t size, uint32_t first_entry = 0, bool perm = false, uint32_t flags = PAGE_ENABLE_WRITE | PAGE_PRESENT);
 		~PhysicalMemoryRegion();
 		virtual void install(PageDirectory&, virt_addr) final override;
 		virtual void remove(PageDirectory&, virt_addr) final override;
@@ -102,8 +104,28 @@ namespace MemoryManager{
 		uint32_t size;
 		bool permanent;
 		uint32_t flags;
+		uint32_t offset;
 		friend class PageFrameAllocator;
+		friend class CompositeMemoryRegion;
 		friend PrintStream& (::operator<<)(PrintStream&, PhysicalMemoryRegion&); //TODO we need to make this virtual somehow, otherwise once we lose the typing data by wrapping with a referece, we won't be able to use this operator
+	};
+
+	class CompositeMemoryRegion : public MemoryRegion{
+	public:
+		CompositeMemoryRegion(uint32_t flags = PAGE_ENABLE_WRITE | PAGE_PRESENT);
+		~CompositeMemoryRegion();
+		virtual void install(PageDirectory&, virt_addr) final override;
+		virtual void remove(PageDirectory&, virt_addr) final override;
+		virtual size_t getSize() final override{
+			return 0; //TODO I'm not quite sure what to return here, or if this is even a good method to have at all
+		}
+		virtual void handlePageFault(uint32_t offset) final override;
+
+		void addRegion(PhysicalMemoryRegion& region, virt_addr base);
+	private:
+		Vector<Tuple<page_table*, virt_addr>> ptables; //TODO get a way of enumerating key-value pairs in a hashmap
+		uint32_t flags;
+		HashMap<uint32_t, uint32_t> tbl_map;	
 	};
 
 	class PageFrameAllocator{

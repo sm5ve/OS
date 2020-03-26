@@ -29,6 +29,17 @@ struct __attribute__((packed)) ELFHeader32{
 	uint16_t section_header_string_tbl_index;
 };
 
+struct __attribute__((packed)) ELFProgramHeader32{
+	uint32_t type;
+	uint32_t offset;
+	uint32_t vaddr;
+	uint32_t paddr;
+	uint32_t file_size;
+	uint32_t segment_size;
+	uint32_t flags;
+	uint32_t align;
+};
+
 struct __attribute__((packed)) ELFSectionHeader32{
 	uint32_t name_index;
 	uint32_t type;
@@ -48,12 +59,14 @@ public:
 	~ELF();
 
 	ELFHeader32* getHeader32();
+	ELFProgramHeader32* getProgramHeader(uint32_t index);
 	ELFSectionHeader32* getSectionHeader(uint32_t index);
 	ELFSectionHeader32* getSectionHeader(String name);
 	String getSectionNameForIndex(uint32_t);
 	String getStringForIndex(uint32_t);
 
 	void* getSectionBase(ELFSectionHeader32*);
+	void* dataAtOffset(uint32_t);
 private:
 	void* base; 
 };

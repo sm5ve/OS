@@ -14,6 +14,8 @@
 #include <elf/dwarf.h>
 #include <debug.h>
 
+#include <loader.h>
+
 //Since kernel_init has a lot of testing code, we sometimes get used variables for older tests that are commented out
 //Hence, while the kernel's still largely in flux, we'll disable unused variable warnings for now
 #pragma GCC diagnostic ignored "-Wunused-variable"
@@ -64,6 +66,10 @@ extern "C" [[noreturn]] void kernel_init(unsigned int multiboot_magic, mboot_inf
 	MemoryManager::init(entries, mboot -> mmap_len);
 	SD::the() << "Done!\n";
 	sti();
+
+	if(test_program_elf != NULL){
+		Loader::load(*test_program_elf);
+	}
 	
 	outw(0x604, 0x2000); //shutdown qemu
 	for(;;){

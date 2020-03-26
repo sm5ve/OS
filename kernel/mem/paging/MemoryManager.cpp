@@ -101,11 +101,11 @@ namespace MemoryManager{
 		}
 
 		pd -> install();
-
+		/*
 		PhysicalMemoryRegion* test = new PhysicalMemoryRegion(Vector<page_table*>(), 0, false);
 		growPhysicalMemoryRegion(*test, 3 * MB);
 		pd -> installRegion(*test, (virt_addr)0x20000000);
-
+		*/
 		SD::the() << "Physical memory map " << *memory_regions << "\n";
 	}
 
@@ -170,9 +170,9 @@ namespace MemoryManager{
 			to_alloc = sz - free_index * PAGE_SIZE;
 		}
 		size_t num_pages = to_alloc / PAGE_SIZE;
-		for(uint32_t i = free_index; i < num_pages; i++){
-			uint32_t ptbl_index = (i + region.size / PAGE_SIZE) % 1024;
-			if(ptbl_index == 0){
+		for(uint32_t i = 0; i < num_pages; i++){
+			uint32_t ptbl_index = (i + region.size / PAGE_SIZE + region.offset / PAGE_SIZE) % 1024;
+			if((ptbl_index == 0) || (region.ptables.size() == 0)){
 				region.ptables.push(allocatePageTable());
 			}
 			page_table& ptbl = *region.ptables.top();
@@ -189,9 +189,10 @@ namespace MemoryManager{
 		while(range != memory_regions -> getIntervals() -> end()){
 			target_size = allocators -> get(range -> value) -> grow(reg, target_size);
 			if(target_size == 0){
-				break;
+				return;
 			}
 			range = range -> next();
 		}
+		assert(false, "Error: out of memory");
 	}
 }

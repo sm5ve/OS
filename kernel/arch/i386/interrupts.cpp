@@ -121,6 +121,10 @@ extern "C" void isrHandler(registers regs){
 		SD::the() << "Hello!\n";
 		return;
 	}
+	if(regs.int_number == 81){
+		SD::the() << regs.eax << "\n";
+		return;
+	}
 
 	SD::the() << "At " << (void*)regs.faulting_addr << "\n";
 	SD::the() << "ISR!" << regs.int_number << "\n";
@@ -133,7 +137,7 @@ extern "C" void isrHandler(registers regs){
 }
 
 extern "C" void irqHandler(registers regs){
-	SD::the() << "Got IRQ " << regs.int_number << "\n";
+	//SD::the() << "Got IRQ " << regs.int_number << "\n";
 	outb(0x20, 0x20);
 }
 
@@ -199,6 +203,7 @@ ISR_NO_ERR(18);
 ISR_NO_ERR(19);
 ISR_NO_ERR(20);
 ISR_NO_ERR(80);
+ISR_NO_ERR(81);
 //Create IRQ handlers
 
 IRQ(0);
@@ -246,7 +251,8 @@ void installIDT(){
 	INST_ISR(19)
 	INST_ISR(20)
 	INST_ISR(80)
-	
+	INST_ISR(81)	
+
 	INST_IRQ(0)
 	INST_IRQ(1)
 	INST_IRQ(2)

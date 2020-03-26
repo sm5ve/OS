@@ -22,6 +22,12 @@ ELFHeader32* ELF::getHeader32(){
 	return (ELFHeader32*)base;
 }
 
+ELFProgramHeader32* ELF::getProgramHeader(uint32_t index){
+	assert(index < getHeader32() -> prog_header_entry_count, "Error: tried to get out of bounds segment");
+	uint32_t out = (uint32_t)base + getHeader32() -> prog_header_off + index * getHeader32() -> prog_header_entry_size;
+	return (ELFProgramHeader32*) out;
+}
+
 ELFSectionHeader32* ELF::getSectionHeader(uint32_t index){
 	assert(index < getHeader32() -> section_header_entry_count, "Error: tried to index out of bounds section");
 	uint32_t out = (uint32_t) base + getHeader32() -> section_header_off + index * getHeader32() -> section_header_entry_size;
@@ -56,6 +62,10 @@ ELFSectionHeader32* ELF::getSectionHeader(String sectionName){
 
 void* ELF::getSectionBase(ELFSectionHeader32* hdr){
 	return (void*)((uint32_t)base + hdr -> offset);
+}
+
+void* ELF::dataAtOffset(uint32_t offset){
+	return (void*)((uint32_t)base + offset);
 }
 
 PrintStream& operator<<(PrintStream& p, const ELFHeader32* h){

@@ -8,6 +8,7 @@ OBJS := debug.o \
 		arch/i386/proc.o \
 		arch/i386/segments.o \
 		devices/pci.o \
+		loader/loader.o \
 		mem/Alloc.o \
 		mem/BumpAlloc.o \
 		mem/HeapAlloc.o \
