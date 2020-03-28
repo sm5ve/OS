@@ -1,5 +1,6 @@
 #include <Scheduler.h>
 #include <ds/Vector.h> //At some point we should consider using a better data structure
+#include <interrupts.h>
 
 namespace Scheduler{
 	Vector<Thread*>* threads;
@@ -13,10 +14,12 @@ namespace Scheduler{
 	}
 
 	void addThread(Thread& t){
+		DisableInterrupts d;
 		threads -> push(&t);
 	}
 
 	void pickNext(){
+		DisableInterrupts d;
 		assert(threads -> size() > 0, "Error: scheduler empty");
 		index = (index + 1) % (threads -> size());
 		current = (*threads)[index];

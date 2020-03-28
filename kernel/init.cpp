@@ -69,7 +69,7 @@ extern "C" [[noreturn]] void kernel_init(unsigned int multiboot_magic, mboot_inf
 	Scheduler::init();
 	sti();
 
-	if(test_program_elf != NULL){
+	/*if(test_program_elf != NULL){
 		Thread* t1 = Loader::load(*test_program_elf);
 		Thread* t2 = Loader::load(*test_program_elf);
 		t1 -> regs.edx = 1;
@@ -78,7 +78,7 @@ extern "C" [[noreturn]] void kernel_init(unsigned int multiboot_magic, mboot_inf
 		Scheduler::addThread(*t2);
 		Scheduler::pickNext();
 		Scheduler::exec();
-	}
+	}*/
 	
 	outw(0x604, 0x2000); //shutdown qemu
 	for(;;){

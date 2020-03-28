@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <klib/SerialDevice.h>
 #include <debug.h>
+#include <interrupts.h>
 
 //#define DEBUG_PRINTS
 
@@ -37,6 +38,7 @@ void initKalloc(){
 }
 
 void* kalloc(size_t size){
+	DisableInterrupts d;
 	void* out = NULL;
 	for(int i = 0; i < 4; i++){
 		if(size <= slab_allocs[i].getSlabSize()){
@@ -61,6 +63,7 @@ void* kalloc(size_t size){
 }
 
 void kfree(void* ptr){
+	DisableInterrupts d;
 	#ifdef DEBUG_PRINTS
 	SD::the() << "Freeing " << ptr << "\n";
 	stackTrace();
