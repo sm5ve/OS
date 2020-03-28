@@ -1,6 +1,8 @@
 #include <arch/i386/proc.h>
+#include <klib/SerialDevice.h>
+#include <mem.h>
 
-#define TOTAL_GDT_SEGMENTS 5
+#define TOTAL_GDT_SEGMENTS 6
 
 //For now, the assumed structure is as follows:
 //[0] Null GDT Entry
@@ -10,7 +12,8 @@
 //Perhaps some dedicated ring 3 segments as well
 //But that might be best to implement after we move over to a higher-half kernel
 //And solidify the memory map
-
+extern uint8_t syscall_stack;
+extern uint8_t syscall_stack_end;
 uint8_t gdt[8 * TOTAL_GDT_SEGMENTS];
 
 struct __attribute__((__packed__)) seg_table_descriptor{
@@ -19,6 +22,7 @@ struct __attribute__((__packed__)) seg_table_descriptor{
 };
 
 seg_table_descriptor gdtDescriptor;
+tss_entry tss;
 
 void writeSegment(int index, uint32_t base, uint32_t limit, uint8_t access){
 	//For now we'll do page-aligned segments.
@@ -38,7 +42,7 @@ void writeSegment(int index, uint32_t base, uint32_t limit, uint8_t access){
 
 void flushGDT(){
 	gdtDescriptor = {
-		.size = 8 * TOTAL_GDT_SEGMENTS,
+		.size = 8 * TOTAL_GDT_SEGMENTS - 1,
 		.addr = (uint32_t)gdt
 	};
 	//Actually let the CPU know where the GDT is
@@ -54,6 +58,9 @@ void flushGDT(){
 					 "mov %%ax, %%gs\n" \
 					 "mov %%ax, %%ss\n" \
 					 :: "a"(0x10) : "memory");
+
+	__asm__ volatile("mov $0x2b, %ax \n" \
+					 "ltr %ax");
 	//Do we maybe want to separate the segment register flushes to another function?
 	//Maybe it's not necessary for each GDT flush? 
 }
@@ -79,5 +86,14 @@ void installGDT(){
 	writeSegment(3, 0x00000000, 0xbfffffff, userCodeFlags);
 	uint8_t userDataFlags = segmentFlags(false, false, false, true);
 	writeSegment(4, 0x00000000, 0xbfffffff, userDataFlags);
+	writeSegment(5, (uint32_t)&tss, (uint32_t)&tss + sizeof(tss), 0xe9);	
+
+	memset(&tss, 0, sizeof(tss));
+
+	tss.iopb = sizeof(tss);
+	tss.ss0 = 0x10;
+	tss.esp0 = (uint32_t)&syscall_stack_end;	
+	tss.cs = 0x0b;
+	tss.ss = tss.ds = tss.es = tss.fs = tss.gs = 0x13;
 	flushGDT();
 }

@@ -57,6 +57,12 @@ stack_bottom:
 .skip KERNEL_STACK_SIZE
 stack_top:
 
+.global syscall_stack
+syscall_stack:
+.skip KERNEL_STACK_SIZE
+.global syscall_stack_end
+syscall_stack_end:
+
 mboot_magic:
     .long 0
 mboot_header:

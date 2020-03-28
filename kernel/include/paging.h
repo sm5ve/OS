@@ -36,6 +36,7 @@ PrintStream& operator<<(PrintStream&, MemoryManager::PhysicalMemoryRegion&);
 
 namespace MemoryManager{
 	extern PageDirectory* active_page_dir;
+	extern PageDirectory* kernel_directory;
 
 	void init(mboot_mmap_entry*, uint32_t len);
 	
@@ -167,6 +168,7 @@ public:
 
 	void installRegion(MemoryManager::MemoryRegion& region, virt_addr starting_addr);
 	void removeRegion(MemoryManager::MemoryRegion&);
+	void copyRegionsInto(PageDirectory&);
 	virt_addr getRegionBase(MemoryManager::MemoryRegion&);
 
 	virt_addr findSpaceBelow(size_t, virt_addr);

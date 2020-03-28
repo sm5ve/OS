@@ -68,6 +68,8 @@ void CompositeMemoryRegion::handlePageFault(uint32_t){
 	assert(false, "Unimplemented");
 }
 
+//TODO when we add a region, we should somehow free its old page tables freeing the
+//pages themselves
 void CompositeMemoryRegion::addRegion(PhysicalMemoryRegion& region, virt_addr base){
 	assert((uint32_t)base % (1024 * PAGE_SIZE) == 0, "Error: misaligned base");
 	for(uint32_t i = 0; i < region.ptables.size(); i++){

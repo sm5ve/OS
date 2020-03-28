@@ -14,6 +14,7 @@ namespace MemoryManager{
 	HashMap<Interval<uint32_t>, PageFrameAllocator*>* allocators;
 	phys_addr page_tables_buffer_addr;	
 	virt_addr page_tables_buffer_base;
+	PageDirectory* kernel_directory;
 
 	Tuple<virt_addr, phys_addr> reserveRangeOfSize(size_t size, IntervalSet<uint32_t>* memory_regions, BootstrapPaging* bspd){
 		auto region = memory_regions -> findSubintervalOfSize(size + PAGE_SIZE);
@@ -93,19 +94,14 @@ namespace MemoryManager{
 			range = range -> next();
 		}
 
-		PageDirectory* pd = new PageDirectory();
+		kernel_directory = new PageDirectory();
 		auto bootstrap_regions = bspd -> getRegions();
 		
 		for(uint32_t i = 0; i < bootstrap_regions.size(); i++){
-			pd -> installRegion(*bootstrap_regions[i], (virt_addr)0xc0000000);
+			kernel_directory -> installRegion(*bootstrap_regions[i], (virt_addr)0xc0000000);
 		}
 
-		pd -> install();
-		/*
-		PhysicalMemoryRegion* test = new PhysicalMemoryRegion(Vector<page_table*>(), 0, false);
-		growPhysicalMemoryRegion(*test, 3 * MB);
-		pd -> installRegion(*test, (virt_addr)0x20000000);
-		*/
+		kernel_directory -> install();
 	}
 
 	page_table* allocatePageTable(){

@@ -180,6 +180,7 @@ void writeDescriptor(int index, uint16_t segmentSelector, uint32_t offset, bool 
 
 #define INST_ISR(x) writeDescriptor(x, 0x08, (uint32_t)isr_##x, true, 0, GateType::INTERRUPT);
 #define INST_IRQ(x) writeDescriptor(x + 0x30, 0x08, (uint32_t)irq_##x, true, 0, GateType::INTERRUPT);
+#define INST_USER_ISR(x) writeDescriptor(x, 0x08, (uint32_t)isr_##x, true, 3, GateType::INTERRUPT);
 
 ISR_NO_ERR(0);
 ISR_NO_ERR(1);
@@ -250,8 +251,8 @@ void installIDT(){
 	INST_ISR(18)
 	INST_ISR(19)
 	INST_ISR(20)
-	INST_ISR(80)
-	INST_ISR(81)	
+	INST_USER_ISR(80)
+	INST_USER_ISR(81)	
 
 	INST_IRQ(0)
 	INST_IRQ(1)

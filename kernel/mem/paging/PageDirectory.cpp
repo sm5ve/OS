@@ -127,3 +127,11 @@ virt_addr PageDirectory::findSpaceAbove(size_t size, virt_addr addr){
 	assert(false, "Unimplemented");
 	return NULL;
 }
+
+void PageDirectory::copyRegionsInto(PageDirectory& pd){
+	auto node = regions.head();
+	while(node != regions.end()){
+		pd.installRegion(*(node -> value.region), node -> value.base);
+		node = node -> next();
+	}
+}

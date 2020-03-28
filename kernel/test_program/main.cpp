@@ -1,5 +1,5 @@
 int max = 30;
-char* str = "Hello world!\n";
+char* str = "Hello from Userspace!\n";
 
 bool isPrime(int x){
 	if(x < 2){
@@ -23,6 +23,7 @@ void print(char* str){
 }
 
 extern "C" int _start(){
+	//for(;;);
 	for(int i = 0; i < max; i++){
 		if(isPrime(i)){
 			print(i);
