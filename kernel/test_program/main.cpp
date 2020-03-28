@@ -1,5 +1,7 @@
 int max = 30;
 char* str = "Hello from Userspace!\n";
+char* hello = "Hello from thread ";
+int thread_number;
 
 bool isPrime(int x){
 	if(x < 2){
@@ -23,13 +25,9 @@ void print(char* str){
 }
 
 extern "C" int _start(){
-	//for(;;);
-	for(int i = 0; i < max; i++){
-		if(isPrime(i)){
-			print(i);
-		}
+	asm("" : "=d"(thread_number) ::);
+	while(true){
+		print(hello);
+		print(thread_number);
 	}
-	print(str);
-	for(;;);
-	return 0;
 }

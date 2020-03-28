@@ -12,8 +12,7 @@
 //Perhaps some dedicated ring 3 segments as well
 //But that might be best to implement after we move over to a higher-half kernel
 //And solidify the memory map
-extern uint8_t syscall_stack;
-extern uint8_t syscall_stack_end;
+extern uint8_t stack_top;
 uint8_t gdt[8 * TOTAL_GDT_SEGMENTS];
 
 struct __attribute__((__packed__)) seg_table_descriptor{
@@ -92,7 +91,7 @@ void installGDT(){
 
 	tss.iopb = sizeof(tss);
 	tss.ss0 = 0x10;
-	tss.esp0 = (uint32_t)&syscall_stack_end;	
+	tss.esp0 = (uint32_t)&stack_top;	
 	tss.cs = 0x0b;
 	tss.ss = tss.ds = tss.es = tss.fs = tss.gs = 0x13;
 	flushGDT();

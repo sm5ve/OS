@@ -13,6 +13,7 @@
 #include <elf/elf.h>
 #include <elf/dwarf.h>
 #include <debug.h>
+#include <Scheduler.h>
 
 #include <loader.h>
 
@@ -65,10 +66,18 @@ extern "C" [[noreturn]] void kernel_init(unsigned int multiboot_magic, mboot_inf
 	SD::the() << "Initializing memory manager\n";
 	MemoryManager::init(entries, mboot -> mmap_len);
 	SD::the() << "Done!\n";
+	Scheduler::init();
 	sti();
 
 	if(test_program_elf != NULL){
-		Loader::load(*test_program_elf);
+		Thread* t1 = Loader::load(*test_program_elf);
+		Thread* t2 = Loader::load(*test_program_elf);
+		t1 -> regs.edx = 1;
+		t2 -> regs.edx = 2;
+		Scheduler::addThread(*t1);
+		Scheduler::addThread(*t2);
+		Scheduler::pickNext();
+		Scheduler::exec();
 	}
 	
 	outw(0x604, 0x2000); //shutdown qemu

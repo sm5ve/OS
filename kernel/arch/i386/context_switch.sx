@@ -1,0 +1,42 @@
+.section .text
+.global userspaceContextSwitch
+userspaceContextSwitch:
+cli //Disable interrupts - we *really* do not want to jump to an interrupt handler during this
+push $0x23 //Push the stack segment index - 0x20 is the user stack segment, but we do 0x23 to indicate that we want ring 3 
+
+mov (%ebx), %eax
+push %eax //Grab the esp from the passed structure and push it to the stack
+
+pushf //Move eflags to eax so we can enable the interrupts flag
+pop %eax
+orl $0x200, %eax
+push %eax //push the modified flags
+
+push $0x1b //push the user code segment index - 0x8 | 3 for ring 3
+
+mov 4(%ebx), %eax //grab the eip from the passed structure and push it to the stack
+push %eax
+
+//update all remaining registers from the passed structure EXCEPT ebx (since that's where the pointer to the structure is stored);
+mov 8(%ebx), %edi 
+mov 12(%ebx), %esi
+mov 16(%ebx), %ebp
+mov 20(%ebx), %edx
+mov 24(%ebx), %ecx
+mov 28(%ebx), %eax
+
+//finally overwrite ebx
+mov 32(%ebx), %ebx
+//push eax because we need it to overwrite the segment registers
+push %eax
+
+//Here we need to populate the registers
+mov $0x23, %ax //Finally update the remaining segment registers
+mov %ax, %ds
+mov %ax, %es
+mov %ax, %fs
+mov %ax, %gs
+//restore eax
+pop %eax
+//jump to ring 3!
+iret

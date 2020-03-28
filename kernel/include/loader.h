@@ -3,9 +3,10 @@
 
 #include <paging.h>
 #include <elf/elf.h>
+#include <Thread.h>
 
 namespace Loader{
-	virt_addr load(ELF&);
+	Thread* load(ELF&);
 }
 
 #endif

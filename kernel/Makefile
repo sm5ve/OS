@@ -5,6 +5,7 @@ OBJS := debug.o \
 		arch/i386/higherHalf.o \
 		arch/i386/interrupts.o \
 		arch/i386/multiboot1.ao \
+		arch/i386/context_switch.ao \
 		arch/i386/proc.o \
 		arch/i386/segments.o \
 		devices/pci.o \
@@ -19,7 +20,8 @@ OBJS := debug.o \
 		mem/paging/PageDirectory.o \
 		mem/paging/MemoryRegionReference.o \
 		mem/paging/MemoryRegion.o \
-		scheduler/Process.o \
+		scheduler/Scheduler.o \
+		scheduler/Thread.o \
 		klib/CPPCompat.o \
 		klib/SerialDevice.o \
 		../lib/LibCore/PrintStream.o \

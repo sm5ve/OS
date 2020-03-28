@@ -2,11 +2,11 @@
 #include <assert.h>
 #include <klib/SerialDevice.h>
 #include <ds/Vector.h>
-#include <Process.h>
+#include <Thread.h>
 
 namespace Loader{
-	virt_addr load(ELF& elf){
-		Process* p = new Process("test", 0, false);
+	Thread* load(ELF& elf){
+		Thread* p = new Thread("test", 0, false);
 		assert(elf.getHeader32() -> type == ELF_TYPE_EXEC, "Error: tried to load nonexecutable ELF");
 		auto composite = new MemoryManager::CompositeMemoryRegion(PAGE_ENABLE_WRITE | PAGE_USER_ACCESSIBLE | PAGE_PRESENT);
 		for(uint32_t i = 0; i < elf.getHeader32() -> prog_header_entry_count; i++){
@@ -66,6 +66,6 @@ namespace Loader{
 		oldDir -> install();
 		uint32_t entry = elf.getHeader32() -> entry_vaddr;
 		p -> setEntrypoint((virt_addr)entry);
-		p -> contextSwitch();
+		return p;
 	}
 }

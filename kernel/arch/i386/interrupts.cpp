@@ -3,6 +3,7 @@
 #include <klib/SerialDevice.h>
 #include <panic.h>
 #include <debug.h>
+#include <Scheduler.h>
 
 extern "C" void isrHandler(registers regs);
 extern "C" void irqHandler(registers regs);
@@ -123,6 +124,11 @@ extern "C" void isrHandler(registers regs){
 	}
 	if(regs.int_number == 81){
 		SD::the() << regs.eax << "\n";
+		if(!Scheduler::empty()){
+			Scheduler::storeState(regs);
+			Scheduler::pickNext();
+			Scheduler::exec();
+		}	
 		return;
 	}
 
@@ -139,6 +145,11 @@ extern "C" void isrHandler(registers regs){
 extern "C" void irqHandler(registers regs){
 	//SD::the() << "Got IRQ " << regs.int_number << "\n";
 	outb(0x20, 0x20);
+	if((regs.int_number == 0) && (!Scheduler::empty())){
+		Scheduler::storeState(regs);
+		Scheduler::pickNext();
+		Scheduler::exec();
+	}
 }
 
 void flushIDT(){
