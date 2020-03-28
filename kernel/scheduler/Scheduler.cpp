@@ -3,26 +3,26 @@
 #include <interrupts.h>
 
 namespace Scheduler{
-	Vector<Thread*>* threads;
-	Thread* current = NULL;
+	Vector<Task*>* tasks;
+	Task* current = NULL;
 	uint32_t index = 0;
 	
 	void init(){
 		current = NULL;
 		index = 0;
-		threads = new Vector<Thread*>();
+		tasks = new Vector<Task*>();
 	}
 
-	void addThread(Thread& t){
+	void addTask(Task& t){
 		DisableInterrupts d;
-		threads -> push(&t);
+		tasks -> push(&t);
 	}
 
 	void pickNext(){
 		DisableInterrupts d;
-		assert(threads -> size() > 0, "Error: scheduler empty");
-		index = (index + 1) % (threads -> size());
-		current = (*threads)[index];
+		assert(tasks -> size() > 0, "Error: scheduler empty");
+		index = (index + 1) % (tasks -> size());
+		current = (*tasks)[index];
 	}
 	
 	void exec(){
@@ -36,6 +36,6 @@ namespace Scheduler{
 	}
 	
 	bool empty(){
-		return threads -> size() == 0;
+		return tasks -> size() == 0;
 	}
 }

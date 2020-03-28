@@ -3,10 +3,10 @@
 
 #include <paging.h>
 #include <elf/elf.h>
-#include <Thread.h>
+#include <Task.h>
 
 namespace Loader{
-	Thread* load(ELF&);
+	Task* load(ELF&);
 }
 
 #endif

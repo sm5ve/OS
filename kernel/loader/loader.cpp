@@ -2,11 +2,10 @@
 #include <assert.h>
 #include <klib/SerialDevice.h>
 #include <ds/Vector.h>
-#include <Thread.h>
 
 namespace Loader{
-	Thread* load(ELF& elf){
-		Thread* p = new Thread("test", 0, false);
+	Task* load(ELF& elf){
+		Task* p = new Task(false);
 		assert(elf.getHeader32() -> type == ELF_TYPE_EXEC, "Error: tried to load nonexecutable ELF");
 		auto composite = new MemoryManager::CompositeMemoryRegion(PAGE_ENABLE_WRITE | PAGE_USER_ACCESSIBLE | PAGE_PRESENT);
 		for(uint32_t i = 0; i < elf.getHeader32() -> prog_header_entry_count; i++){

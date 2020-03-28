@@ -43,6 +43,10 @@ void load_modules(mboot_module* modules, uint32_t count){
 	}
 }
 
+void kernel_thing(){
+	SD::the() << "kernel_thing\n";
+}
+
 extern "C" [[noreturn]] void kernel_init(unsigned int multiboot_magic, mboot_info* mboot){	
 	SD::init();
 
@@ -68,6 +72,12 @@ extern "C" [[noreturn]] void kernel_init(unsigned int multiboot_magic, mboot_inf
 	SD::the() << "Done!\n";
 	Scheduler::init();
 	sti();
+
+	Task* ktask = new Task(true);
+	ktask -> setEntrypoint((void*)kernel_thing);
+	Scheduler::addTask(*ktask);
+	Scheduler::pickNext();
+	Scheduler::exec();
 
 	/*if(test_program_elf != NULL){
 		Thread* t1 = Loader::load(*test_program_elf);

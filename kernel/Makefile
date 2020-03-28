@@ -21,7 +21,7 @@ OBJS := debug.o \
 		mem/paging/MemoryRegionReference.o \
 		mem/paging/MemoryRegion.o \
 		scheduler/Scheduler.o \
-		scheduler/Thread.o \
+		scheduler/Task.o \
 		klib/CPPCompat.o \
 		klib/SerialDevice.o \
 		../lib/LibCore/PrintStream.o \

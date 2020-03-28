@@ -5,7 +5,7 @@
 #include <ds/String.h>
 #include <arch/i386/proc.h>
 
-struct __attribute__((packed)) thread_regs{
+struct __attribute__((packed)) task_regs{
 	uint32_t esp;
 	uint32_t eip;
 	uint32_t edi;
@@ -17,26 +17,23 @@ struct __attribute__((packed)) thread_regs{
 	uint32_t ebx;
 };
 
-class Thread{
+class Task{
 public:
-	Thread(String name, uint32_t pid, bool kernel_process);
-	~Thread();
+	Task(bool kernel_task);
+	~Task();
 
 	PageDirectory& getPageDirectory();
 
 	void contextSwitch();
 	void setEntrypoint(virt_addr);
-	thread_regs regs;
+	task_regs regs;
 	void storeState(registers&);	
 private:
 	PageDirectory pd;
-	uint32_t pid;
-	String name;
-	bool is_kernel_process;
-
-	//thread_regs regs;
+	bool is_kernel_task;
 };
 
 extern "C" void userspaceContextSwitch();
+extern "C" void kernelContextSwitch();
 
 #endif

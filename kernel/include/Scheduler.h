@@ -1,12 +1,12 @@
 #ifndef SCHEDULER
 #define SCHEDULER
-#include <Thread.h>
+#include <Task.h>
 #include <arch/i386/proc.h>
 
 namespace Scheduler{
 	void init();
-	void addThread(Thread&);
-	void removeThread(Thread&);
+	void addTask(Task&);
+	void removeTask(Task&);
 	void pickNext();
 	void exec();
 	void storeState(registers&);
