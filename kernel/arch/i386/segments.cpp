@@ -48,8 +48,8 @@ void flushGDT(){
 	__asm__ volatile ("lgdt %0" :: "m" (gdtDescriptor) : "memory");
 	//Reload the segment registers
 	//Our kernel code segment entry is at gdt 0x08, so we'll point CS there
-	__asm__ volatile("ljmpl $0x8, $continue\n" \
-					 "continue:");
+	__asm__ volatile("ljmpl $0x8, $segments_continue\n" \
+					 "segments_continue:");
 	//All other segments can point to our data entry at 0x10
 	__asm__	volatile("mov %%ax, %%ds\n" \
 					 "mov %%ax, %%es\n" \
