@@ -69,6 +69,23 @@ phys_addr PageDirectory::findPhysicalAddr(virt_addr v){
 	return (phys_addr)(entry & (~0xfff));
 }
 
+virt_addr PageDirectory::findVirtAddr(phys_addr p){
+	for(uint32_t table_index = 0; table_index < 1024; table_index++){
+		if(!isPresent(directory[table_index])){
+			continue;
+		}
+		uint32_t* table = physicalToPageTableAddr((phys_addr)(directory[table_index] & (~0xfff)));
+		for(uint32_t page_index = 0; page_index < 1024; page_index++){
+			if(isPresent(table[page_index])){
+				if((table[page_index] & (~0xfff)) == ((uint32_t)p & (~0xfff))){
+					return (virt_addr)((1024 * PAGE_SIZE) * table_index + PAGE_SIZE * page_index);
+				}
+			}
+		}
+	}
+	return (virt_addr)-1;
+}
+
 void PageDirectory::install(){
 	active_page_dir = this;
 	uint32_t ptr = (uint32_t)findPhysicalAddr((virt_addr)directory);
@@ -118,14 +135,63 @@ void PageDirectory::addPageTable(page_table* ptr, virt_addr base, uint32_t flags
 	directory[directory_index] = entry;
 }
 
-virt_addr PageDirectory::findSpaceBelow(size_t size, virt_addr addr){
+virt_addr PageDirectory::findSpaceBelow(size_t size, virt_addr addr, bool align_at_pt){
 	assert(false, "Unimplemented");
 	return NULL;
 }
 
-virt_addr PageDirectory::findSpaceAbove(size_t size, virt_addr addr){
-	assert(false, "Unimplemented");
-	return NULL;
+bool PageDirectory::isMapped(virt_addr addr){
+	uint32_t directoryIndex = ((uint32_t)addr >> 22) & 0x3ff;
+	uint32_t tableIndex = ((uint32_t)addr >> 12) & 0x3ff;
+	if(!isPresent(directory[directoryIndex]))
+		return false;
+	uint32_t* table = physicalToPageTableAddr((phys_addr)(directory[directoryIndex] & (~0xfff)));
+	return isPresent(table[tableIndex]);
+}
+
+virt_addr PageDirectory::findSpaceAbove(size_t required, virt_addr after, bool align_at_pt){
+	uint32_t checking = (uint32_t)after;
+	size_t found = 0;
+	virt_addr base = after;
+	if(align_at_pt){
+		if((uint32_t)after % (1024 * PAGE_SIZE) != 0){
+			after = (virt_addr)((uint32_t)after + ((uint32_t)after % (1024 * PAGE_SIZE)));
+		}
+		base = after;
+		checking = (uint32_t)after;
+		while(checking >= (uint32_t)after){
+			uint32_t pt_index = (checking) / (1024 * PAGE_SIZE);
+			if(isPresent(directory[pt_index])){
+				found = 0;
+			}
+			else{
+				if(found == 0){
+					base = (virt_addr)checking;
+				}
+				found += 1024 * PAGE_SIZE;
+				if(found >= required){
+					return base;
+				}
+			}
+			checking += 1024 * PAGE_SIZE;
+		}
+	}
+	while(checking >= (uint32_t)after){
+		if(isMapped((virt_addr)checking)){
+			found = 0;
+		}	
+		else{
+			if(found == 0){
+				base = (virt_addr)checking;
+			}
+			found += PAGE_SIZE;
+			if(found >= required){
+				return base;
+			}
+		}
+		checking += PAGE_SIZE;
+	}
+	return (virt_addr)-1;
 }
 
 void PageDirectory::copyRegionsInto(PageDirectory& pd){

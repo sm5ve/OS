@@ -2,6 +2,7 @@ OBJS := debug.o \
 		init.o \
 		interrupts.o \
 		panic.o \
+		acpi/tables.o \
 		arch/i386/higherHalf.o \
 		arch/i386/interrupts.o \
 		arch/i386/multiboot1.ao \

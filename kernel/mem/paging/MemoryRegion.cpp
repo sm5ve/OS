@@ -101,3 +101,43 @@ void CompositeMemoryRegion::setFlags(virt_addr addr, uint32_t flags){
 	uint32_t i = ((uint32_t)addr / PAGE_SIZE) % 1024;
 	ptbl[i] = (ptbl[i] & (~0xfff)) | flags;
 }
+
+PhysicalRangeRegion::PhysicalRangeRegion(phys_addr b, size_t length, uint32_t flgs){
+	assert((uint32_t)b % PAGE_SIZE == 0, "Error, misaligned physical address");
+	size = length;
+	base = b;
+	flags = flgs;
+	uint32_t num_ptables = length / PAGE_SIZE;
+	if(num_ptables % 1024 != 0){
+		num_ptables += 1024 - (num_ptables % 1024);
+	}
+	num_ptables /= 1024;
+	for(uint32_t i = 0; i < num_ptables; i++){
+		ptables.push(allocatePageTable());
+	}
+	for(uint32_t addr = (uint32_t)b; addr < (uint32_t)base + length; addr += PAGE_SIZE){
+		uint32_t page_index = (addr - (uint32_t)b) / PAGE_SIZE;
+		uint32_t table_index = page_index / 1024;
+		
+		(*(ptables[table_index]))[page_index % 1024] = (addr & (~0xfff)) | flags;
+	}
+}
+
+PhysicalRangeRegion::~PhysicalRangeRegion(){
+	//TODO implement
+}
+
+void PhysicalRangeRegion::install(PageDirectory& pd, virt_addr base){
+	assert((uint32_t)base % (1024 * PAGE_SIZE) == 0, "Error: misaligned base address");
+	for(uint32_t i = 0; i < ptables.size(); i++){
+		pd.addPageTable(ptables[i], (virt_addr)((uint32_t)base + i * 1024 * PAGE_SIZE), flags);
+	}
+}
+
+void PhysicalRangeRegion::remove(PageDirectory& pd, virt_addr base){
+	assert(false, "Unimplemented");
+}
+
+void PhysicalRangeRegion::handlePageFault(uint32_t offset){
+	assert(false, "Unimplemented");
+}

@@ -130,6 +130,23 @@ namespace MemoryManager{
 		HashMap<uint32_t, uint32_t> tbl_map;	
 	};
 
+	class PhysicalRangeRegion : public MemoryRegion{
+	public:
+		PhysicalRangeRegion(phys_addr, size_t, uint32_t flags = PAGE_PRESENT | PAGE_ENABLE_WRITE);
+		~PhysicalRangeRegion();
+		virtual void install(PageDirectory&, virt_addr) final override;
+		virtual void remove(PageDirectory&, virt_addr) final override;
+		virtual size_t getSize() final override{
+			return size;
+		}
+		virtual void handlePageFault(uint32_t offset) final override;
+	private:
+		Vector<page_table*> ptables;
+		size_t size;
+		uint32_t flags;
+		phys_addr base;
+	};
+
 	class PageFrameAllocator{
 	public:
 		PageFrameAllocator(size_t size, phys_addr* ptr_buffer, uint32_t* free_buffer, phys_addr start_addr);
@@ -164,6 +181,7 @@ public:
 	void addMapping(phys_addr, virt_addr, uint32_t flags);
 	void removeMapping(virt_addr);
 	phys_addr findPhysicalAddr(virt_addr);
+	virt_addr findVirtAddr(phys_addr);
 	void addPageTable(page_table*, virt_addr, uint32_t flags);
 
 	void installRegion(MemoryManager::MemoryRegion& region, virt_addr starting_addr);
@@ -171,8 +189,9 @@ public:
 	void copyRegionsInto(PageDirectory&);
 	virt_addr getRegionBase(MemoryManager::MemoryRegion&);
 
-	virt_addr findSpaceBelow(size_t, virt_addr);
-	virt_addr findSpaceAbove(size_t, virt_addr); 
+	bool isMapped(virt_addr);
+	virt_addr findSpaceBelow(size_t, virt_addr, bool align_at_page_table = true);
+	virt_addr findSpaceAbove(size_t, virt_addr, bool align_at_page_table = true); 
 
 	void install();
 	bool isActive();
