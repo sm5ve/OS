@@ -2,6 +2,7 @@
 #define ACPI_TABLES
 
 #include <stdint.h>
+#include <ds/String.h>
 
 namespace ACPI{
 	struct __attribute__((packed)) RSDPDescriptor{
@@ -28,7 +29,16 @@ namespace ACPI{
 		uint32_t creator_revision;
 	};
 
+	struct __attribute__((packed)) MCFGEntry{
+		uint64_t base_address;
+		uint16_t segment_group;
+		uint8_t starting_bus;
+		uint8_t ending_bus;
+		uint8_t reserved[4];
+	};
+
 	RSDPDescriptor* findRSDP();
+	SDTHeader* getTable(String);
 	void init();
 }
 

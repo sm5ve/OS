@@ -2,7 +2,7 @@
 #include <acpi/tables.h>
 #include <klib/SerialDevice.h>
 #include <paging.h>
-#include <ds/String.h>
+#include <mem.h>
 
 namespace ACPI{
 	HashMap<String, SDTHeader*>* acpi_tables;
@@ -46,12 +46,39 @@ namespace ACPI{
 		assert(checksum == 0, "Error: ACPI header checksum mismatch");
 	}
 
+	void addTable(phys_addr tbl){
+		auto* tbl_header = mapTable(tbl);
+		verifyTableChecksum(*tbl_header);
+		String name = "ABCD";
+		//This is admittedly a little hacky
+		memcpy(name.c_str(), tbl_header -> signature, 4);
+		acpi_tables -> put(name, tbl_header);
+		SD::the() << "found table " << name << "\n";
+	}
+
+	void enumerateRSDT(){
+		auto* rsdt_header = acpi_tables -> get("RSDT");
+		uint32_t* tbl_ptrs = (uint32_t*)((uint32_t)rsdt_header + sizeof(SDTHeader));
+		uint32_t num_tbls = (rsdt_header -> length - sizeof(SDTHeader)) / sizeof(uint32_t);
+		for(uint32_t i = 0; i < num_tbls; i++){
+			addTable((phys_addr)tbl_ptrs[i]);
+		}
+	}
+
+	SDTHeader* getTable(String st){
+		if(acpi_tables -> contains(st)){
+			return acpi_tables -> get(st);
+		}
+		return NULL;
+	}
+
 	void init(){
 		acpi_tables = new HashMap<String, SDTHeader*>();
 		auto* rsdp = findRSDP();
-		assert(rsdp, "Error: count not find ACPI tables");
+		assert(rsdp, "Error: could not find ACPI tables");
 		acpi_tables -> put("RSDT", mapTable((phys_addr)(rsdp -> rsdt_addr)));
 		assert(streq((char*)(acpi_tables -> get("RSDT")), "RSDT", 4), "Error: RSDP did not point to RSDT");
 		verifyTableChecksum(*(acpi_tables -> get("RSDT")));
+		enumerateRSDT();
 	}
 }
