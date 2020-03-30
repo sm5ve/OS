@@ -100,6 +100,8 @@ namespace MemoryManager{
 			return size;
 		};
 		virtual void handlePageFault(uint32_t offset) final override; //FIXME we probably shouldn't be returning void. Should we pass the relevant directory, or just get that from the global?
+		uint32_t mapPage(phys_addr);
+		uint32_t mapContiguousRegion(phys_addr, size_t);
 	private:
 		Vector<page_table*> ptables;
 		uint32_t size;
@@ -128,23 +130,6 @@ namespace MemoryManager{
 		Vector<Tuple<page_table*, virt_addr>> ptables; //TODO get a way of enumerating key-value pairs in a hashmap
 		uint32_t flags;
 		HashMap<uint32_t, uint32_t> tbl_map;	
-	};
-
-	class PhysicalRangeRegion : public MemoryRegion{
-	public:
-		PhysicalRangeRegion(phys_addr, size_t, uint32_t flags = PAGE_PRESENT | PAGE_ENABLE_WRITE);
-		~PhysicalRangeRegion();
-		virtual void install(PageDirectory&, virt_addr) final override;
-		virtual void remove(PageDirectory&, virt_addr) final override;
-		virtual size_t getSize() final override{
-			return size;
-		}
-		virtual void handlePageFault(uint32_t offset) final override;
-	private:
-		Vector<page_table*> ptables;
-		size_t size;
-		uint32_t flags;
-		phys_addr base;
 	};
 
 	class PageFrameAllocator{
@@ -183,6 +168,7 @@ public:
 	phys_addr findPhysicalAddr(virt_addr);
 	virt_addr findVirtAddr(phys_addr);
 	void addPageTable(page_table*, virt_addr, uint32_t flags);
+	void removePageTables(virt_addr, size_t);
 
 	void installRegion(MemoryManager::MemoryRegion& region, virt_addr starting_addr);
 	void removeRegion(MemoryManager::MemoryRegion&);
@@ -202,5 +188,6 @@ private:
 	uint32_t* directory;
 };
 
+PrintStream& operator<<(PrintStream&, MemoryManager::PhysicalMemoryRegion&);
 
 #endif

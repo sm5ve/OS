@@ -24,7 +24,7 @@ namespace MemoryManager{
 		if(start % PAGE_SIZE != 0)
 			start += PAGE_SIZE - (start % PAGE_SIZE);
 		uint32_t end = start + size;
-		return Tuple<virt_addr, phys_addr>(bspd -> mapRangeAfter(Interval<phys_addr>((phys_addr)start, (phys_addr)end), (virt_addr) 0xc0000000), (phys_addr)start);
+		return Tuple<virt_addr, phys_addr>(bspd -> mapRangeAfter(Interval<phys_addr>((phys_addr)start, (phys_addr)end - 1), (virt_addr) 0xc0000000), (phys_addr)start);
 	}
 
 	PageFrameAllocator* makeAllocatorForRange(Interval<uint32_t>& range, BootstrapPaging& pd){
@@ -81,6 +81,9 @@ namespace MemoryManager{
 		auto table_store_mem = reserveRangeOfSize(8*MB, memory_regions, bspd);
 		auto free_ptbls_map_mem = reserveRangeOfSize(8 * MB / (sizeof(page_table) * 8), memory_regions, bspd);
 
+		memset(table_store_mem.a, 0, 8 * MB);
+		memset(free_ptbls_map_mem.a, 0, 8 * MB / (sizeof(page_table) * 8));
+
 		auto table_store = table_store_mem.a;
 		page_tables_buffer_addr = table_store_mem.b;
 		page_tables_buffer_base = table_store_mem.a;
@@ -100,7 +103,7 @@ namespace MemoryManager{
 		for(uint32_t i = 0; i < bootstrap_regions.size(); i++){
 			kernel_directory -> installRegion(*bootstrap_regions[i], (virt_addr)0xc0000000);
 		}
-
+		//for(;;);
 		kernel_directory -> install();
 	}
 

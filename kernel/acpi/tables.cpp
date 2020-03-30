@@ -31,9 +31,9 @@ namespace ACPI{
 		base -= (base % PAGE_SIZE);
 		size_t sz = 1024 * PAGE_SIZE; //FIXME this is a very unintelligent way of doing things
 		virt_addr out = MemoryManager::kernel_directory -> findSpaceAbove(sz, (virt_addr)0xc0000000);
-		auto* region = new MemoryManager::PhysicalRangeRegion((virt_addr)base, sz);
+		auto* region = new MemoryManager::PhysicalMemoryRegion(Vector<page_table*>(), 0, 0);
+		region -> mapContiguousRegion((phys_addr)base, sz);
 		MemoryManager::kernel_directory -> installRegion(*region, out);
-		MemoryManager::kernel_directory -> install();
 		return (SDTHeader*)((uint32_t)out + ((uint32_t)paddr % PAGE_SIZE));
 	}
 

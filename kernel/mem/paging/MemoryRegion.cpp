@@ -1,5 +1,7 @@
 #include <paging.h>
+#include <interrupts.h>
 #include <klib/SerialDevice.h>
+
 
 using namespace MemoryManager;
 
@@ -9,7 +11,7 @@ MemoryRegion::~MemoryRegion(){
 	SD::the() << "killing region\n";
 }
 
-PhysicalMemoryRegion::PhysicalMemoryRegion(Vector<page_table*> pt, size_t s, uint32_t fe, bool perm, uint32_t flgs) : ptables(pt), size(s), offset(fe), permanent(perm), flags(flgs){
+PhysicalMemoryRegion::PhysicalMemoryRegion(Vector<page_table*> pt, size_t s, uint32_t first_entry, bool perm, uint32_t flgs) : ptables(pt), size(s), offset(first_entry), permanent(perm), flags(flgs){
 	assert(size % PAGE_SIZE == 0, "Error: misaligned memory region size");
 	assert(offset % PAGE_SIZE == 0, "Error: misaligned offset");
 }
@@ -19,7 +21,6 @@ PhysicalMemoryRegion::~PhysicalMemoryRegion(){
 }
 
 void PhysicalMemoryRegion::install(PageDirectory& dir, virt_addr base){
-	size_t allocd = 0;
 	assert(((uint32_t)base & 0x3fffff) == 0, "Error: misaligned starting address");
 	virt_addr at = base;
 	for(uint32_t i = 0; i < ptables.size(); i++){
@@ -29,11 +30,33 @@ void PhysicalMemoryRegion::install(PageDirectory& dir, virt_addr base){
 }
 
 void PhysicalMemoryRegion::remove(PageDirectory& dir, virt_addr base){
-	assert(false, "Unimplemented");
+	dir.removePageTables(base, size);
 }
 
 void PhysicalMemoryRegion::handlePageFault(uint32_t offset){
 	assert(false, "Unimplemented");
+}
+
+uint32_t PhysicalMemoryRegion::mapPage(phys_addr base){
+	assert(size % PAGE_SIZE == 0, "Error: somehow size is misaligned - I blame the pageframe allocator");
+	assert((uint32_t)base % PAGE_SIZE == 0, "Error: misaligned base");
+	uint32_t pages = size / PAGE_SIZE;
+	size += PAGE_SIZE;
+	if(pages % 1024 == 0){
+		ptables.push(allocatePageTable());
+	}
+	page_table& table = *(ptables[ptables.size() - 1]);
+	uint32_t index = pages % 1024;
+	table[index] = ((uint32_t)base & (~0xfff)) | flags & 0x3;
+	return size - PAGE_SIZE;
+}
+
+uint32_t PhysicalMemoryRegion::mapContiguousRegion(phys_addr base, size_t sz){
+	DisableInterrupts d;
+	for(uint32_t addr = (uint32_t)base; addr < (uint32_t)base + sz; addr += PAGE_SIZE){
+		mapPage((phys_addr)addr);
+	}
+	return size - sz;
 }
 
 PrintStream& operator<<(PrintStream& p, PhysicalMemoryRegion& mr){
@@ -57,7 +80,6 @@ void CompositeMemoryRegion::install(PageDirectory& dir, virt_addr){
 		auto table = ptables[i];
 		dir.addPageTable(table.a, table.b, flags);
 	}
-	SD::the() << "Installing\n";
 }
 
 void CompositeMemoryRegion::remove(PageDirectory&, virt_addr){
@@ -68,7 +90,7 @@ void CompositeMemoryRegion::handlePageFault(uint32_t){
 	assert(false, "Unimplemented");
 }
 
-//TODO when we add a region, we should somehow free its old page tables freeing the
+//TODO when we add a region, we should somehow free its old page tables without freeing the
 //pages themselves
 void CompositeMemoryRegion::addRegion(PhysicalMemoryRegion& region, virt_addr base){
 	assert((uint32_t)base % (1024 * PAGE_SIZE) == 0, "Error: misaligned base");
@@ -100,44 +122,4 @@ void CompositeMemoryRegion::setFlags(virt_addr addr, uint32_t flags){
 	page_table& ptbl = *(page_table*)tbl_map.get(base);
 	uint32_t i = ((uint32_t)addr / PAGE_SIZE) % 1024;
 	ptbl[i] = (ptbl[i] & (~0xfff)) | flags;
-}
-
-PhysicalRangeRegion::PhysicalRangeRegion(phys_addr b, size_t length, uint32_t flgs){
-	assert((uint32_t)b % PAGE_SIZE == 0, "Error, misaligned physical address");
-	size = length;
-	base = b;
-	flags = flgs;
-	uint32_t num_ptables = length / PAGE_SIZE;
-	if(num_ptables % 1024 != 0){
-		num_ptables += 1024 - (num_ptables % 1024);
-	}
-	num_ptables /= 1024;
-	for(uint32_t i = 0; i < num_ptables; i++){
-		ptables.push(allocatePageTable());
-	}
-	for(uint32_t addr = (uint32_t)b; addr < (uint32_t)base + length; addr += PAGE_SIZE){
-		uint32_t page_index = (addr - (uint32_t)b) / PAGE_SIZE;
-		uint32_t table_index = page_index / 1024;
-		
-		(*(ptables[table_index]))[page_index % 1024] = (addr & (~0xfff)) | flags;
-	}
-}
-
-PhysicalRangeRegion::~PhysicalRangeRegion(){
-	//TODO implement
-}
-
-void PhysicalRangeRegion::install(PageDirectory& pd, virt_addr base){
-	assert((uint32_t)base % (1024 * PAGE_SIZE) == 0, "Error: misaligned base address");
-	for(uint32_t i = 0; i < ptables.size(); i++){
-		pd.addPageTable(ptables[i], (virt_addr)((uint32_t)base + i * 1024 * PAGE_SIZE), flags);
-	}
-}
-
-void PhysicalRangeRegion::remove(PageDirectory& pd, virt_addr base){
-	assert(false, "Unimplemented");
-}
-
-void PhysicalRangeRegion::handlePageFault(uint32_t offset){
-	assert(false, "Unimplemented");
 }

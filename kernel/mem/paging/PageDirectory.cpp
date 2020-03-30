@@ -12,6 +12,7 @@ namespace MemoryManager{
 PageDirectory::PageDirectory(){
 	directory = (uint32_t*)allocatePageTable();
 	assert(((uint32_t) directory & 0xfff) == 0, "Error: misaligned page directory");
+	assert(directory != NULL, "Error: somehow got null page directory");
 	memset(directory, 0, 4096);
 }
 
@@ -62,7 +63,7 @@ phys_addr PageDirectory::findPhysicalAddr(virt_addr v){
         return NULL;
     }
     uint32_t* table = physicalToPageTableAddr((phys_addr)(directory[directoryIndex] & (~0xfff)));
-    uint32_t entry = table[tableIndex];
+	uint32_t entry = table[tableIndex];
 	if(!isPresent(entry)){
 		return NULL;
 	}
@@ -127,12 +128,20 @@ virt_addr PageDirectory::getRegionBase(MemoryRegion& region){
 }
 
 void PageDirectory::addPageTable(page_table* ptr, virt_addr base, uint32_t flags){
-	uint32_t directory_index = ((uint32_t)base >> 22);
-	assert(((uint32_t)base & 0x3fffff) == 0, "Error: misaligned base address");
+	uint32_t directory_index = ((uint32_t)base /  (1024 * PAGE_SIZE));
+	assert(((uint32_t)base % (PAGE_SIZE * 1024)) == 0, "Error: misaligned base address");
 	uint32_t paddr = (uint32_t)getPhysicalAddr((virt_addr)ptr);
 	assert(paddr % PAGE_SIZE == 0, "Error: misaligned page table");
 	uint32_t entry = (paddr & (~0xfff)) | flags;
 	directory[directory_index] = entry;
+}
+
+void PageDirectory::removePageTables(virt_addr base, size_t region_size){
+	assert((uint32_t)base % (PAGE_SIZE * 1024) == 0, "Error: misaligned base address");
+	for(uint32_t i = (uint32_t)base; i < (uint32_t)base + region_size; i += 1024 * PAGE_SIZE){
+		uint32_t index = i / (1024 * PAGE_SIZE);
+		directory[index] = 0;
+	}
 }
 
 virt_addr PageDirectory::findSpaceBelow(size_t size, virt_addr addr, bool align_at_pt){

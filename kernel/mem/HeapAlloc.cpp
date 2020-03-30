@@ -6,6 +6,7 @@ HeapAlloc::HeapAlloc(void* b, size_t s, uint32_t* pbuff, size_t gran){
 	heap = (BinaryHeap<size_t>*)uninitialized_heap;
 	new (heap) BinaryHeap<size_t>(false);
 	buffer = b;
+	//SD::the() << "heap buffer from " << b << " to " << (void*)((uint32_t)b + s) << "\n";
 	buffer_size = s;
 	node_ptrs = pbuff;
 	granularity = gran;

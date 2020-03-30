@@ -16,6 +16,7 @@
 #include <Scheduler.h>
 #include <acpi/tables.h>
 #include <devices/pcie.h>
+#include <devices/pci.h>
 
 #include <loader.h>
 
@@ -74,6 +75,7 @@ extern "C" [[noreturn]] void kernel_init(unsigned int multiboot_magic, mboot_inf
 	SD::the() << "Done!\n";
 	Scheduler::init();
 	ACPI::init();
+	//PCI::init();
 	PCIe::init();
 	sti();
 
