@@ -64,5 +64,6 @@ size_t strlen(const char*);
 char* strcpy(char*, const char*);
 int strcmp(const char*, const char*);
 char* strcat(char*, const char*);
+bool streq(const char*, const char*, size_t);
 
 #endif

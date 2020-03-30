@@ -45,3 +45,12 @@ int strcmp(const char* s1, const char* s2){
 	}
 	return 0;
 }
+
+bool streq(const char* s1, const char* s2, size_t size){
+	for(size_t i = 0; i < size; i++){
+		if(s1[i] != s2[i]){
+			return false;
+		}
+	}
+	return true;
+}
