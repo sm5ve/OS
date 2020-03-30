@@ -11,6 +11,7 @@ OBJS := debug.o \
 		arch/i386/segments.o \
 		devices/pci.o \
 		devices/pcie.o \
+		devices/PCIDevice.o \
 		loader/loader.o \
 		mem/Alloc.o \
 		mem/BumpAlloc.o \

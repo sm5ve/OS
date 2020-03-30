@@ -3,9 +3,9 @@
 #include <klib/SerialDevice.h>
 
 namespace PCI{
-	
+	Vector<PCIDevice*>* devices;
 	
 	void init(){
-
+		devices = new Vector<PCIDevice*>();
 	}
 }

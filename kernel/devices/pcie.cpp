@@ -2,7 +2,7 @@
 #include <acpi/tables.h>
 #include <paging.h>
 #include <klib/SerialDevice.h>
-//#include <ds/Vector.h>
+#include <devices/pci.h>
 
 namespace PCIe{
 	bool has_pcie;
@@ -34,12 +34,23 @@ namespace PCIe{
 					void* addr = (void*)((uint32_t)ptr + ((bus - entries[i].starting_bus) << 20) + (device << 15));
 					uint16_t* vendor = (uint16_t*)addr;
 					if(*vendor != 0xffff){
-						SD::the() << "vendor " << (void*)*vendor << "\n";
+						present_devices.push((phys_addr)(entries[i].base_address + ((bus - entries[i].starting_bus) << 20) + (device << 15)));
 					}
 				}
 			}
 			//Yes there is a memory leak here where we never free region. I will fix this once we have smart pointers. I am leaving this comment here in part to push prod myself to implement them.
 			MemoryManager::kernel_directory -> removeRegion(*region);
+		}
+		auto* enumerated_devices_region = new MemoryManager::PhysicalMemoryRegion(Vector<page_table*>(), 0, 0);
+		Vector<uint32_t> offsets;
+		for(uint32_t i = 0; i < present_devices.size(); i++){
+			offsets.push(enumerated_devices_region -> mapContiguousRegion(present_devices[i], (1 << 15)));
+		}
+		virt_addr placement = MemoryManager::kernel_directory -> findSpaceAbove(enumerated_devices_region -> getSize(), (virt_addr)0xc0000000);
+		MemoryManager::kernel_directory -> installRegion(*enumerated_devices_region, placement);
+		for(uint32_t i = 0; i < present_devices.size(); i++){
+			void* base = (void*)((uint32_t)placement + i * (1 << 15));
+			PCI::devices -> push(new PCIDevice(base, true));
 		}
 	}
 }
