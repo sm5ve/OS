@@ -72,7 +72,6 @@ void Vector<T>::remove(uint32_t index){
 template <class T>
 void Vector<T>::push(T elem){
 	count++;
-	//I do not understand why, but the preceeding this -> seems to be necessary here, and only here
 	resizeIfNecessary();
 	buffer[count - 1] = elem;
 }
@@ -101,8 +100,9 @@ template <class T>
 void Vector<T>::resize(size_t newSize){
 	assert(newSize >= count, "Error: resized to be too small");
 	T* newBuffer = new T[newSize];
+	memset(newBuffer, 0, capacity * sizeof(T));
 	memcpy(newBuffer, buffer, capacity * sizeof(T));
-	memset(buffer, 0, capacity * sizeof(T));
+	//memset(buffer, 0, capacity * sizeof(T));
 	capacity = newSize;
 	delete [] buffer;
 	buffer = newBuffer;
@@ -110,9 +110,9 @@ void Vector<T>::resize(size_t newSize){
 
 template <class T>
 void Vector<T>::resizeIfNecessary(){
-	if(capacity == count || capacity < count / 2){
-		size_t newCap = count + (count >> 1);
-		if(newCap == 0){
+	if(capacity <= count || capacity < count * 2){
+		size_t newCap = capacity + (capacity >> 1);
+		if(newCap < 2){
 			newCap = 2;
 		}
 		resize(newCap);
