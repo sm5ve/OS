@@ -10,7 +10,7 @@ push %eax //Grab the esp from the passed structure and push it to the stack
 pushf //Move eflags to eax so we can enable the interrupts flag
 pop %eax //Read eflags into %eax
 orl $0x200, %eax //enable interrupts
-mov $(~(3 << 12)), %eax
+andl $(~(3 << 12)), %eax
 push %eax //push the modified flags
 
 push $0x1b //push the user code segment index - 0x18 | 3 for ring 3
