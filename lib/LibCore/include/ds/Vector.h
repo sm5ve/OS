@@ -110,7 +110,7 @@ void Vector<T>::resize(size_t newSize){
 
 template <class T>
 void Vector<T>::resizeIfNecessary(){
-	if(capacity <= count || capacity < count * 2){
+	if(capacity <= count){
 		size_t newCap = capacity + (capacity >> 1);
 		if(newCap < 2){
 			newCap = 2;
