@@ -43,6 +43,8 @@ struct __attribute__((packed)) tss_entry{
 	uint32_t iopb;
 };
 
+typedef void(*interrupt_handler)(registers&);
+
 PrintStream& operator<<(PrintStream& p, registers);
 
 void outb(uint16_t port, uint8_t c);
@@ -55,5 +57,9 @@ void cli();
 void sti();
 
 void installGDT();
-void installIDT();
+
+namespace IDT{
+	void install();
+	void installIRQHandler(interrupt_handler, uint32_t number);
+}
 #endif

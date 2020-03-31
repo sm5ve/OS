@@ -20,9 +20,6 @@ namespace PCIe{
 		uint32_t entry_count = (header -> length - (sizeof(ACPI::SDTHeader) + 8)) / sizeof(ACPI::MCFGEntry);
 		Vector<phys_addr> present_devices;
 		for(uint32_t i = 0; i < entry_count; i++){
-			SD::the() << "entry " << (void*)(entries[i].base_address) << "\n";
-			SD::the() << "starting bus " << entries[i].starting_bus << "\n";
-			SD::the() << "ending bus " << entries[i].ending_bus << "\n";
 			size_t region_size = (entries[i].ending_bus - entries[i].starting_bus + 1) << 20;
 			//Map the entire address range for the bus into memory. This could be up to 256 megabytes, but we will unmap it later
 			auto* region = new MemoryManager::PhysicalMemoryRegion(Vector<page_table*>(), 0, 0);

@@ -142,16 +142,6 @@ extern "C" void isrHandler(registers regs){
 	//return regs;
 }
 
-extern "C" void irqHandler(registers regs){
-	//SD::the() << "Got IRQ " << regs.int_number << "\n";
-	outb(0x20, 0x20);
-	if((regs.int_number == 0) && (!Scheduler::empty())){
-		Scheduler::storeState(regs);
-		Scheduler::pickNext();
-		Scheduler::exec();
-	}
-}
-
 void flushIDT(){
 	idtDescriptor = {
 		.size = 8 * 128 - 1,
@@ -226,52 +216,70 @@ IRQ(4);
 IRQ(5);
 IRQ(6);
 
-void installIDT(){
-	outb(0x20, 0x11);
-	outb(0xa0, 0x11);
-	outb(0x21, 0x30);
-	outb(0xa1, 0x38);
-	outb(0x21, 0x04);
-	outb(0x21, 0x02);
-	outb(0xa1, 0x01);
-	outb(0xa1, 0x01);
+namespace IDT{
+	interrupt_handler irq_handlers[16];
+	void install(){
+		outb(0x20, 0x11);
+		outb(0xa0, 0x11);
+		outb(0x21, 0x30);
+		outb(0xa1, 0x38);
+		outb(0x21, 0x04);
+		outb(0x21, 0x02);
+		outb(0xa1, 0x01);
+		outb(0xa1, 0x01);
 
-	//Initialize IDT to a state where no segments are present
-	for(int i = 0; i < 256; i++){
-		writeDescriptor(i, 0, 0, false, 0, GateType::INTERRUPT);
+		for(int i = 0; i < 16; i++){
+			irq_handlers[i] = NULL;
+		}
+
+		//Initialize IDT to a state where no segments are present
+		for(int i = 0; i < 256; i++){
+			writeDescriptor(i, 0, 0, false, 0, GateType::INTERRUPT);
+		}
+	
+		INST_ISR(0)
+		INST_ISR(1)
+		INST_ISR(2)
+		INST_ISR(3)
+		INST_ISR(4)
+		INST_ISR(5)
+		INST_ISR(6)
+		INST_ISR(7)
+		INST_ISR(8)
+		INST_ISR(9)
+		INST_ISR(10)
+		INST_ISR(11)
+		INST_ISR(12)
+		INST_ISR(13)
+		INST_ISR(14)
+		INST_ISR(15)
+		INST_ISR(16)
+		INST_ISR(17)
+		INST_ISR(18)
+		INST_ISR(19)
+		INST_ISR(20)
+		INST_USER_ISR(80)
+		INST_USER_ISR(81)	
+	
+		INST_IRQ(0)
+		INST_IRQ(1)
+		INST_IRQ(2)
+		INST_IRQ(3)
+		INST_IRQ(4)
+		INST_IRQ(5)
+		INST_IRQ(6)
+	
+		flushIDT();
 	}
 
-	INST_ISR(0)
-	INST_ISR(1)
-	INST_ISR(2)
-	INST_ISR(3)
-	INST_ISR(4)
-	INST_ISR(5)
-	INST_ISR(6)
-	INST_ISR(7)
-	INST_ISR(8)
-	INST_ISR(9)
-	INST_ISR(10)
-	INST_ISR(11)
-	INST_ISR(12)
-	INST_ISR(13)
-	INST_ISR(14)
-	INST_ISR(15)
-	INST_ISR(16)
-	INST_ISR(17)
-	INST_ISR(18)
-	INST_ISR(19)
-	INST_ISR(20)
-	INST_USER_ISR(80)
-	INST_USER_ISR(81)	
+	void installIRQHandler(interrupt_handler handler, uint32_t number){
+		irq_handlers[number] = handler;
+	}
+}
 
-	INST_IRQ(0)
-	INST_IRQ(1)
-	INST_IRQ(2)
-	INST_IRQ(3)
-	INST_IRQ(4)
-	INST_IRQ(5)
-	INST_IRQ(6)
-
-	flushIDT();
+extern "C" void irqHandler(registers regs){
+	outb(0x20, 0x20);
+	if((regs.int_number < 16) && IDT::irq_handlers[regs.int_number] != NULL){
+		IDT::irq_handlers[regs.int_number](regs);
+	}
 }

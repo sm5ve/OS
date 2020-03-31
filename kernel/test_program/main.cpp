@@ -26,8 +26,10 @@ void print(char* str){
 
 extern "C" int _start(){
 	asm("" : "=d"(thread_number) ::);
+	//asm("outb %0, %1" :: "a"(0x2000), "Nd"(0x604));
+	asm("outb %0, %1" :: "a"(0x604), "Nd" (0x2000));
 	while(true){
 		print(hello);
-		print(thread_number);
+		//print(thread_number);
 	}
 }

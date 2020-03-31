@@ -2,6 +2,7 @@
 #include <klib/SerialDevice.h>
 
 #include <arch/i386/proc.h>
+#include <arch/i386/smp.h>
 #include <interrupts.h>
 #include <paging.h>
 
@@ -17,6 +18,8 @@
 #include <acpi/tables.h>
 #include <devices/pcie.h>
 #include <devices/pci.h>
+#include <devices/apic.h>
+#include <devices/pit.h>
 
 #include <loader.h>
 
@@ -64,7 +67,7 @@ extern "C" [[noreturn]] void kernel_init(unsigned int multiboot_magic, mboot_inf
 	installGDT();
 	SD::the() << "GDT installed!\n";	
 	SD::the() << "Installing the IDT\n";
-	installIDT();
+	IDT::install();
 	SD::the() << "IDT installed!\n";
 	
 	mboot_mmap_entry* entries = (mboot_mmap_entry*)((uint32_t)(mboot -> mmap_ptr) + 0xC0000000);
@@ -74,16 +77,22 @@ extern "C" [[noreturn]] void kernel_init(unsigned int multiboot_magic, mboot_inf
 	MemoryManager::init(entries, mboot -> mmap_len);
 	SD::the() << "Done!\n";
 	Scheduler::init();
+	PIT::initOneshot();
 	ACPI::init();
 	PCI::init();
 	PCIe::init();
+	APIC::init();
+	SMP::init();
 	sti();
 
+	//Task* utask = Loader::load(*test_program_elf);
+	//Scheduler::addTask(*utask);
+	//Scheduler::pickNext();
+	//Scheduler::exec();
 	
-	
-	outw(0x604, 0x2000); //shutdown qemu
+	//outw(0x604, 0x2000); //shutdown qemu
 	for(;;){
-		__asm__ ("hlt");
+		//__asm__ ("hlt");
 	}
 }
 

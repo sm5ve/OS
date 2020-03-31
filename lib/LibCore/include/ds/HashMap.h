@@ -3,6 +3,7 @@
 
 #include <ds/Tuple.h>
 #include <ds/LinkedList.h>
+#include <ds/Vector.h>
 #include <assert.h>
 #include <hash.h>
 
@@ -21,6 +22,7 @@ public:
 	bool contains(K);
 
 	size_t getSize();
+	Vector<Tuple<K,V>>* getKeyValuePairs();
 private:
 	LinkedList<Tuple<K,V>>* data;
 	size_t capacity;
@@ -139,6 +141,20 @@ void HashMap<K,V>::resizeIfNecessary(){
 		resize(capacity * 1.5); //TODO do this much more intelligently
 	}
 	//TODO do we want to shrink the array if the load gets sufficiently small?
+}
+
+template <class K, class V>
+Vector<Tuple<K, V>>* HashMap<K, V>::getKeyValuePairs(){
+	Vector<Tuple<K, V>>* out = new Vector<Tuple<K, V>>();
+	for(uint32_t i = 0; i < capacity; i++){
+		auto* list = &data[i];
+		auto node = list -> head();
+		while(node != list -> end()){
+			out -> push(node -> value);
+			node = node -> next();
+		}
+	}
+	return out;
 }
 
 #endif
