@@ -10,6 +10,8 @@ OBJS := debug.o \
 		arch/i386/proc.o \
 		arch/i386/segments.o \
 		arch/i386/smp.o \
+		arch/i386/smp_boot.ao \
+		arch/i386/smp_init.o \
 		devices/apic.o \
 		devices/pci.o \
 		devices/pcie.o \
@@ -47,8 +49,10 @@ CPPFLAGS += $(INCLUDES)
 ASMFLAGS := -ffreestanding -g
 ASMFLAGS += $(INCLUDES)
 
-QEMUFLAGS := -m 1G -nographic -no-reboot -d cpu_reset -device VGA,vgamem_mb=64 -device ich9-ahci -machine q35 
+QEMUFLAGS := -m 1G -nographic -no-reboot -device VGA,vgamem_mb=64 -device ich9-ahci -machine q35 
 QEMUFLAGS += -smp 4
+#QEMUFLAGS += -d cpu_reset
+#QEMUFLAGS += -d int
 #I'm playing around with GVT-g. Perhaps one day I'll get it working and i915 support will be a little more realistic
 #QEMUFLAGS += -enable-kvm 
 #QEMUFLAGS += -device vfio-pci,sysfsdev=/sys/devices/pci0000:00/0000:00:02.0/4f61c2c2-71ad-11ea-878d-775857b37de3,x-igd-opregion=on,display=on

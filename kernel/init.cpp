@@ -82,13 +82,14 @@ extern "C" [[noreturn]] void kernel_init(unsigned int multiboot_magic, mboot_inf
 	PCI::init();
 	PCIe::init();
 	APIC::init();
-	SMP::init();
 	sti();
+	SMP::init();
+	//sti();
 
-	//Task* utask = Loader::load(*test_program_elf);
-	//Scheduler::addTask(*utask);
-	//Scheduler::pickNext();
-	//Scheduler::exec();
+	/*Task* utask = Loader::load(*test_program_elf);
+	Scheduler::addTask(*utask);
+	Scheduler::pickNext();
+	Scheduler::exec();*/
 	
 	//outw(0x604, 0x2000); //shutdown qemu
 	for(;;){

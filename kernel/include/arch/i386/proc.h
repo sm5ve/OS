@@ -43,6 +43,13 @@ struct __attribute__((packed)) tss_entry{
 	uint32_t iopb;
 };
 
+struct __attribute__((packed)) seg_table_descriptor{
+	uint16_t size;
+	uint32_t addr;
+};
+
+void writeAPBootstrapGDT(uint16_t offset);
+
 typedef void(*interrupt_handler)(registers&);
 
 PrintStream& operator<<(PrintStream& p, registers);

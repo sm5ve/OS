@@ -15,17 +15,12 @@
 extern uint8_t stack_top;
 uint8_t gdt[8 * TOTAL_GDT_SEGMENTS];
 
-struct __attribute__((__packed__)) seg_table_descriptor{
-	uint16_t size;
-	uint32_t addr;
-};
-
 seg_table_descriptor gdtDescriptor;
 tss_entry tss;
 
-void writeSegment(int index, uint32_t base, uint32_t limit, uint8_t access){
+void writeSegment(uint8_t* table, int index, uint32_t base, uint32_t limit, uint8_t access){
 	//For now we'll do page-aligned segments.
-	uint8_t* entry = &gdt[index * 8];
+	uint8_t* entry = &table[index * 8];
 	
 	limit >>= 12;
 	
@@ -76,16 +71,16 @@ constexpr uint8_t segmentFlags(bool kernel, bool system, bool executable, bool r
 }
 
 void installGDT(){
-	writeSegment(0, 0x00000000, 0x00000000, 0); //GDT must start with null segment
+	writeSegment(gdt, 0, 0x00000000, 0x00000000, 0); //GDT must start with null segment
 	uint8_t codeFlags = segmentFlags(true, false, true, true);
-	writeSegment(1, 0x00000000, 0xffffffff, codeFlags);
+	writeSegment(gdt, 1, 0x00000000, 0xffffffff, codeFlags);
 	uint8_t dataFlags = segmentFlags(true, false, false, true);
-	writeSegment(2, 0x00000000, 0xfffffff, dataFlags);
+	writeSegment(gdt, 2, 0x00000000, 0xfffffff, dataFlags);
 	uint8_t userCodeFlags = segmentFlags(false, false, true, true);
-	writeSegment(3, 0x00000000, 0xbfffffff, userCodeFlags);
+	writeSegment(gdt, 3, 0x00000000, 0xbfffffff, userCodeFlags);
 	uint8_t userDataFlags = segmentFlags(false, false, false, true);
-	writeSegment(4, 0x00000000, 0xbfffffff, userDataFlags);
-	writeSegment(5, (uint32_t)&tss, (uint32_t)&tss + sizeof(tss), 0xe9);	
+	writeSegment(gdt, 4, 0x00000000, 0xbfffffff, userDataFlags);
+	writeSegment(gdt, 5, (uint32_t)&tss, (uint32_t)&tss + sizeof(tss), 0xe9);	
 
 	memset(&tss, 0, sizeof(tss));
 
@@ -95,4 +90,20 @@ void installGDT(){
 	tss.cs = 0x0b;
 	tss.ss = tss.ds = tss.es = tss.fs = tss.gs = 0x13;
 	flushGDT();
+}
+
+uint8_t ap_gdt[3 * 8];
+
+void writeAPBootstrapGDT(uint16_t offset){
+	writeSegment(ap_gdt, 0, 0x00000000, 0x00000000, 0);
+	uint8_t codeFlags = segmentFlags(true, false, true, true);
+	writeSegment(ap_gdt, 1, 0x00000000, 0xffffffff, codeFlags);
+	uint8_t dataFlags = segmentFlags(true, false, false, true);
+	writeSegment(ap_gdt, 2, 0x00000000, 0xffffffff, dataFlags);
+	seg_table_descriptor desc{
+		.size = 8 * 3,
+		.addr = ((uint32_t)offset & 0xffff) + 8
+	};
+	memcpy((void*)(0xc0000000 + offset), &desc, 8);
+	memcpy((void*)(0xc0000000 + offset + 8), &ap_gdt, sizeof(ap_gdt));
 }

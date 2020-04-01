@@ -1,0 +1,54 @@
+.section .text
+.align 4096
+
+.extern smp_init
+
+.global bootup_start
+bootup_start:
+.code16
+cli
+
+xorw %ax, %ax
+movw %ax, %ds
+
+lgdtl 0x5000
+
+
+mov %cr0, %eax
+orl 1, %eax
+mov %eax, %cr0
+
+ljmpl $0x8, $(ap_prot_mode - bootup_start + 0x4000)
+ap_prot_mode:
+
+.code32
+mov 0x5200, %esp
+
+mov $0x10, %ax
+mov %ax, %ds
+mov %ax, %es
+mov %ax, %gs
+mov %ax, %fs
+mov %ax, %ss
+
+mov 0x5100, %ecx
+movl %ecx, %cr3
+
+movl %cr0, %ecx
+orl $0x80010000, %ecx
+movl %ecx, %cr0
+
+lea ap_paged, %ecx
+jmp *%ecx
+
+ap_paged:
+
+//mov smp_init, %eax
+//jmp *%eax
+//push %eax
+call smp_init
+
+hlt
+hlt
+.global bootup_end
+bootup_end:

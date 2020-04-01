@@ -7,6 +7,7 @@
 #include <ds/LinkedList.h>
 #include <ds/HashMap.h>
 #include <PrintStream.h>
+#include <arch/i386/smp.h>
 
 typedef void* phys_addr;
 typedef void* virt_addr;
@@ -186,6 +187,7 @@ public:
 private:
 	LinkedList<MemoryRegionPlacement> regions;
 	uint32_t* directory;
+	friend void SMP::setupAPTables(uint16_t);
 };
 
 PrintStream& operator<<(PrintStream&, MemoryManager::PhysicalMemoryRegion&);
