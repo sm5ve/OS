@@ -14,6 +14,20 @@ size_t operator()(const int i){
 }
 };
 
+template<> struct hash<uint8_t>
+{
+size_t operator()(const uint8_t i){
+	return (size_t)i;
+}
+};
+
+template<> struct hash<uint16_t>
+{
+size_t operator()(const uint16_t i){
+	return (size_t)i;
+}
+};
+
 template<> struct hash<uint32_t>
 {
 size_t operator()(const uint32_t i){

@@ -43,6 +43,15 @@ namespace SMP{
 		MemoryManager::kernel_directory -> installRegion(*core_stack, stack_start);
 		*stack_loc = (uint32_t)stack_start + KERNEL_STACK_SIZE;
 	}
+
+	void startCore(uint8_t apic_id, uint16_t offset){
+		setupAPTables(offset + 0x1000);
+		sendIPI(apic_id, 0, IPIMode::INIT);
+		PIT::waitMillis(10);
+		sendIPI(apic_id, (offset >> 12), IPIMode::SIPI);
+		PIT::waitMicros(200);
+		sendIPI(apic_id, (offset >> 12), IPIMode::SIPI);
+	}
 	
 	void init(){
 		auto* id_map = new MemoryManager::PhysicalMemoryRegion(Vector<page_table*>(), 0, 0);
@@ -53,15 +62,13 @@ namespace SMP{
 		uint32_t ap_boot_addr = 0x4000;
 		apic[0xf0/4] |= (1 << 8);
 		memcpy((void*)(0xc0000000 + ap_boot_addr), &bootup_start, ((uint32_t)&bootup_end - (uint32_t)&bootup_start));
-		setupAPTables(0x5000);
+		auto* cores = APIC::getCoresWithAPICIDs();
+		for(uint32_t i = 0; i < cores -> size(); i++){
+			if((*cores)[i].b == APIC::getLAPICID())
+				continue;
+			startCore((*cores)[i].b, ap_boot_addr);
+		}
 
-		sendIPI(2, 0, IPIMode::INIT);
-		PIT::waitMillis(10);
-		sendIPI(2, (ap_boot_addr >> 12), IPIMode::SIPI);
-		PIT::waitMicros(200);
-		sendIPI(2, (ap_boot_addr >> 12), IPIMode::SIPI);
-		//PIT::waitMicros(200);
-		//sendIPI(2, (0x4000 >> 12), IPIMode::SIPI);
 		MemoryManager::kernel_directory -> removeRegion(*id_map);
 	}
 }

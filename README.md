@@ -11,8 +11,7 @@ So far, the kernel has support for
 
 Features/subsystems I hope to implement in time include (in no particular order)
 
-* ACPI table parsing (no AML for now)
-* PCI bus enumeration
+* SMP
 * Some sort of VFS
 * AHCI driver
 * GPT partition table driver

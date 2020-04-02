@@ -2,7 +2,8 @@
 #define APIC_hdr
 
 #include <stdint.h>
-#include <ds/Hashmap.h>
+#include <ds/Vector.h>
+#include <ds/Tuple.h>
 
 struct __attribute__((packed)) APIC_local_descriptor{
 	uint32_t local_APIC_addr;
@@ -45,12 +46,11 @@ struct __attribute__((packed)) MDAT_local_APIC_address_override_entry{
 	uint64_t paddr;
 };
 
-class APIC{
-public:
-	static void init();
-	static void* getLAPICAddr();
-private:
-	static HashMap<uint8_t, APIC*> apics_by_pid;
-};
+namespace APIC{
+	void init();
+	void* getLAPICAddr();
+	uint8_t getLAPICID();
+	Vector<Tuple<uint8_t, uint8_t>>* getCoresWithAPICIDs();
+}
 
 #endif
