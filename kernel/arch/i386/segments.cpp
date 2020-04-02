@@ -40,7 +40,7 @@ void flushGDT(){
 		.addr = (uint32_t)gdt
 	};
 	//Actually let the CPU know where the GDT is
-	__asm__ volatile ("lgdt %0" :: "m" (gdtDescriptor) : "memory");
+	__asm__ volatile ("lgdtl %0" :: "m" (gdtDescriptor) : "memory");
 	//Reload the segment registers
 	//Our kernel code segment entry is at gdt 0x08, so we'll point CS there
 	__asm__ volatile("ljmpl $0x8, $segments_continue\n" \
@@ -75,7 +75,7 @@ void installGDT(){
 	uint8_t codeFlags = segmentFlags(true, false, true, true);
 	writeSegment(gdt, 1, 0x00000000, 0xffffffff, codeFlags);
 	uint8_t dataFlags = segmentFlags(true, false, false, true);
-	writeSegment(gdt, 2, 0x00000000, 0xfffffff, dataFlags);
+	writeSegment(gdt, 2, 0x00000000, 0xffffffff, dataFlags);
 	uint8_t userCodeFlags = segmentFlags(false, false, true, true);
 	writeSegment(gdt, 3, 0x00000000, 0xbfffffff, userCodeFlags);
 	uint8_t userDataFlags = segmentFlags(false, false, false, true);

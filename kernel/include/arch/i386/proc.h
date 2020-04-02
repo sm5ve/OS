@@ -64,6 +64,7 @@ void cli();
 void sti();
 
 void installGDT();
+void flushGDT();
 
 namespace IDT{
 	void install();

@@ -16,6 +16,7 @@ namespace SMP{
 	void setupAPTables(uint16_t offset);
 	void init();
 	void sendIPI(uint8_t apic_id, uint8_t vector, IPIMode mode);
+	void incCoreCount();
 }
 
 #endif

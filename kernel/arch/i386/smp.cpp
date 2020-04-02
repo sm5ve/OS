@@ -13,6 +13,8 @@ extern uint32_t bootup_end;
 #define APIC_IPI_CMD_REG  (0x30 * 16 / sizeof(uint32_t))
 
 namespace SMP{
+	volatile uint8_t online_cores = 0;	
+
 	void sendIPI(uint8_t apic_id, uint8_t vector, IPIMode mode){
 		uint32_t volatile *apic = (uint32_t volatile*)APIC::getLAPICAddr();
 		while(apic[0x30 * 16 / sizeof(uint32_t)] & (1 << 12)){
@@ -48,9 +50,12 @@ namespace SMP{
 		setupAPTables(offset + 0x1000);
 		sendIPI(apic_id, 0, IPIMode::INIT);
 		PIT::waitMillis(10);
+		uint8_t prev_online = online_cores;
 		sendIPI(apic_id, (offset >> 12), IPIMode::SIPI);
 		PIT::waitMicros(200);
-		sendIPI(apic_id, (offset >> 12), IPIMode::SIPI);
+		if(online_cores == prev_online){ //If our core count doesn't go up, try sending another SIPI
+			sendIPI(apic_id, (offset >> 12), IPIMode::SIPI);
+		}
 	}
 	
 	void init(){
@@ -70,5 +75,9 @@ namespace SMP{
 		}
 
 		MemoryManager::kernel_directory -> removeRegion(*id_map);
+	}
+	
+	void incCoreCount(){
+		online_cores++;
 	}
 }
