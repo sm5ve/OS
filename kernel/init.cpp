@@ -20,7 +20,7 @@
 #include <devices/pci.h>
 #include <devices/apic.h>
 #include <devices/pit.h>
-#include <devices/ahci.h>
+#include <devices/ahci/ahci.h>
 
 #include <loader.h>
 
@@ -99,9 +99,9 @@ extern "C" [[noreturn]] void kernel_init(unsigned int multiboot_magic, mboot_inf
 	Scheduler::pickNext();
 	Scheduler::exec();*/
 	
-	outw(0x604, 0x2000); //shutdown qemu
+	//outw(0x604, 0x2000); //shutdown qemu
 	for(;;){
-		//__asm__ ("hlt");
+		__asm__ ("hlt");
 	}
 }
 

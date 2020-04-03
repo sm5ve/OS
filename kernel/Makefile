@@ -13,8 +13,8 @@ OBJS := debug.o \
 		arch/i386/smp_boot.ao \
 		arch/i386/smp_init.o \
 		devices/apic.o \
-		devices/ahci.o \
-		devices/AHCIDevice.o \
+		devices/ahci/ahci.o \
+		devices/ahci/AHCIHostBusAdapter.o \
 		devices/pci.o \
 		devices/pcie.o \
 		devices/PCIDevice.o \
