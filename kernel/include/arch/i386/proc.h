@@ -14,6 +14,12 @@ struct __attribute__((packed)) registers{
 	uint32_t fault_eip, cs, error_flags, user_esp, ss;
 };
 
+enum InterruptHandlerDecision{
+	CONSUME,
+	HANDLE_AND_PASS,
+	PASS
+};
+
 struct __attribute__((packed)) tss_entry{
 	uint32_t link;
 	uint32_t esp0;
@@ -50,7 +56,7 @@ struct __attribute__((packed)) seg_table_descriptor{
 
 void writeAPBootstrapGDT(uint16_t offset);
 
-typedef void(*interrupt_handler)(registers&);
+typedef InterruptHandlerDecision(*interrupt_handler)(registers&);
 
 PrintStream& operator<<(PrintStream& p, registers);
 
@@ -69,5 +75,6 @@ void flushGDT();
 namespace IDT{
 	void install();
 	void installIRQHandler(interrupt_handler, uint32_t number);
+	uint32_t installIRQHandler(interrupt_handler);
 }
 #endif

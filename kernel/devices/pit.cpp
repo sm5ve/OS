@@ -13,7 +13,7 @@ namespace PIT{
 	uint64_t wait_ticks = 0;
 	volatile bool waiting;
 	void waitMaxRemainingTicks();
-	void handleIRQ(registers&){
+	InterruptHandlerDecision handleIRQ(registers&){
 		if(wait_ticks == 0){
 			waiting = false;
 		}
@@ -21,6 +21,7 @@ namespace PIT{
 			waitMaxRemainingTicks();
 		}
 		outb(PIT_MODE, 0x30);
+		return InterruptHandlerDecision::CONSUME;
 	}
 	
 	void initOneshot(){

@@ -5,6 +5,8 @@
 #include <debug.h>
 #include <Scheduler.h>
 
+#define LOG_UNHANDLED_IRQS
+
 extern "C" void isrHandler(registers regs);
 extern "C" void irqHandler(registers regs);
 
@@ -215,9 +217,20 @@ IRQ(3);
 IRQ(4);
 IRQ(5);
 IRQ(6);
+IRQ(7);
+IRQ(8);
+IRQ(9);
+IRQ(10);
+IRQ(11);
+IRQ(12);
+IRQ(13);
+IRQ(14);
+IRQ(15);
 
 namespace IDT{
-	interrupt_handler irq_handlers[16];
+	Vector<interrupt_handler>* irq_handlers[16];
+	uint32_t deviceIRQs[3] = {9, 10, 11};
+	uint32_t irqAllocIndex = 0;
 	void install(){
 		outb(0x20, 0x11);
 		outb(0xa0, 0x11);
@@ -229,7 +242,7 @@ namespace IDT{
 		outb(0xa1, 0x01);
 
 		for(int i = 0; i < 16; i++){
-			irq_handlers[i] = NULL;
+			irq_handlers[i] = new Vector<interrupt_handler>();
 		}
 
 		//Initialize IDT to a state where no segments are present
@@ -268,18 +281,52 @@ namespace IDT{
 		INST_IRQ(4)
 		INST_IRQ(5)
 		INST_IRQ(6)
-	
+		INST_IRQ(7)
+		INST_IRQ(8)
+		INST_IRQ(9)
+		INST_IRQ(10)
+		INST_IRQ(11)
+		INST_IRQ(12)
+		INST_IRQ(13)
+		INST_IRQ(14)
+		INST_IRQ(15)
+
 		flushIDT();
 	}
 
 	void installIRQHandler(interrupt_handler handler, uint32_t number){
-		irq_handlers[number] = handler;
+		irq_handlers[number] -> push(handler);
+	}
+	
+	uint32_t installIRQHandler(interrupt_handler handler){
+		uint32_t number = deviceIRQs[irqAllocIndex];
+		irqAllocIndex = (irqAllocIndex + 1) % (sizeof(deviceIRQs) / sizeof(deviceIRQs[0]));
+		installIRQHandler(handler, number);
+		return number;
 	}
 }
 
 extern "C" void irqHandler(registers regs){
-	outb(0x20, 0x20);
-	if((regs.int_number < 16) && IDT::irq_handlers[regs.int_number] != NULL){
-		IDT::irq_handlers[regs.int_number](regs);
+	bool wasHandled = false;
+	if(regs.int_number < 16){
+		Vector<interrupt_handler>& handlers = *IDT::irq_handlers[regs.int_number];
+		for(uint32_t i = 0; i < handlers.size(); i++){
+			switch(handlers[i](regs)){
+				case InterruptHandlerDecision::CONSUME:
+					wasHandled = true;
+					break;
+				case InterruptHandlerDecision::HANDLE_AND_PASS:
+					wasHandled = true;
+					continue;
+				case InterruptHandlerDecision::PASS:
+					continue;
+			}
+		}
 	}
+	#ifdef LOG_UNHANDLED_IRQS
+	if(!wasHandled){
+		SD::the() << "Unhandled IRQ (#" << regs.int_number << ")\n";
+	}
+	#endif
+	outb(0x20, 0x20);
 }

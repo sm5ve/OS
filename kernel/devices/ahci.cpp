@@ -4,6 +4,7 @@
 #include <klib/SerialDevice.h>
 #include <ds/Vector.h>
 #include <paging.h>
+#include <arch/i386/proc.h>
 
 namespace AHCI{
 	Vector<AHCIDevice*>* devices;
@@ -32,6 +33,11 @@ namespace AHCI{
 			}
 		}
 	}
+
+	InterruptHandlerDecision handleDiskInterrupt(registers& regs){
+		SD::the() << "Got disk interrupt!\n";
+		return InterruptHandlerDecision::HANDLE_AND_PASS;
+	}
 	
 	void init(){
 		devices = new Vector<AHCIDevice*>();
@@ -39,7 +45,7 @@ namespace AHCI{
 			auto& device = *(*PCI::devices)[i];
 			if((device.getDeviceType() & 0xffffff00) == 0x01060100){
 				enumerateAHCIPorts(device);
-				//We should probably set up interrupts down here.
+				device.installInterruptHandler(handleDiskInterrupt, 14); //14 is apparently conventionally the primary SATA device IRQ
 			}
 		}
 	}

@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include <arch/i386/proc.h>
 
 struct PCIHeader0{
 	uint16_t vendor_id;
@@ -36,6 +37,10 @@ public:
 
 	uint32_t getDeviceType();
 	void* bar(uint32_t num, size_t size);
+	void installInterruptHandler(interrupt_handler, uint32_t);
+	void installInterruptHandler(interrupt_handler);
+	void enableInterrupts();
+	PCIHeader0& getHeader();
 private:
 	bool pcie;
 	void* base;
