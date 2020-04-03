@@ -13,6 +13,8 @@ OBJS := debug.o \
 		arch/i386/smp_boot.ao \
 		arch/i386/smp_init.o \
 		devices/apic.o \
+		devices/ahci.o \
+		devices/AHCIDevice.o \
 		devices/pci.o \
 		devices/pcie.o \
 		devices/PCIDevice.o \
@@ -49,7 +51,8 @@ CPPFLAGS += $(INCLUDES)
 ASMFLAGS := -ffreestanding -g
 ASMFLAGS += $(INCLUDES)
 
-QEMUFLAGS := -m 1G -nographic -no-reboot -device VGA,vgamem_mb=64 -device ich9-ahci -machine q35 
+QEMUFLAGS := -m 1G -nographic -no-reboot -device VGA,vgamem_mb=64 -machine q35 
+QEMUFLAGS += -drive id=disk,file=../hd.img,if=none -device ahci,id=ahci -device ide-drive,drive=disk,bus=ahci.2
 QEMUFLAGS += -smp 4
 #QEMUFLAGS += -d cpu_reset
 #QEMUFLAGS += -d int

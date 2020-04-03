@@ -6,3 +6,4 @@
 kernel/kernel
 kernel/kernel.sym
 kernel/test
+hd.img

@@ -45,7 +45,7 @@ namespace SMP{
 		MemoryManager::kernel_directory -> installRegion(*core_stack, stack_start);
 		*stack_loc = (uint32_t)stack_start + KERNEL_STACK_SIZE;
 	}
-
+	//FIXME I think we can get stuck here sometimes. It might be a bug in the PIT code
 	void startCore(uint8_t apic_id, uint16_t offset){
 		setupAPTables(offset + 0x1000);
 		sendIPI(apic_id, 0, IPIMode::INIT);

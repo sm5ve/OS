@@ -8,14 +8,17 @@ So far, the kernel has support for
 * Loading ELF files passed in through multiboot
 * Ring 3 code execution
 * A basic round-robin task scheduler.
+* Preliminary SMP support (I can spin up the extra cores, but they don't do anything yet)
 
-Features/subsystems I hope to implement in time include (in no particular order)
+Features/subsystems I hope to implement in the near future include (in roughly the order of priority)
 
-* SMP
-* Some sort of VFS
 * AHCI driver
 * GPT partition table driver
 * EXT2 filesystem driver
+* A VFS
+* A proper threading/process model
+* A basic userspace
+* A name
 
 In the longer term, I would like to support the following features
 

@@ -5,36 +5,36 @@
 
 .global bootup_start
 bootup_start:
-.code16
+.code16 //It's very important to use .code16, as otherwise the assembly output will be garbage
 cli
 
 xorw %ax, %ax
 movw %ax, %ds
 
-lgdtl 0x5000
+lgdtl 0x5000 //0x5000 contains the GDTR to set up the initial GDT
 
 
-mov %cr0, %eax
+mov %cr0, %eax //Switch to protected mode
 orl 1, %eax
 mov %eax, %cr0
 
-ljmpl $0x8, $(ap_prot_mode - bootup_start + 0x4000)
+ljmpl $0x8, $(ap_prot_mode - bootup_start + 0x4000) //Long jump to set the code segment
 ap_prot_mode:
 
 .code32
-mov 0x5200, %esp
+mov 0x5200, %esp //Grab a pointer to the stack (in virtual memory) which is stored at 0x5200
 
-mov $0x10, %ax
+mov $0x10, %ax //Update the remaining segments
 mov %ax, %ds
 mov %ax, %es
 mov %ax, %gs
 mov %ax, %fs
 mov %ax, %ss
 
-mov 0x5100, %ecx
+mov 0x5100, %ecx //Find the page directory pointer and load it
 movl %ecx, %cr3
 
-movl %cr0, %ecx
+movl %cr0, %ecx //Enable paging
 orl $0x80010000, %ecx
 movl %ecx, %cr0
 
@@ -43,10 +43,7 @@ jmp *%ecx
 
 ap_paged:
 
-//mov smp_init, %eax
-//jmp *%eax
-//push %eax
-call smp_init
+call smp_init //Finally jump into C++
 
 hlt
 hlt

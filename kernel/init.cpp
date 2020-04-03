@@ -20,6 +20,7 @@
 #include <devices/pci.h>
 #include <devices/apic.h>
 #include <devices/pit.h>
+#include <devices/ahci.h>
 
 #include <loader.h>
 
@@ -82,8 +83,15 @@ extern "C" [[noreturn]] void kernel_init(unsigned int multiboot_magic, mboot_inf
 	PCI::init();
 	PCIe::init();
 	APIC::init();
+	AHCI::init();
 	sti();
 	SMP::init();
+
+	for(uint32_t i = 0; i < PCI::devices -> size(); i++){
+		auto& device = *(*PCI::devices)[i];
+		SD::the() << "PCI device type "<< (void*)(device.getDeviceType()) << "\n";
+	}
+
 	//sti();
 
 	/*Task* utask = Loader::load(*test_program_elf);
@@ -91,7 +99,7 @@ extern "C" [[noreturn]] void kernel_init(unsigned int multiboot_magic, mboot_inf
 	Scheduler::pickNext();
 	Scheduler::exec();*/
 	
-	//outw(0x604, 0x2000); //shutdown qemu
+	outw(0x604, 0x2000); //shutdown qemu
 	for(;;){
 		//__asm__ ("hlt");
 	}
