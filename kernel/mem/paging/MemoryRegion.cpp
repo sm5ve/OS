@@ -30,14 +30,14 @@ void PhysicalMemoryRegion::install(PageDirectory& dir, virt_addr base)
 		"Error: misaligned starting address");
 	virt_addr at = base;
 	auto type = inv_type;
-	if(type == TLBInvalidationType::FULL_FLUSH){
+	if (type == TLBInvalidationType::FULL_FLUSH) {
 		type = TLBInvalidationType::NONE;
 	}
 	for (uint32_t i = 0; i < ptables.size(); i++) {
 		dir.addPageTable(ptables[i], at, flags, type);
 		at = (virt_addr)((uint32_t)at + PAGE_SIZE * 1024);
 	}
-	if(inv_type == TLBInvalidationType::FULL_FLUSH){
+	if (inv_type == TLBInvalidationType::FULL_FLUSH) {
 		dir.invalidateMappingIfNecessary(NULL, TLBInvalidationType::FULL_FLUSH);
 	}
 }

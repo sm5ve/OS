@@ -1,8 +1,8 @@
 #include <arch/i386/proc.h>
 #include <devices/SerialDevice.h>
+#include <devices/ahci/AHCIDevice.h>
 #include <devices/ahci/AHCIHostBusAdapter.h>
 #include <devices/ahci/ahci.h>
-#include <devices/ahci/AHCIDevice.h>
 #include <devices/pci.h>
 #include <ds/Vector.h>
 #include <paging.h>
@@ -40,7 +40,8 @@ void init()
 	}
 }
 
-SATA_AHCIDevice* getPrimaryDisk(){
-	return (*hbas)[0] -> getPrimaryDisk();
+SATA_AHCIDevice* getPrimaryDisk()
+{
+	return (*hbas)[0]->getPrimaryDisk();
 }
 } // namespace AHCI

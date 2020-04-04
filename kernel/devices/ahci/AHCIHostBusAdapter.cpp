@@ -65,9 +65,10 @@ ABARMemory& AHCIHostBusAdapter::getABAR()
 	return *(ABARMemory*)device.bar(5, sizeof(ABARMemory));
 }
 
-SATA_AHCIDevice* AHCIHostBusAdapter::getPrimaryDisk(){
-	for(uint32_t i = 0; i < 32; i++){
-		if(devices[i] && devices[i] ->isDisk())
+SATA_AHCIDevice* AHCIHostBusAdapter::getPrimaryDisk()
+{
+	for (uint32_t i = 0; i < 32; i++) {
+		if (devices[i] && devices[i]->isDisk())
 			return (SATA_AHCIDevice*)devices[i];
 	}
 }

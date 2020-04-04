@@ -157,7 +157,7 @@ void PageDirectory::addPageTable(page_table* ptr, virt_addr base,
 	assert(paddr % PAGE_SIZE == 0, "Error: misaligned page table");
 	uint32_t entry = (paddr & (~0xfff)) | flags;
 	directory[directory_index] = entry;
-	for(uint32_t i = (uint32_t)base; i < (uint32_t)base + (1024 * PAGE_SIZE); i += PAGE_SIZE){
+	for (uint32_t i = (uint32_t)base; i < (uint32_t)base + (1024 * PAGE_SIZE); i += PAGE_SIZE) {
 		invalidateMappingIfNecessary((virt_addr)i, invtype);
 	}
 }
@@ -170,13 +170,13 @@ void PageDirectory::removePageTables(virt_addr base, size_t region_size, TLBInva
 		 i += 1024 * PAGE_SIZE) {
 		uint32_t index = i / (1024 * PAGE_SIZE);
 		directory[index] = 0;
-		if(invtype == TLBInvalidationType::INVLPG){
-			for(uint32_t j = i; j < j + (1024 * PAGE_SIZE); j += PAGE_SIZE){
+		if (invtype == TLBInvalidationType::INVLPG) {
+			for (uint32_t j = i; j < j + (1024 * PAGE_SIZE); j += PAGE_SIZE) {
 				invalidateMappingIfNecessary((virt_addr)j, invtype);
 			}
 		}
 	}
-	if(invtype == TLBInvalidationType::FULL_FLUSH){
+	if (invtype == TLBInvalidationType::FULL_FLUSH) {
 		invalidateMappingIfNecessary(base, invtype);
 	}
 }
@@ -253,16 +253,17 @@ void PageDirectory::copyRegionsInto(PageDirectory& pd)
 	}
 }
 
-void PageDirectory::invalidateMappingIfNecessary(virt_addr addr, TLBInvalidationType type){
-	if(this == MemoryManager::active_page_dir){
-		switch(type){
+void PageDirectory::invalidateMappingIfNecessary(virt_addr addr, TLBInvalidationType type)
+{
+	if (this == MemoryManager::active_page_dir) {
+		switch (type) {
 		case TLBInvalidationType::NONE:
 			return;
 		case TLBInvalidationType::INVLPG:
-			__asm__ volatile ("invlpg %0" :: "m"(addr));
+			__asm__ volatile("invlpg %0" ::"m"(addr));
 			return;
 		case TLBInvalidationType::FULL_FLUSH:
-			this -> install();
+			this->install();
 		}
 	}
 }
