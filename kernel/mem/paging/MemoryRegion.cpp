@@ -9,12 +9,13 @@ MemoryRegion::MemoryRegion() {}
 MemoryRegion::~MemoryRegion() { SD::the() << "killing region\n"; }
 
 PhysicalMemoryRegion::PhysicalMemoryRegion(Vector<page_table*> pt, size_t s,
-	uint32_t first_entry, bool perm,
+	uint32_t first_entry, bool perm, TLBInvalidationType invtype,
 	uint32_t flgs)
 	: ptables(pt)
 	, size(s)
 	, offset(first_entry)
 	, permanent(perm)
+	, inv_type(invtype)
 	, flags(flgs)
 {
 	assert(size % PAGE_SIZE == 0, "Error: misaligned memory region size");
@@ -28,15 +29,22 @@ void PhysicalMemoryRegion::install(PageDirectory& dir, virt_addr base)
 	assert(((uint32_t)base & 0x3fffff) == 0,
 		"Error: misaligned starting address");
 	virt_addr at = base;
+	auto type = inv_type;
+	if(type == TLBInvalidationType::FULL_FLUSH){
+		type = TLBInvalidationType::NONE;
+	}
 	for (uint32_t i = 0; i < ptables.size(); i++) {
-		dir.addPageTable(ptables[i], at, flags);
+		dir.addPageTable(ptables[i], at, flags, type);
 		at = (virt_addr)((uint32_t)at + PAGE_SIZE * 1024);
+	}
+	if(inv_type == TLBInvalidationType::FULL_FLUSH){
+		dir.invalidateMappingIfNecessary(NULL, TLBInvalidationType::FULL_FLUSH);
 	}
 }
 
 void PhysicalMemoryRegion::remove(PageDirectory& dir, virt_addr base)
 {
-	dir.removePageTables(base, size);
+	dir.removePageTables(base, size, inv_type);
 }
 
 void PhysicalMemoryRegion::handlePageFault(uint32_t offset)

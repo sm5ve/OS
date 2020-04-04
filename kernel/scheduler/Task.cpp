@@ -6,7 +6,7 @@ Task::Task(bool kp)
 	MemoryManager::kernel_directory->copyRegionsInto(pd);
 	if (!kp) {
 		auto region = new MemoryManager::PhysicalMemoryRegion(
-			Vector<page_table*>(), 0, 0, false,
+			Vector<page_table*>(), 0, 0, false, TLBInvalidationType::INVLPG,
 			PAGE_PRESENT | PAGE_ENABLE_WRITE | PAGE_USER_ACCESSIBLE);
 		MemoryManager::growPhysicalMemoryRegion(*region, 0x10000);
 		pd.installRegion(*region, (virt_addr)0x80000000);

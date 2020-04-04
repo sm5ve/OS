@@ -33,6 +33,12 @@ namespace MemoryManager{
 	class PhysicalMemoryRegion;
 }
 
+enum TLBInvalidationType{
+	NONE,
+	INVLPG,
+	FULL_FLUSH
+};
+
 PrintStream& operator<<(PrintStream&, MemoryManager::PhysicalMemoryRegion&);
 
 namespace MemoryManager{
@@ -93,7 +99,7 @@ namespace MemoryManager{
 
 	class PhysicalMemoryRegion : public MemoryRegion{
 	public:
-		PhysicalMemoryRegion(Vector<page_table*> ptables, size_t size, uint32_t first_entry = 0, bool perm = false, uint32_t flags = PAGE_ENABLE_WRITE | PAGE_PRESENT);
+		PhysicalMemoryRegion(Vector<page_table*> ptables, size_t size, uint32_t first_entry = 0, bool perm = false, TLBInvalidationType invalidation_type = TLBInvalidationType::INVLPG, uint32_t flags = PAGE_ENABLE_WRITE | PAGE_PRESENT);
 		~PhysicalMemoryRegion();
 		virtual void install(PageDirectory&, virt_addr) final override;
 		virtual void remove(PageDirectory&, virt_addr) final override;
@@ -107,6 +113,7 @@ namespace MemoryManager{
 		Vector<page_table*> ptables;
 		uint32_t size;
 		bool permanent;
+		TLBInvalidationType inv_type;
 		uint32_t flags;
 		uint32_t offset;
 		friend class PageFrameAllocator;
@@ -168,8 +175,8 @@ public:
 	void removeMapping(virt_addr);
 	phys_addr findPhysicalAddr(virt_addr);
 	virt_addr findVirtAddr(phys_addr);
-	void addPageTable(page_table*, virt_addr, uint32_t flags);
-	void removePageTables(virt_addr, size_t);
+	void addPageTable(page_table*, virt_addr, uint32_t flags, TLBInvalidationType invtype = TLBInvalidationType::INVLPG);
+	void removePageTables(virt_addr, size_t, TLBInvalidationType invtype = TLBInvalidationType::INVLPG);
 
 	void installRegion(MemoryManager::MemoryRegion& region, virt_addr starting_addr);
 	void removeRegion(MemoryManager::MemoryRegion&);
@@ -184,6 +191,7 @@ public:
 	bool isActive();
 
 	uint32_t getRegionOffset(MemoryManager::MemoryRegion&);
+	void invalidateMappingIfNecessary(virt_addr, TLBInvalidationType);
 private:
 	LinkedList<MemoryRegionPlacement> regions;
 	uint32_t* directory;

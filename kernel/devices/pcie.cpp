@@ -25,7 +25,7 @@ void init()
 			<< 20;
 		// Map the entire address range for the bus into memory. This could be up to
 		// 256 megabytes, but we will unmap it later
-		auto* region = new MemoryManager::PhysicalMemoryRegion(Vector<page_table*>(), 0, 0);
+		auto* region = new MemoryManager::PhysicalMemoryRegion(Vector<page_table*>(), 0, 0, false, TLBInvalidationType::FULL_FLUSH);
 		region->mapContiguousRegion((phys_addr)entries[i].base_address,
 			region_size);
 		virt_addr ptr = MemoryManager::kernel_directory->findSpaceAbove(
@@ -47,7 +47,7 @@ void init()
 		// to push prod myself to implement them.
 		MemoryManager::kernel_directory->removeRegion(*region);
 	}
-	auto* enumerated_devices_region = new MemoryManager::PhysicalMemoryRegion(Vector<page_table*>(), 0, 0);
+	auto* enumerated_devices_region = new MemoryManager::PhysicalMemoryRegion(Vector<page_table*>(), 0, 0, false, TLBInvalidationType::INVLPG, PAGE_PRESENT | PAGE_ENABLE_WRITE | PAGE_NO_CACHE);
 	Vector<uint32_t> offsets;
 	for (uint32_t i = 0; i < present_devices.size(); i++) {
 		offsets.push(enumerated_devices_region->mapContiguousRegion(

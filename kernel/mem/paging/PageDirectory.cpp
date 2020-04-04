@@ -49,6 +49,7 @@ void PageDirectory::addMapping(phys_addr p, virt_addr v, uint32_t flags)
 		(phys_addr)(directory[directoryIndex] & (~0xfff)));
 	uint32_t tableEntry = (((uint32_t)p) & (~0xfff)) | flags;
 	table[tableIndex] = tableEntry;
+	invalidateMappingIfNecessary(v, TLBInvalidationType::INVLPG);
 }
 
 void PageDirectory::removeMapping(virt_addr v)
@@ -63,6 +64,7 @@ void PageDirectory::removeMapping(virt_addr v)
 	assert(isPresent(table[tableIndex]),
 		"Error: tried to unmap already unmapped address");
 	table[tableIndex] = 0;
+	invalidateMappingIfNecessary(v, TLBInvalidationType::INVLPG);
 }
 
 // Will return null if the virtual address is unmapped
@@ -146,7 +148,7 @@ virt_addr PageDirectory::getRegionBase(MemoryRegion& region)
 }
 
 void PageDirectory::addPageTable(page_table* ptr, virt_addr base,
-	uint32_t flags)
+	uint32_t flags, TLBInvalidationType invtype)
 {
 	uint32_t directory_index = ((uint32_t)base / (1024 * PAGE_SIZE));
 	assert(((uint32_t)base % (PAGE_SIZE * 1024)) == 0,
@@ -155,9 +157,12 @@ void PageDirectory::addPageTable(page_table* ptr, virt_addr base,
 	assert(paddr % PAGE_SIZE == 0, "Error: misaligned page table");
 	uint32_t entry = (paddr & (~0xfff)) | flags;
 	directory[directory_index] = entry;
+	for(uint32_t i = (uint32_t)base; i < (uint32_t)base + (1024 * PAGE_SIZE); i += PAGE_SIZE){
+		invalidateMappingIfNecessary((virt_addr)i, invtype);
+	}
 }
 
-void PageDirectory::removePageTables(virt_addr base, size_t region_size)
+void PageDirectory::removePageTables(virt_addr base, size_t region_size, TLBInvalidationType invtype)
 {
 	assert((uint32_t)base % (PAGE_SIZE * 1024) == 0,
 		"Error: misaligned base address");
@@ -165,6 +170,14 @@ void PageDirectory::removePageTables(virt_addr base, size_t region_size)
 		 i += 1024 * PAGE_SIZE) {
 		uint32_t index = i / (1024 * PAGE_SIZE);
 		directory[index] = 0;
+		if(invtype == TLBInvalidationType::INVLPG){
+			for(uint32_t j = i; j < j + (1024 * PAGE_SIZE); j += PAGE_SIZE){
+				invalidateMappingIfNecessary((virt_addr)j, invtype);
+			}
+		}
+	}
+	if(invtype == TLBInvalidationType::FULL_FLUSH){
+		invalidateMappingIfNecessary(base, invtype);
 	}
 }
 
@@ -237,5 +250,19 @@ void PageDirectory::copyRegionsInto(PageDirectory& pd)
 	while (node != regions.end()) {
 		pd.installRegion(*(node->value.region), node->value.base);
 		node = node->next();
+	}
+}
+
+void PageDirectory::invalidateMappingIfNecessary(virt_addr addr, TLBInvalidationType type){
+	if(this == MemoryManager::active_page_dir){
+		switch(type){
+		case TLBInvalidationType::NONE:
+			return;
+		case TLBInvalidationType::INVLPG:
+			__asm__ volatile ("invlpg %0" :: "m"(addr));
+			return;
+		case TLBInvalidationType::FULL_FLUSH:
+			this -> install();
+		}
 	}
 }

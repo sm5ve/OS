@@ -27,7 +27,7 @@ Task* load(ELF& elf)
 			// TODO handle alignment
 			uint32_t region_offset = (seg_start % (1024 * PAGE_SIZE));
 			auto region = new MemoryManager::PhysicalMemoryRegion(
-				Vector<page_table*>(), 0, region_offset, false,
+				Vector<page_table*>(), 0, region_offset, false, TLBInvalidationType::INVLPG,
 				PAGE_ENABLE_WRITE | PAGE_PRESENT | PAGE_USER_ACCESSIBLE);
 			MemoryManager::growPhysicalMemoryRegion(*region, vsize);
 			virt_addr pd_start = (virt_addr)(seg_start - region_offset);

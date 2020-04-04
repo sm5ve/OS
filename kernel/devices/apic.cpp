@@ -23,7 +23,7 @@ void init()
 	// << "\n";
 
 	auto* region = new MemoryManager::PhysicalMemoryRegion(
-		Vector<page_table*>(), 0, 0, false,
+		Vector<page_table*>(), 0, 0, false, TLBInvalidationType::INVLPG,
 		PAGE_ENABLE_WRITE | PAGE_PRESENT | PAGE_NO_CACHE);
 	region->mapContiguousRegion((phys_addr)(local_descriptor->local_APIC_addr),
 		0x400);
