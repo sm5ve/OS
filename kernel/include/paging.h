@@ -144,8 +144,9 @@ namespace MemoryManager{
 	public:
 		PageFrameAllocator(size_t size, phys_addr* ptr_buffer, uint32_t* free_buffer, phys_addr start_addr);
 		PageFrameAllocator();
-		size_t grow(PhysicalMemoryRegion&, size_t targetSize);
+		size_t grow(PhysicalMemoryRegion&, size_t);
 		void release(phys_addr);
+		phys_addr allocateContiguousRange(PhysicalMemoryRegion&, size_t);
 	private:
 		uint32_t free_index;
 		phys_addr* ptr_buff;
@@ -155,8 +156,9 @@ namespace MemoryManager{
 		phys_addr alloc();
 	};
 
-	void growPhysicalMemoryRegion(PhysicalMemoryRegion&, size_t targetSize);
-	void shrinkPhysicalMemoryRegion(PhysicalMemoryRegion&, size_t targetSize);
+	void growPhysicalMemoryRegion(PhysicalMemoryRegion&, size_t);
+	phys_addr allocateContiguousRange(PhysicalMemoryRegion&, size_t);
+	void shrinkPhysicalMemoryRegion(PhysicalMemoryRegion&, size_t);
 	void release(phys_addr);
 }
 

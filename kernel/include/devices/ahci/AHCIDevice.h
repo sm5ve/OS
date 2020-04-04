@@ -30,6 +30,11 @@ namespace AHCI{
 		};
 	private:
 		volatile HBAPort& port;
+		
+		void rebase();
+		void startCommandEngine();
+		void stopCommandEngine();
+		uint32_t findCommandSlot();
 	};
 }
 

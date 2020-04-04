@@ -210,9 +210,45 @@ size_t PageFrameAllocator::grow(PhysicalMemoryRegion& region,
 		phys_addr next_page = alloc();
 		ptbl[ptbl_index] = ((uint32_t)next_page & (~0xfff)) | region.flags;
 	}
-	free_index += num_pages;
 	region.size += to_alloc;
 	return target_size - to_alloc;
+}
+
+phys_addr PageFrameAllocator::allocateContiguousRange(PhysicalMemoryRegion& reg, size_t size){
+	uint32_t topIndex = (sz / PAGE_SIZE) - 1;
+	uint32_t free_pages = 0;
+	for(uint32_t base = topIndex; base >= 0; base--){
+		if(free_buff[base] >= free_index){
+			free_pages++;
+		}
+		else{
+			free_pages = 0;
+		}
+		if(free_pages * PAGE_SIZE >= size){ //Once we've found a contiguous region, we'll need to move all of the pointers below the free index
+			phys_addr out = ptr_buff[base];
+			for(uint32_t i = base; i < base + size / PAGE_SIZE; i++){
+				uint32_t swap_index = free_buff[free_index]; //swap the entries
+				auto new_page = ptr_buff[i];
+				ptr_buff[i] = ptr_buff[swap_index];
+				ptr_buff[swap_index] = new_page;
+				free_buff[free_index] = free_buff[i];
+				free_buff[i] = swap_index;
+				free_index++;
+				uint32_t ptbl_index = (i + reg.size / PAGE_SIZE + reg.offset / PAGE_SIZE) % 1024;
+				if((ptbl_index == 0) || (reg.ptables.size() == 0)){
+					reg.ptables.push(allocatePageTable());
+				}
+				page_table& ptbl = *reg.ptables.top();
+				ptbl[ptbl_index] = ((uint32_t)new_page & (~0xfff)) | reg.flags;
+				reg.size += size;
+				if(size % PAGE_SIZE != 0){
+					reg.size += PAGE_SIZE - (size % PAGE_SIZE);
+				}
+			}
+			return out;
+		}
+	}
+	return (phys_addr)(-1);
 }
 
 void growPhysicalMemoryRegion(PhysicalMemoryRegion& reg, size_t target_size)
@@ -226,5 +262,18 @@ void growPhysicalMemoryRegion(PhysicalMemoryRegion& reg, size_t target_size)
 		range = range->next();
 	}
 	assert(false, "Error: out of memory");
+}
+
+phys_addr allocateContiguousRange(PhysicalMemoryRegion& reg, size_t size){
+	auto range = memory_regions -> getIntervals() -> head();
+	while (range != memory_regions -> getIntervals() -> end()){
+		phys_addr out = allocators -> get(range -> value) -> allocateContiguousRange(reg, size);
+		if(out != (phys_addr)(-1)){
+			return out;
+		}
+		range = range -> next();
+	}
+	assert(false, "Error: out of memory");
+	return (phys_addr)(-1);
 }
 } // namespace MemoryManager
