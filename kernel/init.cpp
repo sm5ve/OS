@@ -93,12 +93,14 @@ extern "C" [[noreturn]] void kernel_init(unsigned int multiboot_magic,
 		SD::the() << "PCI device type " << (void*)(device.getDeviceType()) << "\n";
 	}
 
+	SD::the() << AHCI::getPrimaryDisk() << "\n";
+
 	// sti();
 
 	/*Task* utask = Loader::load(*test_program_elf);
-  Scheduler::addTask(*utask);
-  Scheduler::pickNext();
-  Scheduler::exec();*/
+	Scheduler::addTask(*utask);
+	Scheduler::pickNext();
+	Scheduler::exec();*/
 
 	// outw(0x604, 0x2000); //shutdown qemu
 	for (;;) {

@@ -12,6 +12,7 @@ namespace AHCI{
 		bool hasInterrupt();
 		void handleInterrupt();
 		ABARMemory& getABAR();
+		SATA_AHCIDevice* getPrimaryDisk();
 	private:
 		PCIDevice& device;
 		AHCIDevice* devices[32];

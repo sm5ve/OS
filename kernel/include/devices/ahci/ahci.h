@@ -52,6 +52,8 @@ namespace AHCI{
 	};
 
 	void init();
+	class SATA_AHCIDevice;
+	SATA_AHCIDevice* getPrimaryDisk();
 }
 
 #endif

@@ -2,6 +2,7 @@
 #include <devices/SerialDevice.h>
 #include <devices/ahci/AHCIHostBusAdapter.h>
 #include <devices/ahci/ahci.h>
+#include <devices/ahci/AHCIDevice.h>
 #include <devices/pci.h>
 #include <ds/Vector.h>
 #include <paging.h>
@@ -37,5 +38,9 @@ void init()
 				14); // 14 is apparently conventionally the primary SATA device IRQ
 		}
 	}
+}
+
+SATA_AHCIDevice* getPrimaryDisk(){
+	return (*hbas)[0] -> getPrimaryDisk();
 }
 } // namespace AHCI

@@ -7,12 +7,16 @@ namespace AHCI{
 	class AHCIDevice{
 	public:
 		virtual void handleInterrupt() = 0;
+		virtual bool isDisk() = 0;
 	};
 
 	class GenericAHCIDevice : public AHCIDevice{
 	public:
 		GenericAHCIDevice(HBAPort&);
 		void handleInterrupt() override;
+		bool isDisk(){
+			return false;
+		};
 	private:
 		volatile HBAPort& port;
 	};
@@ -21,6 +25,9 @@ namespace AHCI{
 	public:
 		SATA_AHCIDevice(HBAPort&);
 		void handleInterrupt() override;
+		bool isDisk(){
+			return true;
+		};
 	private:
 		volatile HBAPort& port;
 	};
