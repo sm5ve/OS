@@ -1,6 +1,6 @@
 #include <panic.h>
 #include <interrupts.h>
-#include <klib/SerialDevice.h>
+#include <devices/SerialDevice.h>
 #include <debug.h>
 
 #include <arch/i386/proc.h>

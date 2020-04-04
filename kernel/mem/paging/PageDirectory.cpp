@@ -1,7 +1,7 @@
 #include <paging.h>
 #include <stddef.h>
 #include <mem.h>
-#include <klib/SerialDevice.h>
+#include <devices/SerialDevice.h>
 
 using namespace MemoryManager;
 namespace MemoryManager{

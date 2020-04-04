@@ -21,6 +21,7 @@ OBJS := debug.o \
 		devices/pcie.o \
 		devices/PCIDevice.o \
 		devices/pit.o \
+		devices/SerialDevice.o \
 		loader/loader.o \
 		mem/Alloc.o \
 		mem/BumpAlloc.o \
@@ -35,7 +36,6 @@ OBJS := debug.o \
 		scheduler/Scheduler.o \
 		scheduler/Task.o \
 		klib/CPPCompat.o \
-		klib/SerialDevice.o \
 		../lib/LibCore/PrintStream.o \
 		../lib/LibCore/ds/String.o \
 		../lib/LibCore/util/str.o \

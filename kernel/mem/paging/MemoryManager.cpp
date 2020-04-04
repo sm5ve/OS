@@ -1,7 +1,7 @@
 #include <paging.h>
 #include <mem.h>
 #include <multiboot/multiboot.h>
-#include <klib/SerialDevice.h>
+#include <devices/SerialDevice.h>
 #include <ds/HashMap.h>
 #include <stddef.h>
 #include <bootstrap.h>

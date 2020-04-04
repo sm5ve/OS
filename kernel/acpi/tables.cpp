@@ -1,6 +1,6 @@
 #include <util/str.h>
 #include <acpi/tables.h>
-#include <klib/SerialDevice.h>
+#include <devices/SerialDevice.h>
 #include <paging.h>
 #include <mem.h>
 

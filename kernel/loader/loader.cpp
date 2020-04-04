@@ -1,6 +1,6 @@
 #include <loader.h>
 #include <assert.h>
-#include <klib/SerialDevice.h>
+#include <devices/SerialDevice.h>
 #include <ds/Vector.h>
 
 namespace Loader{

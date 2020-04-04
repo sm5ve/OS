@@ -1,7 +1,6 @@
 #include <elf/dwarf.h>
 #include <elf/dwarf_consts.h>
 #include <util/str.h>
-#include <klib/SerialDevice.h>
 
 uint32_t decodeULEB128(void*& ptr){
 	uint32_t out = 0;
@@ -404,8 +403,7 @@ bool DWARFLineStateMachine::step(void*& ip){
 				discriminator = decodeULEB128(ip);
 				break;
 			default:
-				SD::the() << "unknown extended opcode " << ext_opcode << "\n";
-				assert(false, "WUT");
+				assert(false, "Unknown extended opcode");
 		}
 		return false;
 	}

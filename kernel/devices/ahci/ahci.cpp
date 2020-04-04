@@ -1,7 +1,7 @@
 #include <devices/ahci/ahci.h>
 #include <devices/ahci/AHCIHostBusAdapter.h>
 #include <devices/pci.h>
-#include <klib/SerialDevice.h>
+#include <devices/SerialDevice.h>
 #include <ds/Vector.h>
 #include <paging.h>
 #include <arch/i386/proc.h>

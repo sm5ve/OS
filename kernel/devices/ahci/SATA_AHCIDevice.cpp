@@ -1,5 +1,5 @@
 #include <devices/ahci/AHCIDevice.h>
-#include <klib/SerialDevice.h>
+#include <devices/SerialDevice.h>
 
 namespace AHCI{
 	SATA_AHCIDevice::SATA_AHCIDevice(HBAPort& p) : port(p){

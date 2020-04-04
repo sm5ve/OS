@@ -1,6 +1,6 @@
 #include <mem.h>
 #include <assert.h>
-#include <klib/SerialDevice.h>
+#include <devices/SerialDevice.h>
 #include <debug.h>
 #include <interrupts.h>
 

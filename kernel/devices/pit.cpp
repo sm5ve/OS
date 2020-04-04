@@ -1,6 +1,5 @@
 #include <devices/pit.h>
 #include <arch/i386/proc.h>
-#include <klib/SerialDevice.h>
 
 #define PIT_CHAN0 0x40
 #define PIT_CHAN1 0x41

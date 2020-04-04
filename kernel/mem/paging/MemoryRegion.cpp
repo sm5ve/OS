@@ -1,6 +1,6 @@
 #include <paging.h>
 #include <interrupts.h>
-#include <klib/SerialDevice.h>
+#include <devices/SerialDevice.h>
 
 
 using namespace MemoryManager;

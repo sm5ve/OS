@@ -1,6 +1,6 @@
 #include <mem.h>
 #include <assert.h>
-#include <klib/SerialDevice.h>
+#include <devices/SerialDevice.h>
 
 HeapAlloc::HeapAlloc(void* b, size_t s, uint32_t* pbuff, size_t gran){
 	heap = (BinaryHeap<size_t>*)uninitialized_heap;

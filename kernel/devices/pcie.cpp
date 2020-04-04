@@ -1,7 +1,7 @@
 #include <devices/pcie.h>
 #include <acpi/tables.h>
 #include <paging.h>
-#include <klib/SerialDevice.h>
+#include <devices/SerialDevice.h>
 #include <devices/pci.h>
 
 namespace PCIe{

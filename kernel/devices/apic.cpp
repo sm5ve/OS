@@ -1,6 +1,6 @@
 #include <devices/apic.h>
 #include <acpi/tables.h>
-#include <klib/SerialDevice.h>
+#include <devices/SerialDevice.h>
 #include <paging.h>
 
 namespace APIC{

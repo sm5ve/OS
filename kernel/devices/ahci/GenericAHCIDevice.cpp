@@ -1,5 +1,5 @@
 #include <devices/ahci/AHCIDevice.h>
-#include <klib/SerialDevice.h>
+#include <devices/SerialDevice.h>
 
 namespace AHCI{
 	GenericAHCIDevice::GenericAHCIDevice(HBAPort& p) : port(p){

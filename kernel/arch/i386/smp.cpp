@@ -2,7 +2,7 @@
 #include <arch/i386/proc.h>
 #include <devices/apic.h>
 #include <devices/pit.h>
-#include <klib/SerialDevice.h>
+#include <devices/SerialDevice.h>
 #include <paging.h>
 #include <flags.h>
 

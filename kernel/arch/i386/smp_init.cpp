@@ -1,4 +1,4 @@
-#include <klib/SerialDevice.h>
+#include <devices/SerialDevice.h>
 #include <devices/apic.h>
 #include <arch/i386/smp.h>
 

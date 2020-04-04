@@ -1,6 +1,6 @@
 #include <elf/elf.h>
 #include <assert.h>
-#include <klib/SerialDevice.h>
+#include <PrintStream.h>
 #include <stddef.h>
 
 ELF::ELF(void* b){

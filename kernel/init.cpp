@@ -1,5 +1,5 @@
 #include <multiboot/multiboot.h>
-#include <klib/SerialDevice.h>
+#include <devices/SerialDevice.h>
 
 #include <arch/i386/proc.h>
 #include <arch/i386/smp.h>

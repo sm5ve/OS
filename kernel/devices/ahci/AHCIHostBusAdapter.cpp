@@ -2,7 +2,7 @@
 #include <devices/PCIDevice.h>
 #include <devices/ahci/ahci.h>
 #include <devices/ahci/AHCIDevice.h>
-#include <klib/SerialDevice.h>
+#include <devices/SerialDevice.h>
 
 namespace AHCI{
 	void AHCIHostBusAdapter::enumerateAHCIPorts(){

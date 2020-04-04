@@ -3,7 +3,7 @@
 #include <stddef.h>
 #include <mem.h>
 #include <flags.h>
-#include <klib/SerialDevice.h>
+#include <devices/SerialDevice.h>
 
 BootstrapPaging::BootstrapPaging(){
 	directory = (uint32_t*)kalloc_permanent(4096, 4096);

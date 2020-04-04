@@ -1,5 +1,4 @@
 #include <arch/i386/proc.h>
-#include <klib/SerialDevice.h>
 #include <mem.h>
 
 #define TOTAL_GDT_SEGMENTS 6

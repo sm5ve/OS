@@ -7,8 +7,6 @@
 #include <hash.h>
 #include <PrintStream.h>
 
-#include <klib/SerialDevice.h>
-
 template <class T>
 class Interval{
 public:

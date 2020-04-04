@@ -1,5 +1,5 @@
 #include <debug.h>
-#include <klib/SerialDevice.h>
+#include <devices/SerialDevice.h>
 
 DWARF* ksyms = NULL;
 

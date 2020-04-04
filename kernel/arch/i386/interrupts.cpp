@@ -1,6 +1,6 @@
 #include <arch/i386/proc.h>
 
-#include <klib/SerialDevice.h>
+#include <devices/SerialDevice.h>
 #include <panic.h>
 #include <debug.h>
 #include <Scheduler.h>
