@@ -49,3 +49,4 @@ hlt
 hlt
 .global bootup_end
 bootup_end:
+

@@ -63,7 +63,7 @@ QEMUFLAGS += -smp 4
 #QEMUFLAGS += -device vfio-pci,sysfsdev=/sys/devices/pci0000:00/0000:00:02.0/4f61c2c2-71ad-11ea-878d-775857b37de3,x-igd-opregion=on,display=on
 
 
-.PHONY: clean kernel kernel.sym term
+.PHONY: clean kernel kernel.sym term format
 .DEFAULT_GOAL := term
 
 test: test_program/main.cpp
@@ -87,3 +87,9 @@ clean:
 
 term: kernel kernel.sym test
 	@qemu-system-x86_64 $(QEMUFLAGS) -kernel kernel -initrd "kernel.sym,test"
+
+
+SOURCE_CPP := $(OBJS:.o=.cpp)
+SOURCE_NO_ASM := $(SOURCE_CPP:%.ao=)
+format: 
+	@clang-format -i $(SOURCE_NO_ASM)

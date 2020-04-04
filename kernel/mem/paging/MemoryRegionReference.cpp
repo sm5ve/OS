@@ -2,25 +2,24 @@
 
 using namespace MemoryManager;
 
-MemoryRegionReference::MemoryRegionReference(){
-	region = NULL;
-}
+MemoryRegionReference::MemoryRegionReference() { region = NULL; }
 
-MemoryRegionReference::MemoryRegionReference(MemoryRegion& reg){
+MemoryRegionReference::MemoryRegionReference(MemoryRegion& reg)
+{
 	region = &reg;
-	region -> incRef();
+	region->incRef();
 }
 
-MemoryRegionReference::MemoryRegionReference(MemoryRegionReference& ref){
+MemoryRegionReference::MemoryRegionReference(MemoryRegionReference& ref)
+{
 	region = ref.region;
-	region -> incRef();
+	region->incRef();
 }
 
-MemoryRegionReference::~MemoryRegionReference(){
-	if(region)
-		region -> decRef();
+MemoryRegionReference::~MemoryRegionReference()
+{
+	if (region)
+		region->decRef();
 }
 
-MemoryRegion& MemoryRegionReference::operator*(){
-	return *region;
-}
+MemoryRegion& MemoryRegionReference::operator*() { return *region; }

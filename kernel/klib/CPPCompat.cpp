@@ -2,5 +2,5 @@
 
 extern "C" void __cxa_pure_virtual()
 {
-    assert(false, "Called pure virtual method");
+	assert(false, "Called pure virtual method");
 }
