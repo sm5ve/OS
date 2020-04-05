@@ -26,7 +26,7 @@ void AHCIHostBusAdapter::enumerateAHCIPorts()
 			SD::the() << "Unsupported SATA device type\n";
 			break;
 		default:
-			devices[portnum] = new SATA_AHCIDevice(port);
+			devices[portnum] = new SATA_AHCIDevice(port, abar.host_capabilities);
 			SD::the() << "Found a SATA device!\n";
 			// Here's where we need to register the SATA device somehow
 		}

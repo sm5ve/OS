@@ -11,6 +11,8 @@
 #define SATA_SIG_SEMB  0xC33C0101
 #define SATA_SIG_PM    0x96690101
 
+#define SATA_PRDT_MAX_LENGTH 8
+
 namespace AHCI{
 	struct __attribute__((packed)) HBAPort{
 		uint32_t command_list_paddr;
@@ -49,6 +51,34 @@ namespace AHCI{
 		uint8_t reserved[0xa0 - 0x2c];
 		uint8_t vendor[0x100 - 0xa0];
 		HBAPort ports[32];
+	};
+
+	struct __attribute__((packed)) FIS{
+		uint8_t memory[256];
+	};
+	
+	struct __attribute__((packed)) CMD{
+		uint16_t flags;
+		uint16_t prdt_entries_count;
+		volatile uint32_t transferred_bytes_count;
+		uint32_t command_table_phys_addr;
+		uint32_t command_table_phys_addr_upper; //unused in 32 bits
+		uint32_t reserved[4];
+	};
+
+	struct __attribute__((packed)) PRDTEntry{
+		uint32_t base_paddr;
+		uint32_t base_paddr_upper; //unused in 32 bits
+		uint32_t reserved;
+		uint32_t size_and_interrupt_flag;
+	};
+
+	struct __attribute__((packed)) CommandTable{
+		uint8_t command_fis[64];
+		uint8_t acapi_command[16];
+		uint8_t reserved[48];
+		PRDTEntry prdt[SATA_PRDT_MAX_LENGTH];
+		uint8_t padding[128 - ((sizeof(PRDTEntry) * SATA_PRDT_MAX_LENGTH) % 128)];
 	};
 
 	void init();

@@ -2,6 +2,7 @@
 #define AHCIDEVICE
 
 #include <devices/ahci/ahci.h>
+#include <paging.h>
 
 namespace AHCI{
 	class AHCIDevice{
@@ -23,18 +24,28 @@ namespace AHCI{
 
 	class SATA_AHCIDevice : public AHCIDevice{
 	public:
-		SATA_AHCIDevice(HBAPort&);
+		SATA_AHCIDevice(HBAPort&, uint32_t capabilities);
 		void handleInterrupt() override;
 		bool isDisk(){
 			return true;
 		};
 	private:
 		volatile HBAPort& port;
-		
+		uint32_t capabilities;
+		uint32_t command_slots;
+		volatile FIS* recievedFIS; //must be 256 byte aligned (just allocate new page)
+		volatile CMD* commandList; //1k byte aligned (similarly allocate new page)
+		volatile CommandTable* commandTables;
+		phys_addr port_base;
+	
 		void rebase();
 		void startCommandEngine();
 		void stopCommandEngine();
 		uint32_t findCommandSlot();
+	
+		phys_addr getFISPAddr();
+		phys_addr getCommandListPAddr();
+		phys_addr getCommandTablePAddr(uint32_t index);
 	};
 }
 

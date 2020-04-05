@@ -217,6 +217,9 @@ size_t PageFrameAllocator::grow(PhysicalMemoryRegion& region,
 phys_addr PageFrameAllocator::allocateContiguousRange(PhysicalMemoryRegion& reg, size_t size){
 	uint32_t topIndex = (sz / PAGE_SIZE) - 1;
 	uint32_t free_pages = 0;
+	if(size % PAGE_SIZE != 0){
+		size += PAGE_SIZE - (size % PAGE_SIZE);
+	}
 	for(uint32_t base = topIndex; base >= 0; base--){
 		if(free_buff[base] >= free_index){
 			free_pages++;
@@ -234,17 +237,15 @@ phys_addr PageFrameAllocator::allocateContiguousRange(PhysicalMemoryRegion& reg,
 				free_buff[free_index] = free_buff[i];
 				free_buff[i] = swap_index;
 				free_index++;
-				uint32_t ptbl_index = (i + reg.size / PAGE_SIZE + reg.offset / PAGE_SIZE) % 1024;
+				uint32_t ptbl_index = ((i - base) + reg.size / PAGE_SIZE + reg.offset / PAGE_SIZE) % 1024;
 				if((ptbl_index == 0) || (reg.ptables.size() == 0)){
 					reg.ptables.push(allocatePageTable());
 				}
 				page_table& ptbl = *reg.ptables.top();
 				ptbl[ptbl_index] = ((uint32_t)new_page & (~0xfff)) | reg.flags;
-				reg.size += size;
-				if(size % PAGE_SIZE != 0){
-					reg.size += PAGE_SIZE - (size % PAGE_SIZE);
-				}
 			}
+			reg.size += size;
+			SD::the() << (void*)reg.size << "\n";
 			return out;
 		}
 	}
