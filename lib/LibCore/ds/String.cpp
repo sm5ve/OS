@@ -139,7 +139,7 @@ String::String(const String& str)
 	strcpy(buffer, str.buffer);
 }
 
-String::~String() { delete buffer; }
+String::~String() { delete [] buffer; }
 
 int String::length() { return len; }
 
@@ -153,7 +153,7 @@ String String::operator+(const String& str) const
 {
 	String out;
 	out.len = str.len + len;
-	delete out.buffer;
+	delete [] out.buffer;
 	size_t newcap = (size_t)(out.len * 1.5);
 	out.buffer = new char[newcap];
 	out.cap = newcap;
@@ -179,7 +179,7 @@ String& String::operator+=(const String& str)
 	strcat(buffer, str.buffer);
 
 	if (to_free) {
-		delete oldbuff;
+		delete [] oldbuff;
 	}
 	return *this;
 }
@@ -200,7 +200,7 @@ bool String::operator==(const char*& str) const { return *this == String(str); }
 
 String& String::operator=(const String& str)
 {
-	delete buffer;
+	delete [] buffer;
 	buffer = new char[str.cap];
 	cap = str.cap;
 	len = str.len;
