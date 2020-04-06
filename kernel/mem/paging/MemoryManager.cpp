@@ -245,7 +245,6 @@ phys_addr PageFrameAllocator::allocateContiguousRange(PhysicalMemoryRegion& reg,
 				ptbl[ptbl_index] = ((uint32_t)new_page & (~0xfff)) | reg.flags;
 			}
 			reg.size += size;
-			SD::the() << (void*)reg.size << "\n";
 			return out;
 		}
 	}

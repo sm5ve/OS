@@ -2,6 +2,7 @@
 #include <debug.h>
 #include <flags.h>
 #include <mem.h>
+#include <devices/SerialDevice.h>
 
 #define ZERO_MEMORY
 
@@ -34,6 +35,8 @@ void* SlabAlloc::alloc()
 	void* next = (void*)*((uint32_t*)out);
 	assert(next != NULL, "Error: out of memory in slab allocator");
 	if (freed_map) {
+		if(!isSlabFree(ptrToIndex(next)))
+			SD::the() << "Slab size " << slab_size << "\n";
 		assert(isSlabFree(ptrToIndex(next)),
 			"Error: next freed slab isn't actually free");
 		setFreedState(ptrToIndex(out), false);

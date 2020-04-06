@@ -25,6 +25,8 @@ uint32_t KERNEL_HEAP_PTRS[KERNEL_HEAP_SIZE / KERNEL_HEAP_GRANULARITY];
 uint16_t uninitialized_heap_alloc[sizeof(HeapAlloc)];
 HeapAlloc* heap_alloc;
 
+#include <devices/SerialDevice.h>
+
 void initKalloc()
 {
 	slab_allocs = (SlabAlloc*)uninitialized_slab_allocs;
@@ -50,6 +52,9 @@ void* kalloc(size_t size)
 	for (int i = 0; i < 4; i++) {
 		if (size <= slab_allocs[i].getSlabSize()) {
 			out = slab_allocs[i].alloc();
+			/*if(size == 36){
+				SD::the() << "Malloc'd using slab allocator of size " << slab_allocs[i].getSlabSize() << " for ptr " << out << "\n";
+			}*/
 #ifdef DEBUG_PRINTS
 			SD::the() << "Malloc'd using slab allocator of size "
 					  << slab_allocs[i].getSlabSize() << " for ptr ";
