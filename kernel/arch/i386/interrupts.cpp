@@ -232,7 +232,7 @@ IRQ(14);
 IRQ(15);
 
 namespace IDT {
-Vector<interrupt_handler>* irq_handlers[16];
+Vector<Tuple<interrupt_handler, void*>>* irq_handlers[16];
 uint32_t deviceIRQs[3] = { 9, 10, 11 };
 uint32_t irqAllocIndex = 0;
 void install()
@@ -247,7 +247,7 @@ void install()
 	outb(0xa1, 0x01);
 
 	for (int i = 0; i < 16; i++) {
-		irq_handlers[i] = new Vector<interrupt_handler>();
+		irq_handlers[i] = new Vector<Tuple<interrupt_handler, void*>>();
 	}
 
 	// Initialize IDT to a state where no segments are present
@@ -299,27 +299,30 @@ void install()
 	flushIDT();
 }
 
-void installIRQHandler(interrupt_handler handler, uint32_t number)
+void installIRQHandler(interrupt_handler handler, uint32_t number, void* context)
 {
-	irq_handlers[number]->push(handler);
+	irq_handlers[number]->push(Tuple<interrupt_handler, void*>(handler, context));
 }
 
-uint32_t installIRQHandler(interrupt_handler handler)
+uint32_t installIRQHandler(interrupt_handler handler, void* context)
 {
 	uint32_t number = deviceIRQs[irqAllocIndex];
 	irqAllocIndex = (irqAllocIndex + 1) % (sizeof(deviceIRQs) / sizeof(deviceIRQs[0]));
-	installIRQHandler(handler, number);
+	installIRQHandler(handler, number, context);
 	return number;
 }
 } // namespace IDT
 
 extern "C" void irqHandler(registers regs)
 {
+	SD::the() << "IRQ " << regs.int_number << "\n";
 	bool wasHandled = false;
 	if (regs.int_number < 16) {
-		Vector<interrupt_handler>& handlers = *IDT::irq_handlers[regs.int_number];
+		auto& handlers = *IDT::irq_handlers[regs.int_number];
 		for (uint32_t i = 0; i < handlers.size(); i++) {
-			switch (handlers[i](regs)) {
+			auto handler = handlers[i].a;
+			auto context = handlers[i].b;
+			switch (handler(regs, context)) {
 			case InterruptHandlerDecision::CONSUME:
 				wasHandled = true;
 				break;

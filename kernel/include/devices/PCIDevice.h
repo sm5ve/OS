@@ -45,6 +45,12 @@ private:
 	bool pcie;
 	void* base;
 	void* bars[6];
+	interrupt_handler int_handler;
+	void* int_context;
+	
+	bool hasInterrupt();
+	void acknowledgeInterrupt();
+	friend InterruptHandlerDecision handlePCIInterrupt(registers&, void*);
 };
 
 #endif

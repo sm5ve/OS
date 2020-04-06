@@ -28,18 +28,26 @@ void* PCIDevice::bar(uint32_t num, size_t size)
 	return out;
 }
 
-void PCIDevice::installInterruptHandler(interrupt_handler handler,
-	uint32_t irq)
-{
-	PCIHeader0& hdr = getHeader();
-	hdr.interrupt_line = irq;
-	IDT::installIRQHandler(handler, irq);
+InterruptHandlerDecision handlePCIInterrupt(registers& regs, void* context){
+	PCIDevice& device = *(PCIDevice*)context;
+	if(!device.hasInterrupt())
+		return InterruptHandlerDecision::PASS;
+	device.acknowledgeInterrupt();
+	return device.int_handler(regs, device.int_context);
+}
+
+bool PCIDevice::hasInterrupt(){
+	return (getHeader().status & (1 << 3)) != 0;
+}
+
+void PCIDevice::acknowledgeInterrupt(){
+	getHeader().status &= ~(1 << 3);
 }
 
 void PCIDevice::installInterruptHandler(interrupt_handler handler)
 {
 	PCIHeader0& hdr = getHeader();
-	hdr.interrupt_line = (uint8_t)IDT::installIRQHandler(handler);
+	IDT::installIRQHandler(handler, hdr.interrupt_line, this);
 }
 
 PCIHeader0& PCIDevice::getHeader() { return *(PCIHeader0*)base; }
