@@ -6,6 +6,7 @@
 #endif
 
 #include <stdint.h>
+#include <stddef.h>
 #include <PrintStream.h>
 
 struct __attribute__((packed)) registers{
@@ -56,7 +57,7 @@ struct __attribute__((packed)) seg_table_descriptor{
 
 void writeAPBootstrapGDT(uint16_t offset);
 
-typedef InterruptHandlerDecision(*interrupt_handler)(registers&);
+typedef InterruptHandlerDecision(*interrupt_handler)(registers&, void* context);
 
 PrintStream& operator<<(PrintStream& p, registers);
 
@@ -74,7 +75,7 @@ void flushGDT();
 
 namespace IDT{
 	void install();
-	void installIRQHandler(interrupt_handler, uint32_t number);
-	uint32_t installIRQHandler(interrupt_handler);
+	void installIRQHandler(interrupt_handler, uint32_t number, void* context);
+	uint32_t installIRQHandler(interrupt_handler, void* context);
 }
 #endif
