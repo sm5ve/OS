@@ -6,6 +6,7 @@
 #include <ds/Maybe.h>
 #include <hash.h>
 #include <PrintStream.h>
+#include <template_magic.h>
 
 template <class T>
 class Interval{
@@ -29,9 +30,6 @@ private:
 };
 
 //TODO this template stuff should be moved to its own header
-
-struct true_type{ static constexpr bool value = true; };
-struct false_type{ static constexpr bool value = false; };
 
 template<class T>
 struct is_interval : false_type{};
