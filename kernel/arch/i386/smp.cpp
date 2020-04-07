@@ -42,11 +42,11 @@ void setupAPTables(uint16_t offset)
 	*pd_loc = (uint32_t)(MemoryManager::getPhysicalAddr(
 		MemoryManager::kernel_directory->directory));
 	uint32_t* stack_loc = (uint32_t*)(0xc0000000 + offset + 0x200);
-	auto* core_stack = new MemoryManager::PhysicalMemoryRegion(Vector<page_table*>(), 0, 0);
+	auto core_stack = make_shared<MemoryManager::PhysicalMemoryRegion>(Vector<page_table*>(), 0, 0);
 	MemoryManager::growPhysicalMemoryRegion(*core_stack, KERNEL_STACK_SIZE);
 	virt_addr stack_start = MemoryManager::kernel_directory->findSpaceAbove(
 		KERNEL_STACK_SIZE, (virt_addr)0xc0000000);
-	MemoryManager::kernel_directory->installRegion(*core_stack, stack_start);
+	MemoryManager::kernel_directory->installRegion(dynamic_ptr_cast<MemoryManager::MemoryRegion>(core_stack), stack_start);
 	*stack_loc = (uint32_t)stack_start + KERNEL_STACK_SIZE;
 }
 // FIXME I think we can get stuck here sometimes. It might be a bug in the PIT
@@ -67,9 +67,9 @@ void startCore(uint8_t apic_id, uint16_t offset)
 
 void init()
 {
-	auto* id_map = new MemoryManager::PhysicalMemoryRegion(Vector<page_table*>(), 0, 0);
+	auto id_map = make_shared<MemoryManager::PhysicalMemoryRegion>(Vector<page_table*>(), 0, 0);
 	id_map->mapContiguousRegion((phys_addr)0, 0x7000);
-	MemoryManager::kernel_directory->installRegion(*id_map, (virt_addr)0);
+	MemoryManager::kernel_directory->installRegion(dynamic_ptr_cast<MemoryManager::MemoryRegion>(id_map), (virt_addr)0);
 
 	uint32_t volatile* apic = (uint32_t volatile*)APIC::getLAPICAddr();
 	uint32_t ap_boot_addr = 0x4000;
@@ -83,7 +83,7 @@ void init()
 		startCore((*cores)[i].b, ap_boot_addr);
 	}
 
-	MemoryManager::kernel_directory->removeRegion(*id_map);
+	MemoryManager::kernel_directory->removeRegion(dynamic_ptr_cast<MemoryManager::MemoryRegion>(id_map));
 }
 
 void incCoreCount() { online_cores++; }

@@ -5,11 +5,11 @@ Task::Task(bool kp)
 {
 	MemoryManager::kernel_directory->copyRegionsInto(pd);
 	if (!kp) {
-		auto region = new MemoryManager::PhysicalMemoryRegion(
+		auto region = make_shared<MemoryManager::PhysicalMemoryRegion>(
 			Vector<page_table*>(), 0, 0, false, TLBInvalidationType::INVLPG,
 			PAGE_PRESENT | PAGE_ENABLE_WRITE | PAGE_USER_ACCESSIBLE);
 		MemoryManager::growPhysicalMemoryRegion(*region, 0x10000);
-		pd.installRegion(*region, (virt_addr)0x80000000);
+		pd.installRegion(dynamic_ptr_cast<MemoryManager::MemoryRegion>(region), (virt_addr)0x80000000);
 		regs.esp = 0x80010000;
 	} else {
 		// FIXME quick and dirty hack to make sure kernel context switching works

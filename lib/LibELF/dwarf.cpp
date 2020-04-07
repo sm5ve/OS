@@ -54,11 +54,11 @@ DWARF::DWARF(ELF* e)
 		assert(header.seg_size == 0, "Error: don't know how to handle segments");
 		uint32_t* addrs = (uint32_t*)((uint32_t)ptr + sizeof(DWARF_aranges_header) + 4);
 		ptr = (void*)((uint32_t)ptr + header.length + 4);
-		auto set = new IntervalSet<uint32_t>();
+		auto set = make_unique<IntervalSet<uint32_t>>();
 		for (uint32_t i = 0; (addrs[i] != 0) || (addrs[i + 1] != 0); i += 2) {
 			set->add(Interval<uint32_t>(addrs[i], addrs[i] + addrs[i + 1] - 1));
 		}
-		ranges.push(DWARFRange(set, header.info_offset, header.version));
+		ranges.push(DWARFRange(move(set), header.info_offset, header.version));
 	}
 }
 
@@ -101,11 +101,6 @@ Tuple<uint32_t, String> DWARF::getLineForAddr(void* ptr)
 	DWARFDIE die(p, abbrevs, elf);
 	DWARFLineStateMachine sm(*(uint32_t*)die.value(DW_AT_stmt_list), elf);
 
-	// TODO we have to delete the DWARFSchemas too.
-	// Or perhaps just make a new memory allocator for this - that's probably a
-	// better solution
-	delete abbrevs;
-
 	auto result = sm.getLineForAddr(ptr);
 	if (result.has_value())
 		return result.value();
@@ -125,13 +120,13 @@ DWARFSchema* tryParseDWARFSchema(void*& ptr)
 	return new DWARFSchema(ptr);
 }
 
-HashMap<uint32_t, DWARFSchema*>* DWARF::decodeAbbrev(uint32_t offset)
+shared_ptr<HashMap<uint32_t, DWARFSchema*>> DWARF::decodeAbbrev(uint32_t offset)
 {
 	auto abbrevHeader = elf->getSectionHeader(".debug_abbrev");
 	void* sectionStart = elf->getSectionBase(abbrevHeader);
 	void* ptr = (void*)((uint32_t)sectionStart + offset);
 
-	auto list = new HashMap<uint32_t, DWARFSchema*>();
+	auto list = make_shared<HashMap<uint32_t, DWARFSchema*>>();
 	while (true) {
 		DWARFSchema* schema = tryParseDWARFSchema(ptr);
 		if (schema == NULL) {
@@ -142,10 +137,10 @@ HashMap<uint32_t, DWARFSchema*>* DWARF::decodeAbbrev(uint32_t offset)
 	return list;
 }
 
-DWARFRange::DWARFRange(IntervalSet<uint32_t>* set, uint32_t offset,
+DWARFRange::DWARFRange(unique_ptr<IntervalSet<uint32_t>> set, uint32_t offset,
 	uint16_t ver)
 {
-	ranges = set;
+	ranges = move(set);
 	info_offset = offset;
 	version = ver;
 }
@@ -153,8 +148,13 @@ DWARFRange::DWARFRange(IntervalSet<uint32_t>* set, uint32_t offset,
 DWARFRange::DWARFRange() {}
 
 DWARFRange::~DWARFRange()
-{
-	// delete ranges;
+{}
+
+DWARFRange& DWARFRange::operator=(DWARFRange& rhs){
+	ranges = move(rhs.ranges);
+	info_offset = rhs.info_offset;
+	version = rhs.version;
+	return *this;
 }
 
 DWARFSchema::DWARFSchema(void*& ptr)
@@ -237,7 +237,7 @@ void* parseDIETag(void*& ptr, uint32_t type, ELF* elf)
 	}
 }
 
-DWARFDIE::DWARFDIE(void*& ptr, HashMap<uint32_t, DWARFSchema*>* schemas,
+DWARFDIE::DWARFDIE(void*& ptr, shared_ptr<HashMap<uint32_t, DWARFSchema*>> schemas,
 	ELF* elf)
 {
 	uint32_t abbrev_type = decodeULEB128(ptr);

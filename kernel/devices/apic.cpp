@@ -22,14 +22,14 @@ void init()
 	// SD::the() << "LAPIC addr " << (void*)(local_descriptor -> local_APIC_addr)
 	// << "\n";
 
-	auto* region = new MemoryManager::PhysicalMemoryRegion(
+	auto region = make_shared<MemoryManager::PhysicalMemoryRegion>(
 		Vector<page_table*>(), 0, 0, false, TLBInvalidationType::INVLPG,
 		PAGE_ENABLE_WRITE | PAGE_PRESENT | PAGE_NO_CACHE);
 	region->mapContiguousRegion((phys_addr)(local_descriptor->local_APIC_addr),
 		0x400);
 	lapic_base = MemoryManager::kernel_directory->findSpaceAbove(
 		0x400, (virt_addr)0xc0000000);
-	MemoryManager::kernel_directory->installRegion(*region, lapic_base);
+	MemoryManager::kernel_directory->installRegion(dynamic_ptr_cast<MemoryManager::MemoryRegion>(region), lapic_base);
 
 	uint32_t addr = (uint32_t)mdat_header + sizeof(ACPI::SDTHeader) + sizeof(APIC_local_descriptor);
 	uint32_t limit = (uint32_t)mdat_header + (mdat_header->length);

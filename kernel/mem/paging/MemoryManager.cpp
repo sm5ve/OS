@@ -122,7 +122,7 @@ void init(mboot_mmap_entry* entries, uint32_t len)
 	auto bootstrap_regions = bspd->getRegions();
 
 	for (uint32_t i = 0; i < bootstrap_regions.size(); i++) {
-		kernel_directory->installRegion(*bootstrap_regions[i],
+		kernel_directory->installRegion(dynamic_ptr_cast<MemoryRegion>(bootstrap_regions[i]),
 			(virt_addr)0xc0000000);
 	}
 	// for(;;);

@@ -25,12 +25,12 @@ void init()
 			<< 20;
 		// Map the entire address range for the bus into memory. This could be up to
 		// 256 megabytes, but we will unmap it later
-		auto* region = new MemoryManager::PhysicalMemoryRegion(Vector<page_table*>(), 0, 0, false, TLBInvalidationType::FULL_FLUSH);
+		auto region = make_shared<MemoryManager::PhysicalMemoryRegion>(Vector<page_table*>(), 0, 0, false, TLBInvalidationType::FULL_FLUSH);
 		region->mapContiguousRegion((phys_addr)entries[i].base_address,
 			region_size);
 		virt_addr ptr = MemoryManager::kernel_directory->findSpaceAbove(
 			region_size, (virt_addr)0xc0000000);
-		MemoryManager::kernel_directory->installRegion(*region, ptr);
+		MemoryManager::kernel_directory->installRegion(dynamic_ptr_cast<MemoryManager::MemoryRegion>(region), ptr);
 		for (uint32_t bus = entries[i].starting_bus; bus < entries[i].ending_bus;
 			 bus++) {
 			for (uint32_t device = 0; device < 32; device++) {
@@ -45,9 +45,9 @@ void init()
 		// Yes there is a memory leak here where we never free region. I will fix
 		// this once we have smart pointers. I am leaving this comment here in part
 		// to push prod myself to implement them.
-		MemoryManager::kernel_directory->removeRegion(*region);
+		MemoryManager::kernel_directory->removeRegion(dynamic_ptr_cast<MemoryManager::MemoryRegion>(region));
 	}
-	auto* enumerated_devices_region = new MemoryManager::PhysicalMemoryRegion(Vector<page_table*>(), 0, 0, false, TLBInvalidationType::INVLPG, PAGE_PRESENT | PAGE_ENABLE_WRITE | PAGE_NO_CACHE);
+	auto enumerated_devices_region = make_shared<MemoryManager::PhysicalMemoryRegion>(Vector<page_table*>(), 0, 0, false, TLBInvalidationType::INVLPG, PAGE_PRESENT | PAGE_ENABLE_WRITE | PAGE_NO_CACHE);
 	Vector<uint32_t> offsets;
 	for (uint32_t i = 0; i < present_devices.size(); i++) {
 		offsets.push(enumerated_devices_region->mapContiguousRegion(
@@ -55,7 +55,7 @@ void init()
 	}
 	virt_addr placement = MemoryManager::kernel_directory->findSpaceAbove(
 		enumerated_devices_region->getSize(), (virt_addr)0xc0000000);
-	MemoryManager::kernel_directory->installRegion(*enumerated_devices_region,
+	MemoryManager::kernel_directory->installRegion(dynamic_ptr_cast<MemoryManager::MemoryRegion>(enumerated_devices_region),
 		placement);
 	for (uint32_t i = 0; i < present_devices.size(); i++) {
 		void* base = (void*)((uint32_t)placement + i * (1 << 15));

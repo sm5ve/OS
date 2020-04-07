@@ -41,10 +41,10 @@ void SATA_AHCIDevice::rebase(){
 
 	size_t regionSize = sizeof(FIS) + command_slots * (sizeof(CMD) + sizeof(CommandTable));
 
-	auto* portRegion = new MemoryManager::PhysicalMemoryRegion(Vector<page_table*>(), 0, 0, false, TLBInvalidationType::INVLPG, PAGE_PRESENT | PAGE_ENABLE_WRITE | PAGE_NO_CACHE);
+	auto portRegion = make_shared<MemoryManager::PhysicalMemoryRegion>(Vector<page_table*>(), 0, 0, false, TLBInvalidationType::INVLPG, PAGE_PRESENT | PAGE_ENABLE_WRITE | PAGE_NO_CACHE);
 	port_base = MemoryManager::allocateContiguousRange(*portRegion, regionSize);
 	auto region_base = MemoryManager::kernel_directory -> findSpaceAbove(regionSize, (virt_addr)0xc0000000);	
-	MemoryManager::kernel_directory -> installRegion(*portRegion, region_base);	
+	MemoryManager::kernel_directory -> installRegion(dynamic_ptr_cast<MemoryManager::MemoryRegion>(portRegion), region_base);	
 		
 	memset(region_base, 0, regionSize);
 

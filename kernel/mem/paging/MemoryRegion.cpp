@@ -22,7 +22,9 @@ PhysicalMemoryRegion::PhysicalMemoryRegion(Vector<page_table*> pt, size_t s,
 	assert(offset % PAGE_SIZE == 0, "Error: misaligned offset");
 }
 
-PhysicalMemoryRegion::~PhysicalMemoryRegion() {}
+PhysicalMemoryRegion::~PhysicalMemoryRegion() {
+	SD::the() << "Deleting physical memory region\n";
+}
 
 void PhysicalMemoryRegion::install(PageDirectory& dir, virt_addr base)
 {

@@ -112,21 +112,21 @@ void PageDirectory::install()
 
 bool PageDirectory::isActive() { return this == active_page_dir; }
 
-void PageDirectory::installRegion(MemoryRegion& region,
+void PageDirectory::installRegion(shared_ptr<MemoryRegion> region,
 	virt_addr starting_addr)
 {
-	regions.add({ region, starting_addr });
-	region.install(*this, starting_addr);
+	regions.add({ .region = region, .base = starting_addr });
+	region -> install(*this, starting_addr);
 }
 
-void PageDirectory::removeRegion(MemoryRegion& region)
+void PageDirectory::removeRegion(shared_ptr<MemoryRegion> region)
 {
 	auto node = regions.head();
 	while (node != regions.end()) {
 		auto oldNode = node;
 		node = node->next();
-		if (&*(oldNode->value.region) == &region) {
-			region.remove(*this, oldNode->value.base);
+		if (oldNode->value.region == region) {
+			region -> remove(*this, oldNode->value.base);
 			regions.remove(oldNode);
 			return;
 		}
@@ -248,7 +248,7 @@ void PageDirectory::copyRegionsInto(PageDirectory& pd)
 {
 	auto node = regions.head();
 	while (node != regions.end()) {
-		pd.installRegion(*(node->value.region), node->value.base);
+		pd.installRegion(node->value.region, node->value.base);
 		node = node->next();
 	}
 }

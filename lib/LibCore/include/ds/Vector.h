@@ -43,7 +43,9 @@ Vector<T>::Vector(T* elems, size_t ct){
 	count = ct;
 	capacity = ct;
 	buffer = new T[ct];
-	memcpy(buffer, elems, ct * sizeof(T));
+	for(int i = 0; i < ct; i++){
+		buffer[i] = elems[i];
+	}
 }
 
 template <class T>
@@ -101,7 +103,9 @@ void Vector<T>::resize(size_t newSize){
 	assert(newSize >= count, "Error: resized to be too small");
 	T* newBuffer = new T[newSize];
 	memset(newBuffer, 0, capacity * sizeof(T));
-	memcpy(newBuffer, buffer, capacity * sizeof(T));
+	for(uint32_t i = 0; i < capacity; i++){
+		newBuffer[i] = buffer[i];
+	}
 	//memset(buffer, 0, capacity * sizeof(T));
 	capacity = newSize;
 	delete [] buffer;

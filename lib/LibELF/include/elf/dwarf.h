@@ -6,6 +6,7 @@
 #include <ds/Tuple.h>
 #include <ds/HashMap.h>
 #include <ds/Maybe.h>
+#include <ds/smart_pointers.h>
 //#include <mem.h>
 
 #define CU_NOT_FOUND 0xffffffff
@@ -48,12 +49,14 @@ struct DWARF_line_file_entry{
 
 class DWARFRange{
 public:
-	DWARFRange(IntervalSet<uint32_t>*, uint32_t offset, uint16_t version);
+	DWARFRange(unique_ptr<IntervalSet<uint32_t>>, uint32_t offset, uint16_t version);
 	DWARFRange();
 	~DWARFRange();
-	IntervalSet<uint32_t>* ranges;
+	unique_ptr<IntervalSet<uint32_t>> ranges;
 	uint32_t info_offset;
 	uint16_t version;	
+
+	DWARFRange& operator=(DWARFRange&);
 };
 
 class DWARFSchema{
@@ -67,7 +70,7 @@ public:
 
 class DWARFDIE{
 public:
-	DWARFDIE(void*& ptr, HashMap<uint32_t, DWARFSchema*>*, ELF*);
+	DWARFDIE(void*& ptr, shared_ptr<HashMap<uint32_t, DWARFSchema*>>, ELF*);
 	void* value(uint32_t name);
 private:
 	HashMap<uint32_t, void*> map;
@@ -119,7 +122,7 @@ private:
 	Vector<DWARFRange> ranges;
 	ELF* elf;
 	uint32_t getCUOffsetForAddr(void* ptr);
-	HashMap<uint32_t, DWARFSchema*>* decodeAbbrev(uint32_t offset);
+	shared_ptr<HashMap<uint32_t, DWARFSchema*>> decodeAbbrev(uint32_t offset);
 };
 
 #endif

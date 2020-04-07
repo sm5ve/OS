@@ -8,6 +8,7 @@
 #include <ds/HashMap.h>
 #include <PrintStream.h>
 #include <arch/i386/smp.h>
+#include <ds/smart_pointers.h>
 
 typedef void* phys_addr;
 typedef void* virt_addr;
@@ -53,20 +54,6 @@ namespace MemoryManager{
 	page_table* allocatePageTable();
 	void freePageTable(page_table*);
 
-	class MemoryRegion;	
-
-	class MemoryRegionReference{
-	public:
-		MemoryRegionReference();
-		MemoryRegionReference(MemoryRegion& reg);
-		MemoryRegionReference(MemoryRegionReference&);
-		~MemoryRegionReference();
-
-		MemoryRegion& operator*();
-	private:
-		MemoryRegion* region;
-	};
-
 	//TODO we need some way to update the page directories when we modify a memory region
 	class MemoryRegion{
 	public:
@@ -78,20 +65,6 @@ namespace MemoryManager{
 		virtual void handlePageFault(uint32_t offset) = 0;
 	private:
 		uint32_t refs;
-		bool dirty = false;
-	private:
-		void incRef(){
-			refs++;
-			dirty = true;
-		};
-		void decRef(){
-			refs--;
-			if(refs == 0){
-				//delete this;
-				//FIXME I *really* need to understand smart pointers
-			}
-		};
-		friend class MemoryRegionReference;
 	};
 
 	class PageFrameAllocator;
@@ -163,7 +136,7 @@ namespace MemoryManager{
 }
 
 struct MemoryRegionPlacement{
-	MemoryManager::MemoryRegionReference region;
+	shared_ptr<MemoryManager::MemoryRegion> region;
 	virt_addr base;
 };
 
@@ -180,8 +153,8 @@ public:
 	void addPageTable(page_table*, virt_addr, uint32_t flags, TLBInvalidationType invtype = TLBInvalidationType::INVLPG);
 	void removePageTables(virt_addr, size_t, TLBInvalidationType invtype = TLBInvalidationType::INVLPG);
 
-	void installRegion(MemoryManager::MemoryRegion& region, virt_addr starting_addr);
-	void removeRegion(MemoryManager::MemoryRegion&);
+	void installRegion(shared_ptr<MemoryManager::MemoryRegion> region, virt_addr starting_addr);
+	void removeRegion(shared_ptr<MemoryManager::MemoryRegion>);
 	void copyRegionsInto(PageDirectory&);
 	virt_addr getRegionBase(MemoryManager::MemoryRegion&);
 
@@ -192,7 +165,7 @@ public:
 	void install();
 	bool isActive();
 
-	uint32_t getRegionOffset(MemoryManager::MemoryRegion&);
+	uint32_t getRegionOffset(shared_ptr<MemoryManager::MemoryRegion>);
 	void invalidateMappingIfNecessary(virt_addr, TLBInvalidationType);
 private:
 	LinkedList<MemoryRegionPlacement> regions;

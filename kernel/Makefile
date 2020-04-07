@@ -31,7 +31,6 @@ OBJS := debug.o \
 		mem/paging/BootstrapPaging.o\
 		mem/paging/MemoryManager.o \
 		mem/paging/PageDirectory.o \
-		mem/paging/MemoryRegionReference.o \
 		mem/paging/MemoryRegion.o \
 		scheduler/Scheduler.o \
 		scheduler/Task.o \

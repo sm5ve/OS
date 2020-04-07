@@ -9,7 +9,7 @@ Task* load(ELF& elf)
 	Task* p = new Task(false);
 	assert(elf.getHeader32()->type == ELF_TYPE_EXEC,
 		"Error: tried to load nonexecutable ELF");
-	auto composite = new MemoryManager::CompositeMemoryRegion(
+	auto composite = make_shared<MemoryManager::CompositeMemoryRegion>(
 		PAGE_ENABLE_WRITE | PAGE_USER_ACCESSIBLE | PAGE_PRESENT);
 	for (uint32_t i = 0; i < elf.getHeader32()->prog_header_entry_count; i++) {
 		auto header = elf.getProgramHeader(i);
@@ -26,7 +26,7 @@ Task* load(ELF& elf)
 
 			// TODO handle alignment
 			uint32_t region_offset = (seg_start % (1024 * PAGE_SIZE));
-			auto region = new MemoryManager::PhysicalMemoryRegion(
+			auto region = make_shared<MemoryManager::PhysicalMemoryRegion>(
 				Vector<page_table*>(), 0, region_offset, false, TLBInvalidationType::INVLPG,
 				PAGE_ENABLE_WRITE | PAGE_PRESENT | PAGE_USER_ACCESSIBLE);
 			MemoryManager::growPhysicalMemoryRegion(*region, vsize);
@@ -36,7 +36,7 @@ Task* load(ELF& elf)
 			assert(false, "Unimplemented segment type");
 		}
 	}
-	p->getPageDirectory().installRegion(*composite, NULL);
+	p->getPageDirectory().installRegion(dynamic_ptr_cast<MemoryManager::MemoryRegion>(composite), NULL);
 	auto oldDir = MemoryManager::active_page_dir;
 	p->getPageDirectory().install();
 	for (uint32_t i = 0; i < elf.getHeader32()->prog_header_entry_count; i++) {

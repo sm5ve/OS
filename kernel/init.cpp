@@ -62,27 +62,6 @@ public:
 	}
 };
 
-void test_ptrs(){
-	SD::the() << "Testing smart pointers\n";
-	
-	auto ptr = make_shared<AllocTester>();
-	shared_ptr<AllocTester> ptr2;
-	auto ptr3 = make_shared<AllocTester>();
-
-	auto weak = ptr.getWeak();
-	SD::the() << "weak is null: " << weak.isNull() << "\n";
-
-	SD::the() << "ptr = " << ptr << ", ptr2 = " << ptr2 << "\n";
-	ptr2 = move(ptr);
-	SD::the() << "ptr = " << ptr << ", ptr2 = " << ptr2 << "\n";
-
-	ptr2 = ptr3;	
-	
-	SD::the() << "weak is null: " << weak.isNull() << "\n";
-
-	SD::the() << "Done\n";
-}
-
 extern "C" [[noreturn]] void kernel_init(unsigned int multiboot_magic,
 	mboot_info* mboot)
 {
@@ -121,8 +100,6 @@ extern "C" [[noreturn]] void kernel_init(unsigned int multiboot_magic,
 	AHCI::getPrimaryDisk() -> test();
 	//sti();
 	//SMP::init();
-
-	test_ptrs();	
 
 	for (uint32_t i = 0; i < PCI::devices->size(); i++) {
 		auto& device = *(*PCI::devices)[i];
