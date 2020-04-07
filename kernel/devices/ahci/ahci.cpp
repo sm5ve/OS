@@ -8,9 +8,9 @@
 #include <paging.h>
 
 namespace AHCI {
-Vector<AHCIHostBusAdapter*>* hbas;
+Vector<AHCIHostBusAdapter*>* hbas = NULL;
 
-InterruptHandlerDecision handleDiskInterrupt(registers& regs)
+InterruptHandlerDecision handleDiskInterrupt(registers& regs, void* context)
 {
 	SD::the() << "Got disk interrupt!\n";
 	bool handled = false;
@@ -22,7 +22,7 @@ InterruptHandlerDecision handleDiskInterrupt(registers& regs)
 		}
 	}
 	if (handled)
-		return InterruptHandlerDecision::CONSUME;
+		return InterruptHandlerDecision::HANDLE_AND_PASS;
 	return InterruptHandlerDecision::PASS;
 }
 
@@ -32,10 +32,9 @@ void init()
 	for (uint32_t i = 0; i < PCI::devices->size(); i++) {
 		auto& device = *(*PCI::devices)[i];
 		if ((device.getDeviceType() & 0xffffff00) == 0x01060100) {
-			hbas->push(new AHCIHostBusAdapter(device));
 			device.installInterruptHandler(
-				handleDiskInterrupt,
-				14); // 14 is apparently conventionally the primary SATA device IRQ
+				handleDiskInterrupt);
+			hbas -> push(new AHCIHostBusAdapter(device));
 		}
 	}
 }

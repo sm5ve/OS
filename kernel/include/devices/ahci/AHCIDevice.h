@@ -5,6 +5,14 @@
 #include <paging.h>
 
 namespace AHCI{
+	struct TransferRequest{
+		uint64_t lba;
+		void* base;
+		size_t size;
+		bool write;
+		PageDirectory& pd;
+	};
+
 	class AHCIDevice{
 	public:
 		virtual void handleInterrupt() = 0;
@@ -29,10 +37,12 @@ namespace AHCI{
 		bool isDisk(){
 			return true;
 		};
+		void test();
 	private:
 		volatile HBAPort& port;
 		uint32_t capabilities;
 		uint32_t command_slots;
+		uint32_t blockSize = 512;  //TODO actually get this information from the hard drive
 		volatile FIS* recievedFIS; //must be 256 byte aligned (just allocate new page)
 		volatile CMD* commandList; //1k byte aligned (similarly allocate new page)
 		volatile CommandTable* commandTables;
@@ -46,6 +56,8 @@ namespace AHCI{
 		phys_addr getFISPAddr();
 		phys_addr getCommandListPAddr();
 		phys_addr getCommandTablePAddr(uint32_t index);
+		
+		bool workOnRequest(TransferRequest&);
 	};
 }
 

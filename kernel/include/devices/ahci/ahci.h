@@ -11,9 +11,40 @@
 #define SATA_SIG_SEMB  0xC33C0101
 #define SATA_SIG_PM    0x96690101
 
-#define SATA_PRDT_MAX_LENGTH 8
+#define SATA_PRDT_MAX_LENGTH 128
 
 namespace AHCI{
+	enum FISType{
+		H2D = 0x27,
+		D2H = 0x34,
+		DMA_ACTIVATE = 0x39,
+		DMA_SETUP = 0x41,
+		DATA = 0x46,
+		BIST = 0x58,
+		PIO_SETUP = 0x5f,
+		DEV_BITS = 0xa1
+	};
+
+	struct __attribute__((packed)) FIS_H2D{
+		uint8_t fis_type;
+		uint8_t flags;
+		uint8_t command;
+		uint8_t featurel;
+		uint8_t lba0;
+		uint8_t lba1;
+		uint8_t lba2;
+		uint8_t device;
+		uint8_t lba3;
+		uint8_t lba4;
+		uint8_t lba5;
+		uint8_t featureh;
+		uint8_t countl;
+		uint8_t counth;
+		uint8_t icc;
+		uint8_t control;
+		uint8_t reserved[4];
+	};
+
 	struct __attribute__((packed)) HBAPort{
 		uint32_t command_list_paddr;
 		uint32_t command_list_paddr_upper; //I think this should be unused in 32 bit systems

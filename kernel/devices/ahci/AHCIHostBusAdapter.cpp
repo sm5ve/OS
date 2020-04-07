@@ -26,8 +26,9 @@ void AHCIHostBusAdapter::enumerateAHCIPorts()
 			SD::the() << "Unsupported SATA device type\n";
 			break;
 		default:
+			//SD::the() << "making SATA device\n";
 			devices[portnum] = new SATA_AHCIDevice(port, abar.host_capabilities);
-			SD::the() << "Found a SATA device!\n";
+			SD::the() << "Found a SATA device on port " << portnum << "!\n";
 			// Here's where we need to register the SATA device somehow
 		}
 	}
@@ -37,9 +38,9 @@ AHCIHostBusAdapter::AHCIHostBusAdapter(PCIDevice& dev)
 	: device(dev)
 {
 	getABAR().global_host_control |= ((1 << 31) | (1 << 1)); // enable AHCI mode and interrupts
-	enumerateAHCIPorts();
 	device.getHeader().command &= ~(1 << 10); // Clear the interrupt disable bit
 	device.getHeader().command |= (1 << 2);	  // Enable bus mastering for DMA
+	enumerateAHCIPorts();
 }
 
 bool AHCIHostBusAdapter::hasInterrupt()
@@ -53,7 +54,7 @@ void AHCIHostBusAdapter::handleInterrupt()
 	volatile ABARMemory& abar = getABAR();
 	uint32_t maskedInterruptFlags = (abar.interrupt_status & abar.ports_implemented);
 	for (uint32_t i = 0; i < 32; i++) {
-		if (maskedInterruptFlags & (1 << i) != 0) {
+		if ((maskedInterruptFlags & (1 << i)) != 0) {
 			devices[i]->handleInterrupt();
 		}
 	}

@@ -19,6 +19,9 @@
 #include <mem.h>
 #include <multiboot/multiboot.h>
 #include <paging.h>
+#include <devices/ahci/AHCIDevice.h>
+
+#include <ds/smart_pointers.h>
 
 // Since kernel_init has a lot of testing code, we sometimes get used variables
 // for older tests that are commented out Hence, while the kernel's still
@@ -49,7 +52,36 @@ void load_modules(mboot_module* modules, uint32_t count)
 	}
 }
 
-void kernel_thing() { SD::the() << "kernel_thing\n"; }
+class AllocTester{
+public:
+	AllocTester(){
+		SD::the() << "Constructed!\n";
+	}
+	~AllocTester(){
+		SD::the() << "Destructed!\n";
+	}
+};
+
+void test_ptrs(){
+	SD::the() << "Testing smart pointers\n";
+	
+	auto ptr = make_shared<AllocTester>();
+	shared_ptr<AllocTester> ptr2;
+	auto ptr3 = make_shared<AllocTester>();
+
+	auto weak = ptr.getWeak();
+	SD::the() << "weak is null: " << weak.isNull() << "\n";
+
+	SD::the() << "ptr = " << ptr << ", ptr2 = " << ptr2 << "\n";
+	ptr2 = move(ptr);
+	SD::the() << "ptr = " << ptr << ", ptr2 = " << ptr2 << "\n";
+
+	ptr2 = ptr3;	
+	
+	SD::the() << "weak is null: " << weak.isNull() << "\n";
+
+	SD::the() << "Done\n";
+}
 
 extern "C" [[noreturn]] void kernel_init(unsigned int multiboot_magic,
 	mboot_info* mboot)
@@ -84,16 +116,20 @@ extern "C" [[noreturn]] void kernel_init(unsigned int multiboot_magic,
 	PCI::init();
 	PCIe::init();
 	APIC::init();
-	AHCI::init();
 	sti();
-	SMP::init();
+	AHCI::init();
+	AHCI::getPrimaryDisk() -> test();
+	//sti();
+	//SMP::init();
+
+	test_ptrs();	
 
 	for (uint32_t i = 0; i < PCI::devices->size(); i++) {
 		auto& device = *(*PCI::devices)[i];
 		SD::the() << "PCI device type " << (void*)(device.getDeviceType()) << "\n";
 	}
 
-	SD::the() << AHCI::getPrimaryDisk() << "\n";
+	//SD::the() << AHCI::getPrimaryDisk() << "\n";
 
 	// sti();
 
@@ -102,7 +138,7 @@ extern "C" [[noreturn]] void kernel_init(unsigned int multiboot_magic,
 	Scheduler::pickNext();
 	Scheduler::exec();*/
 
-	// outw(0x604, 0x2000); //shutdown qemu
+	outw(0x604, 0x2000); //shutdown qemu
 	for (;;) {
 		__asm__("hlt");
 	}

@@ -1,6 +1,6 @@
 #! /bin/sh
 
-if [ "$(id -u)" != 0]; then
+if [ "$(id -u)" != 0 ]; then
 	echo "requires root"
 	exit 1
 fi
@@ -16,5 +16,7 @@ cleanup(){
 	rm -rf mnt
 	echo "done"
 }
+
+echo "hello" > mnt/hello.txt
 
 trap cleanup EXIT
