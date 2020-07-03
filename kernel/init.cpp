@@ -89,6 +89,7 @@ extern "C" [[noreturn]] void kernel_init(unsigned int multiboot_magic,
 	SD::the() << "Initializing memory manager\n";
 	MemoryManager::init(entries, mboot->mmap_len);
 	SD::the() << "Done!\n";
+	SD::the() << "Free bytes " << MemoryManager::getFreeBytes() << "\n";
 	Scheduler::init();
 	PIT::initOneshot();
 	ACPI::init();
@@ -99,7 +100,7 @@ extern "C" [[noreturn]] void kernel_init(unsigned int multiboot_magic,
 	AHCI::init();
 	AHCI::getPrimaryDisk() -> test();
 	//sti();
-	//SMP::init();
+	SMP::init();
 
 	for (uint32_t i = 0; i < PCI::devices->size(); i++) {
 		auto& device = *(*PCI::devices)[i];
@@ -110,10 +111,14 @@ extern "C" [[noreturn]] void kernel_init(unsigned int multiboot_magic,
 
 	// sti();
 
-	/*Task* utask = Loader::load(*test_program_elf);
+	Task* utask = Loader::load(*test_program_elf);
 	Scheduler::addTask(*utask);
+	Task* utask2 = Loader::load(*test_program_elf);
+	Scheduler::addTask(*utask2);
 	Scheduler::pickNext();
-	Scheduler::exec();*/
+	//Scheduler::exec();
+
+	SD::the() << "Free bytes " << MemoryManager::getFreeBytes() << "\n";
 
 	outw(0x604, 0x2000); //shutdown qemu
 	for (;;) {

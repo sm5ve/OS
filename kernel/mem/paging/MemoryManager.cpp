@@ -251,6 +251,10 @@ phys_addr PageFrameAllocator::allocateContiguousRange(PhysicalMemoryRegion& reg,
 	return (phys_addr)(-1);
 }
 
+uint64_t PageFrameAllocator::getFreeBytes(){
+	return sz - free_index * PAGE_SIZE;
+}
+
 void growPhysicalMemoryRegion(PhysicalMemoryRegion& reg, size_t target_size)
 {
 	auto range = memory_regions->getIntervals()->head();
@@ -275,5 +279,15 @@ phys_addr allocateContiguousRange(PhysicalMemoryRegion& reg, size_t size){
 	}
 	assert(false, "Error: out of memory");
 	return (phys_addr)(-1);
+}
+
+uint64_t getFreeBytes(){
+	uint64_t out = 0;
+	auto range = memory_regions -> getIntervals() -> head();
+	while (range != memory_regions -> getIntervals() -> end()){
+		out += allocators -> get(range -> value) -> getFreeBytes();
+		range = range -> next();
+	}
+	return out;
 }
 } // namespace MemoryManager

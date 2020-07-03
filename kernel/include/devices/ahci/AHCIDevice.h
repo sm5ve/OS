@@ -3,6 +3,8 @@
 
 #include <devices/ahci/ahci.h>
 #include <paging.h>
+//#include <ds/Promise.h>
+#include <ds/Queue.h>
 
 namespace AHCI{
 	struct TransferRequest{
@@ -37,6 +39,7 @@ namespace AHCI{
 		bool isDisk(){
 			return true;
 		};
+		//shared_ptr<Promise<size_t>> test();
 		void test();
 	private:
 		volatile HBAPort& port;
@@ -57,6 +60,7 @@ namespace AHCI{
 		phys_addr getCommandListPAddr();
 		phys_addr getCommandTablePAddr(uint32_t index);
 		
+		//shared_ptr<Promise<size_t>> workOnRequest(TransferRequest&);
 		bool workOnRequest(TransferRequest&);
 	};
 }

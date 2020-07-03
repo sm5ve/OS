@@ -12,5 +12,6 @@ public:
 	PrintStream& operator<<(const bool);
 	PrintStream& operator<<(const int);
 	PrintStream& operator<<(const uint32_t);
+	PrintStream& operator<<(const uint64_t);
 };
 #endif

@@ -49,3 +49,11 @@ PrintStream& PrintStream::operator<<(const uint32_t i)
 	*this << str;
 	return *this;
 }
+
+PrintStream& PrintStream::operator<<(const uint64_t i)
+{
+	char str[100];
+	itoa(i, str, 10);
+	*this << str;
+	return *this;
+}

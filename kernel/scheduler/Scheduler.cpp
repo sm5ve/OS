@@ -17,6 +17,7 @@ void init()
 void addTask(Task& t)
 {
 	DisableInterrupts d;
+	t.regs.edx = tasks -> size();
 	tasks->push(&t);
 }
 

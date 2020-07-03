@@ -11,9 +11,11 @@ SATA_AHCIDevice::SATA_AHCIDevice(HBAPort& p, uint32_t c)
 	rebase();
 }
 
+//uint8_t test_buff[8192];
+
 void SATA_AHCIDevice::test(){
-	uint8_t test[8192];
-	uint8_t* buffer = test;
+	uint8_t* test_buff = new uint8_t[8192];
+	uint8_t* buffer = test_buff;
 	if((uint32_t)buffer % PAGE_SIZE != 0){
 		buffer = (uint8_t*)((uint32_t)buffer + (PAGE_SIZE - ((uint32_t)buffer % PAGE_SIZE)));
 	}
@@ -102,6 +104,7 @@ uint32_t SATA_AHCIDevice::findCommandSlot(){
 }
 
 bool SATA_AHCIDevice::workOnRequest(TransferRequest& req){
+	//for(;;);
 	port.interrupt_status = port.interrupt_status; //clear interrupts
 	assert((uint32_t)req.base % PAGE_SIZE == 0, "Error: buffer not aligned to page");
 	assert((uint32_t)req.size % blockSize == 0, "Error: request size not aligned to sector size"); 
@@ -163,10 +166,10 @@ bool SATA_AHCIDevice::workOnRequest(TransferRequest& req){
 	SD::the() << "Buffer paddr " << (void*)prdt[0].base_paddr << "\n";
 	SD::the() << "Buffer size " << prdt[0].size_and_interrupt_flag << "\n";
 	port.command_issue = (1 << slot);
-	PIT::waitMillis(200);
+	/*PIT::waitMillis(200);
 	SD::the() << "IS " << (void*)(port.interrupt_status) << "\n";
 	SD::the() << "CI " << (void*)(port.command_issue) << "\n";
-	SD::the() << "transferred " << (command.transferred_bytes_count) << "\n";
+	SD::the() << "transferred " << (command.transferred_bytes_count) << "\n";*/
 }
 
 } // namespace AHCI

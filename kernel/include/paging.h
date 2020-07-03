@@ -67,6 +67,8 @@ namespace MemoryManager{
 		uint32_t refs;
 	};
 
+	uint64_t getFreeBytes();
+
 	class PageFrameAllocator;
 	class CompositeMemoryRegion;
 
@@ -120,6 +122,7 @@ namespace MemoryManager{
 		size_t grow(PhysicalMemoryRegion&, size_t);
 		void release(phys_addr);
 		phys_addr allocateContiguousRange(PhysicalMemoryRegion&, size_t);
+		uint64_t getFreeBytes();
 	private:
 		uint32_t free_index;
 		phys_addr* ptr_buff;
