@@ -112,10 +112,8 @@ void init(mboot_mmap_entry* entries, uint32_t len)
 
 	pageTableAllocator = new SlabAlloc(table_store, 8 * MB, sizeof(page_table), free_ptbls_map);
 
-	auto range = memory_regions->getIntervals()->head();
-	while (range != memory_regions->getIntervals()->end()) {
-		allocators->put(range->value, makeAllocatorForRange(range->value, *bspd));
-		range = range->next();
+	for (auto& range : *memory_regions) {
+		allocators->put(range, makeAllocatorForRange(range, *bspd));
 	}
 
 	kernel_directory = new PageDirectory();
@@ -220,7 +218,7 @@ phys_addr PageFrameAllocator::allocateContiguousRange(PhysicalMemoryRegion& reg,
 	if(size % PAGE_SIZE != 0){
 		size += PAGE_SIZE - (size % PAGE_SIZE);
 	}
-	for(uint32_t base = topIndex; base >= 0; base--){
+	for(uint32_t base = topIndex; base < (uint32_t)(-1); base--){
 		if(free_buff[base] >= free_index){
 			free_pages++;
 		}
@@ -257,25 +255,21 @@ uint64_t PageFrameAllocator::getFreeBytes(){
 
 void growPhysicalMemoryRegion(PhysicalMemoryRegion& reg, size_t target_size)
 {
-	auto range = memory_regions->getIntervals()->head();
-	while (range != memory_regions->getIntervals()->end()) {
-		target_size = allocators->get(range->value)->grow(reg, target_size);
+	for (auto& range : *memory_regions) {
+		target_size = allocators->get(range)->grow(reg, target_size);
 		if (target_size == 0) {
 			return;
 		}
-		range = range->next();
 	}
 	assert(false, "Error: out of memory");
 }
 
 phys_addr allocateContiguousRange(PhysicalMemoryRegion& reg, size_t size){
-	auto range = memory_regions -> getIntervals() -> head();
-	while (range != memory_regions -> getIntervals() -> end()){
-		phys_addr out = allocators -> get(range -> value) -> allocateContiguousRange(reg, size);
+	for (auto& range : *memory_regions){
+		phys_addr out = allocators -> get(range) -> allocateContiguousRange(reg, size);
 		if(out != (phys_addr)(-1)){
 			return out;
 		}
-		range = range -> next();
 	}
 	assert(false, "Error: out of memory");
 	return (phys_addr)(-1);
@@ -283,10 +277,11 @@ phys_addr allocateContiguousRange(PhysicalMemoryRegion& reg, size_t size){
 
 uint64_t getFreeBytes(){
 	uint64_t out = 0;
-	auto range = memory_regions -> getIntervals() -> head();
-	while (range != memory_regions -> getIntervals() -> end()){
-		out += allocators -> get(range -> value) -> getFreeBytes();
-		range = range -> next();
+	//auto range = memory_regions -> getIntervals() -> head();
+	//while (range != memory_regions -> getIntervals() -> end()){
+	for(auto& range : *memory_regions){
+		out += allocators -> get(range) -> getFreeBytes();
+	//	range = range -> next();
 	}
 	return out;
 }

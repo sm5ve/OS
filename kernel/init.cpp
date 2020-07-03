@@ -100,7 +100,7 @@ extern "C" [[noreturn]] void kernel_init(unsigned int multiboot_magic,
 	AHCI::init();
 	AHCI::getPrimaryDisk() -> test();
 	//sti();
-	SMP::init();
+	//SMP::init();
 
 	for (uint32_t i = 0; i < PCI::devices->size(); i++) {
 		auto& device = *(*PCI::devices)[i];

@@ -65,6 +65,14 @@ public:
 	Maybe<Interval<T>> intervalFor(T elem);
 
 	LinkedList<Interval<T>>* getIntervals(); //TODO maybe make a read-only view for linked lists
+
+	LinkedList<Interval<T>>::Iterator begin(){
+		return getIntervals() -> begin();
+	}
+
+	LinkedList<Interval<T>>::Iterator end(){
+		return getIntervals() -> end();
+	}
 private:
 	LinkedList<Interval<T>> intervals;
 };
@@ -87,7 +95,7 @@ LinkedList<Interval<T>>* IntervalSet<T>::getIntervals(){
 template <class T>
 void IntervalSet<T>::add(Interval<T> in){
 	auto node = intervals.head();
-	while(node != intervals.end()){
+	while(node != intervals.ending()){
 		auto current_node = node;
 		node = node -> next();
 		
@@ -104,7 +112,7 @@ void IntervalSet<T>::add(Interval<T> in){
 template <class T>
 void IntervalSet<T>::add(IntervalSet<T>& set){
 	auto node = set.intervals.head();
-	while(node != set.intervals.end()){
+	while(node != set.intervals.ending()){
 		add(node -> value);
 		node = node -> next();
 	}
@@ -129,7 +137,7 @@ void IntervalSet<T>::subtract(Interval<T> in){
 template <class T>
 void IntervalSet<T>::subtract(IntervalSet<T>& set){
 	auto node = set.intervals.head();
-	while(node != set.intervals.end()){
+	while(node != set.intervals.ending()){
 		subtract(node -> value);
 		node = node -> next();
 	}
@@ -138,7 +146,7 @@ void IntervalSet<T>::subtract(IntervalSet<T>& set){
 template <class T>
 bool IntervalSet<T>::in(T elem){
 	auto node = this -> intervals.head();
-	while(node != this -> intervals.end()){
+	while(node != this -> intervals.ending()){
 		if(node -> value.in(elem)){
 			return true;
 		}
@@ -150,7 +158,7 @@ bool IntervalSet<T>::in(T elem){
 template <class T>
 Maybe<Interval<T>> IntervalSet<T>::intervalFor(T elem){
 	auto node = this -> intervals.head();
-	while(node != this -> intervals.end()){
+	while(node != this -> intervals.ending()){
 		if(node -> value.in(elem)){
 			return Maybe<Interval<T>>(node -> value);
 		}
@@ -162,7 +170,7 @@ Maybe<Interval<T>> IntervalSet<T>::intervalFor(T elem){
 template <class T>
 Maybe<Interval<T>> IntervalSet<T>::findSubintervalOfSize(T size){
 	auto node = this -> intervals.head();
-	while(node != intervals.end()){
+	while(node != intervals.ending()){
 		if(node -> value.getSize() >= size){
 			return Maybe<Interval<T>>(Interval(node -> value.getStart(), node -> value.getStart() + size - 1));
 		}

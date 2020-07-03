@@ -122,7 +122,7 @@ void PageDirectory::installRegion(shared_ptr<MemoryRegion> region,
 void PageDirectory::removeRegion(shared_ptr<MemoryRegion> region)
 {
 	auto node = regions.head();
-	while (node != regions.end()) {
+	while (node != regions.ending()) {
 		auto oldNode = node;
 		node = node->next();
 		if (oldNode->value.region == region) {
@@ -136,11 +136,9 @@ void PageDirectory::removeRegion(shared_ptr<MemoryRegion> region)
 
 virt_addr PageDirectory::getRegionBase(MemoryRegion& region)
 {
-	auto node = regions.head();
-	while (node != regions.end()) {
-		if (&*(node->value.region) == &region)
-			return node->value.base;
-		node = node->next();
+	for (auto& node : regions) {
+		if (&*(node.region) == &region)
+			return node.base;
 	}
 	assert(false,
 		"Error: tried to find base of region not present in page directory");
@@ -246,10 +244,8 @@ virt_addr PageDirectory::findSpaceAbove(size_t required, virt_addr after,
 
 void PageDirectory::copyRegionsInto(PageDirectory& pd)
 {
-	auto node = regions.head();
-	while (node != regions.end()) {
-		pd.installRegion(node->value.region, node->value.base);
-		node = node->next();
+	for (auto& placement : regions) {
+		pd.installRegion(placement.region, placement.base);
 	}
 }
 

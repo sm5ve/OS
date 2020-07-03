@@ -34,7 +34,7 @@ public:
 	LinkedListNode<T>* tail();
 	
 	LinkedListNode<T>* beginning();
-	LinkedListNode<T>* end();
+	LinkedListNode<T>* ending();
 
 	LinkedListNode<T>* add(T);
 	LinkedListNode<T>* addToBeginning(T);
@@ -48,6 +48,24 @@ public:
 	void remove(LinkedListNode<T>*);
 
 	size_t length();
+
+	class Iterator{
+	public:
+		Iterator(LinkedListNode<T>* n): node(n){}
+		Iterator operator++() {node = node -> next();}
+		bool operator!=(const Iterator& rhs){return node != rhs.node;}
+		T& operator*() const {return node -> value;}
+	private:
+		LinkedListNode<T>* node;
+	};
+
+	Iterator begin(){
+		return Iterator(head());
+	}
+
+	Iterator end(){
+		return Iterator(ending());
+	}
 private:
 	LinkedListNode<T> first;
 	LinkedListNode<T> last;
@@ -62,7 +80,7 @@ LinkedList<T>::LinkedList(){
 template <class T>
 LinkedList<T>::~LinkedList(){
 	//SD::the() << "Deleting linked list\n";
-	while(head() != end()){
+	while(head() != ending()){
 		remove(head());
 	}
 }
@@ -83,13 +101,13 @@ LinkedListNode<T>* LinkedList<T>::beginning(){
 }
 
 template <class T>
-LinkedListNode<T>* LinkedList<T>::end(){
+LinkedListNode<T>* LinkedList<T>::ending(){
 	return &last;
 }
 
 template <class T>
 LinkedListNode<T>* LinkedList<T>::add(T val){
-	return addBefore(val, end());
+	return addBefore(val, ending());
 }
 
 template <class T>
@@ -123,7 +141,7 @@ LinkedListNode<T>* LinkedList<T>::addAfter(T val, LinkedListNode<T>* node){
 
 template <class T>
 void LinkedList<T>::remove(LinkedListNode<T>* node){
-	assert(node != end(), "Error: tried to remove end node");
+	assert(node != ending(), "Error: tried to remove end node");
 	assert(node != beginning(), "Error: tried to remove beginning node");
 	
 	node -> n -> p = node -> p;

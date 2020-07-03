@@ -86,6 +86,7 @@ void installGDT()
 	uint8_t dataFlags = segmentFlags(true, false, false, true);
 	writeSegment(gdt, 2, 0x00000000, 0xffffffff, dataFlags);
 	uint8_t userCodeFlags = segmentFlags(false, false, true, true);
+	// Userspace shouldn't be able to see kernel memory
 	writeSegment(gdt, 3, 0x00000000, 0xbfffffff, userCodeFlags);
 	uint8_t userDataFlags = segmentFlags(false, false, false, true);
 	writeSegment(gdt, 4, 0x00000000, 0xbfffffff, userDataFlags);
@@ -103,10 +104,16 @@ void installGDT()
 
 uint8_t ap_gdt[3 * 8];
 
+//This function's called by application processors as they spin up
+//It initializes their GDTs just as we do above
+//We only have one ap_gdt because it's essentially the bare minimum
+//for bootstrapping
 void writeAPBootstrapGDT(uint16_t offset)
 {
+	//GDT always starts with null segment
 	writeSegment(ap_gdt, 0, 0x00000000, 0x00000000, 0);
 	uint8_t codeFlags = segmentFlags(true, false, true, true);
+	//Basic flat segmenting. We can call installGDT() on the AP's as necessary
 	writeSegment(ap_gdt, 1, 0x00000000, 0xffffffff, codeFlags);
 	uint8_t dataFlags = segmentFlags(true, false, false, true);
 	writeSegment(ap_gdt, 2, 0x00000000, 0xffffffff, dataFlags);

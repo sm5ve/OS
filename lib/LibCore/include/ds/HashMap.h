@@ -53,7 +53,7 @@ void HashMap<K, V>::resize(size_t new_size){
 	for(int i = 0; i < capacity; i++){
 		LinkedList<Tuple<K,V>>* list = &data[i];
 		LinkedListNode<Tuple<K,V>>* node = list -> head();
-		while(node != list -> end()){
+		while(node != list -> ending()){
 			put(node -> value.a, node -> value.b, newLists, new_size);
 			node = node -> next();
 		}
@@ -68,7 +68,7 @@ template <class K, class V>
 bool HashMap<K,V>::put(K key, V value, LinkedList<Tuple<K,V>>* dat, size_t cap){
 	LinkedList<Tuple<K,V>>* list = &dat[hash<K>{}(key) % cap];
 	LinkedListNode<Tuple<K,V>>* node = list -> head();
-	while(node != list -> end()){
+	while(node != list -> ending()){
 		if(node -> value.a == key){
 			node -> value.b = value;
 			false;
@@ -91,7 +91,7 @@ template <class K, class V>
 V HashMap<K,V>::get(K key){
 	LinkedList<Tuple<K,V>>* list = &data[hash<K>{}(key) % capacity];
 	LinkedListNode<Tuple<K,V>>* node = list -> head();
-	while(node != list -> end()){
+	while(node != list -> ending()){
 		if(node -> value.a == key){
 			return node -> value.b;
 		}
@@ -104,7 +104,7 @@ template <class K, class V>
 bool HashMap<K,V>::contains(K key){
 	LinkedList<Tuple<K,V>>* list = &data[hash<K>{}(key) % capacity];
 	LinkedListNode<Tuple<K,V>>* node = list -> head();
-	while(node != list -> end()){
+	while(node != list -> ending()){
 		if(node -> value.a == key){
 			return true;
 		}
@@ -117,7 +117,7 @@ template <class K, class V>
 void HashMap<K, V>::remove(K key){
 	LinkedList<Tuple<K, V>>* list = &data[hash<K>{}(key) % capacity];
 	LinkedListNode<Tuple<K, V>>* node = list -> head();
-	while(node != list -> end()){
+	while(node != list -> ending()){
 		if(node -> value.a == key){
 			list -> remove(node);
 			size--;
@@ -149,7 +149,7 @@ Vector<Tuple<K, V>>* HashMap<K, V>::getKeyValuePairs(){
 	for(uint32_t i = 0; i < capacity; i++){
 		auto* list = &data[i];
 		auto node = list -> head();
-		while(node != list -> end()){
+		while(node != list -> ending()){
 			out -> push(node -> value);
 			node = node -> next();
 		}

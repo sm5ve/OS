@@ -37,7 +37,7 @@ multiboot_header_start:
 .long 0x00000000
 .long 0x00000000
 
-//Multiboot video mode info
+#Multiboot video mode info
 
 #ifdef FRAMEBUFFER
 //mode type
@@ -63,6 +63,8 @@ mboot_magic:
 mboot_header:
     .long 0
 
+#Allocate initial space for bootstrapping page tables/data structures
+
 .section .bss, "aw", @nobits
     .align 4096
 boot_page_directory:
@@ -84,7 +86,7 @@ boot_page_table4:
 _start:
 	#backup the multiboot information
 	movl %eax, (mboot_magic - 0xC0000000)
-	addl $0xC0000000, %ebx
+	addl $0xC0000000, %ebx #adjust for the offset caused by our page tables.
 	movl %ebx, (mboot_header - 0xC0000000)
 
 	#setup our stack before we enable paging

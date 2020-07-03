@@ -10,6 +10,14 @@ So far, the kernel has support for
 * A basic round-robin task scheduler.
 * Preliminary SMP support (I can spin up the extra cores, but they don't do anything yet)
 
+My immediate goals are:
+
+* Update data structures to support range-based for (in-progress)
+  * Update kernel to actually use range-based for
+* Work on commenting the system
+* Code review
+* Finally implement the command queuing system for AHCI that I'd meant to do
+
 Features/subsystems I hope to implement in the near future include (in roughly the order of priority)
 
 * AHCI driver
@@ -19,6 +27,7 @@ Features/subsystems I hope to implement in the near future include (in roughly t
 * A proper threading/process model
 * A basic userspace
 * A name
+* A more generic driver framework
 
 In the longer term, I would like to support the following features
 
