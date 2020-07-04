@@ -1,6 +1,7 @@
 #include <devices/SerialDevice.h>
 #include <devices/ahci/AHCIDevice.h>
 #include <devices/pit.h>
+#include <util/str.h>
 #include <assert.h>
 #include <debug.h>
 
@@ -35,13 +36,14 @@ void SATA_AHCIDevice::test(){
 		buffer = (uint8_t*)((uint32_t)buffer + (PAGE_SIZE - ((uint32_t)buffer % PAGE_SIZE)));
 	}
 	memset(buffer, 0, sizeof(buffer));
+	//strcpy((char*)buffer, "Hello, world!\n");
 	//cb(TransferResponse(true, buffer), NULL);
 	TransferRequest req(
 		0x600000 / 512,
 		//0,
 		buffer,
 		4096,
-		false,
+		true,
 		*MemoryManager::active_page_dir
 	);
 	auto promise = queueRequest(req);
@@ -213,12 +215,12 @@ void SATA_AHCIDevice::workOnRequest(TransferRequest& req){
 	fis.flags |= (1 << 7);
 	if(req.write){
 		SD::the() << "Writing!\n";
-		fis.flags |= (1 << 6);
+		command.flags |= (1 << 6);
 		fis.command = 0x35;
 	}
 	else{
 		SD::the() << "Reading!\n";
-		fis.flags &= ~(1 << 6);
+		command.flags &= ~(1 << 6);
 		fis.command = 0x25;
 	}
 	fis.lba0 = (uint8_t)req.lba;
