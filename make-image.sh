@@ -18,5 +18,6 @@ cleanup(){
 }
 
 echo "hello" > mnt/hello.txt
+cp root/* mnt/
 
 trap cleanup EXIT

@@ -12,7 +12,7 @@ public:
 	~Maybe();
 
 	bool has_value() const;
-	T value();
+	T& value();
 private:
 	T val;
 	bool has;
@@ -44,7 +44,7 @@ bool Maybe<T>::has_value() const{
 }
 
 template <class T>
-T Maybe<T>::value(){
+T& Maybe<T>::value(){
 	assert(has, "Error: tried to get value from valueless Maybe");
 	return val;
 }

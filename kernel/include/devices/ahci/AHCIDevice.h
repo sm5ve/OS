@@ -3,16 +3,101 @@
 
 #include <devices/ahci/ahci.h>
 #include <paging.h>
-//#include <ds/Promise.h>
+#include <ds/smart_pointers.h>
+#include <ds/Promise.h>
 #include <ds/Queue.h>
+#include <ds/Tuple.h>
 
 namespace AHCI{
+	struct TransferResponse{
+		bool successful;
+		void* buffer;
+
+		TransferResponse(bool s, void* b){
+			successful = s;
+			buffer = b;
+		}
+		
+		TransferResponse(TransferResponse& rhs){
+			successful = rhs.successful;
+			buffer = rhs.buffer;
+		}
+		
+		TransferResponse operator=(TransferResponse& rhs){
+			successful = rhs.successful;
+			buffer = rhs.buffer;
+		}
+		
+		TransferResponse(){}
+	};
+
 	struct TransferRequest{
 		uint64_t lba;
 		void* base;
+		void* original_buffer;
 		size_t size;
 		bool write;
+		int assigned_slot;
 		PageDirectory& pd;
+
+		TransferRequest() : pd(*MemoryManager::kernel_directory){
+			assigned_slot = -1;
+		}
+		
+		TransferRequest(uint64_t l, void* b, size_t s, bool w, PageDirectory& dir) : pd(dir){
+			lba = l;
+			base = b;
+			size = s;
+			write = w;
+			assigned_slot = -1;
+			original_buffer = b;
+		}
+
+		TransferRequest(TransferRequest& rhs) : pd(rhs.pd){
+			lba = rhs.lba;
+			base = rhs.base;
+			size = rhs.size;
+			assigned_slot = rhs.assigned_slot;
+			original_buffer = rhs.original_buffer;
+		}
+
+		TransferRequest operator=(TransferRequest& rhs){
+			lba = rhs.lba;
+			base = rhs.base;
+			size = rhs.size;
+			write = rhs.write;
+			assigned_slot = rhs.assigned_slot;
+			pd = rhs.pd;
+			original_buffer = rhs.original_buffer;
+		}
+	};
+	
+	struct WorkRequest{
+		TransferRequest req;
+		shared_ptr<Promise<TransferResponse>> callback;
+		WorkRequest(TransferRequest r, shared_ptr<Promise<TransferResponse>> cb){
+			req = r;
+			callback = cb;
+		}
+		
+		WorkRequest(){
+		
+		}
+
+		WorkRequest(WorkRequest& cp){
+			req = cp.req;
+			callback = cp.callback;
+		}
+
+		WorkRequest(WorkRequest&& mv){
+			req = mv.req;
+			callback = move(mv.callback);
+		}
+
+		WorkRequest operator=(WorkRequest& wrq){
+			req = wrq.req;
+			callback = wrq.callback;
+		}
 	};
 
 	class AHCIDevice{
@@ -35,12 +120,14 @@ namespace AHCI{
 	class SATA_AHCIDevice : public AHCIDevice{
 	public:
 		SATA_AHCIDevice(HBAPort&, uint32_t capabilities);
+		~SATA_AHCIDevice();
 		void handleInterrupt() override;
 		bool isDisk(){
 			return true;
 		};
 		//shared_ptr<Promise<size_t>> test();
 		void test();
+		shared_ptr<Promise<TransferResponse>> queueRequest(TransferRequest);
 	private:
 		volatile HBAPort& port;
 		uint32_t capabilities;
@@ -50,7 +137,10 @@ namespace AHCI{
 		volatile CMD* commandList; //1k byte aligned (similarly allocate new page)
 		volatile CommandTable* commandTables;
 		phys_addr port_base;
-	
+		Queue<WorkRequest> requests;
+		Maybe<WorkRequest>* working;
+		uint8_t test_buff[8192];
+
 		void rebase();
 		void startCommandEngine();
 		void stopCommandEngine();
@@ -61,6 +151,7 @@ namespace AHCI{
 		phys_addr getCommandTablePAddr(uint32_t index);
 		
 		//shared_ptr<Promise<size_t>> workOnRequest(TransferRequest&);
+		void updateWorkQueue();	
 		bool workOnRequest(TransferRequest&);
 	};
 }

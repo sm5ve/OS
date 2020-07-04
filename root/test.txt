@@ -1,0 +1,2 @@
+Hello everyone! This is a test!
+Hello world! I'm reading from the hard drive!

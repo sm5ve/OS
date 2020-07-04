@@ -87,7 +87,8 @@ template <class T>
 class weak_ptr{
 public:
 	weak_ptr(){
-
+		counter = NULL;
+		t_ptr = NULL;
 	}
 
 	weak_ptr(shared_ptr_counter* c, T* ptr) : counter(c), t_ptr(ptr){
@@ -155,7 +156,8 @@ template <class T>
 class shared_ptr{
 public:
 	shared_ptr(){
-
+		counter = NULL;
+		t_ptr = NULL;
 	}
 	
 	shared_ptr(shared_ptr_counter* c, T* ptr) : counter(c), t_ptr(ptr){
@@ -179,11 +181,13 @@ public:
 			return;
 		counter -> decStrong();
 		if(counter -> strong_ref_count == 0){
-			delete t_ptr;
+			if(t_ptr != NULL)
+				delete t_ptr;
 			t_ptr = NULL;
 		}
 		if(counter -> weak_ref_count == 0){
-			delete counter;
+			if(t_ptr != NULL)
+				delete counter;
 		}
 	}
 
@@ -202,7 +206,8 @@ public:
 	shared_ptr<T>& operator=(shared_ptr<T>& ptr){
 		this -> ~shared_ptr();
 		counter = ptr.counter;
-		counter -> incStrong();
+		if(counter != NULL)
+			counter -> incStrong();
 		t_ptr = ptr.t_ptr;
 		return *this;
 	}

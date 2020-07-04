@@ -13,13 +13,13 @@ public:
 	~Promise();
 	
 	void await();
-	void then(PromiseHandler, void* context);
+	void then(PromiseHandler<T>, void* context);
 	void fulfill(T);
 private:
 	volatile bool fulfilled;
-	volatile T value;
+	T value; //maybe this needs to be volatile, but I'm struggling against the compiler here
 	void* context;
-	PromiseHandler handler;
+	PromiseHandler<T> handler;
 };
 
 template <class T>
@@ -42,7 +42,8 @@ void Promise<T>::await(){
 }
 
 template <class T>
-void Promise<T>::then(PromiseHandler h, void* c){
+void Promise<T>::then(PromiseHandler<T> h, void* c){
+	SD::the() << "I am here " << this << "\n";
 	handler = h;
 	context = c;
 	if(fulfilled && (handler != NULL)){

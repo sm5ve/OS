@@ -102,9 +102,10 @@ extern "C" [[noreturn]] void kernel_init(unsigned int multiboot_magic,
 	//sti();
 	//SMP::init();
 
-	for (uint32_t i = 0; i < PCI::devices->size(); i++) {
-		auto& device = *(*PCI::devices)[i];
-		SD::the() << "PCI device type " << (void*)(device.getDeviceType()) << "\n";
+	//for (uint32_t i = 0; i < PCI::devices->size(); i++) {
+		//auto& device = *(*PCI::devices)[i];
+	for(auto& device : *PCI::devices){
+		SD::the() << "PCI device type " << (void*)(device -> getDeviceType()) << "\n";
 	}
 
 	//SD::the() << AHCI::getPrimaryDisk() << "\n";

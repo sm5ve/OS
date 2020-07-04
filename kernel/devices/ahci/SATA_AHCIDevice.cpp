@@ -8,25 +8,40 @@ SATA_AHCIDevice::SATA_AHCIDevice(HBAPort& p, uint32_t c)
 	: port(p), capabilities(c)
 {
 	command_slots = ((c >> 8) & 31) + 1;
+	working = new Maybe<WorkRequest>[command_slots];
 	rebase();
+}
+
+SATA_AHCIDevice::~SATA_AHCIDevice(){
+	delete[] working;
 }
 
 //uint8_t test_buff[8192];
 
+void cb(TransferResponse resp, void*){
+	char* cbuff = (char*)resp.buffer;
+	SD::the() << "AHCI read with success " << resp.successful << "\n";
+	for(int i = 0; i < 4096 + 1024; i++){
+		SD::the() << cbuff[i];
+	}
+}
+
 void SATA_AHCIDevice::test(){
-	uint8_t* test_buff = new uint8_t[8192];
 	uint8_t* buffer = test_buff;
 	if((uint32_t)buffer % PAGE_SIZE != 0){
 		buffer = (uint8_t*)((uint32_t)buffer + (PAGE_SIZE - ((uint32_t)buffer % PAGE_SIZE)));
 	}
-	TransferRequest req {
-		.lba = 0,
-		.base = buffer,
-		.size = 4096 + 1024,
-		.write = false,
-		.pd = *MemoryManager::kernel_directory
-	};
-	workOnRequest(req);
+	memset(buffer, 0, sizeof(buffer));
+	cb(TransferResponse(true, buffer), NULL);
+	TransferRequest req(
+		0x600000 / 512,
+		buffer,
+		4096 + 1024,
+		false,
+		*MemoryManager::active_page_dir
+	);
+	auto promise = queueRequest(req);
+	promise -> then(cb, NULL);
 }
 
 void SATA_AHCIDevice::handleInterrupt()
@@ -35,6 +50,7 @@ void SATA_AHCIDevice::handleInterrupt()
 	SD::the() << port.command_issue << "\n";
 	SD::the() << "transferred bytes " << commandList[0].transferred_bytes_count << "\n";
 
+	updateWorkQueue();
 	port.interrupt_status = port.interrupt_status;
 }
 
@@ -103,15 +119,51 @@ uint32_t SATA_AHCIDevice::findCommandSlot(){
 	return (uint32_t)(-1);
 }
 
+shared_ptr<Promise<TransferResponse>> SATA_AHCIDevice::queueRequest(TransferRequest req){
+	auto promise = make_shared<Promise<TransferResponse>>();
+	auto entry = WorkRequest(req, promise);
+	requests.enqueue(entry);
+	updateWorkQueue();
+	return promise;
+}
+
+void SATA_AHCIDevice::updateWorkQueue(){
+	for(int i = 0; i < command_slots; i++){
+		if((port.sata_active & (1 << i)) == 0){
+			if(working[i].has_value()){
+				TransferRequest req = working[i].value().req;
+				if(req.size == 0){
+					shared_ptr<Promise<TransferResponse>> callback = working[i].value().callback;
+					auto mb = Maybe<WorkRequest>();
+					working[i] = mb;
+					auto response = TransferResponse(true, req.original_buffer);
+					callback -> fulfill(response);
+				}
+			}
+		}
+	}
+	for(int i = 0; i < command_slots; i++){
+		if(!working[i].has_value() && (requests.size() > 0)){
+			auto request = requests.dequeue();
+			request.req.assigned_slot = i;
+			auto mb = Maybe<WorkRequest>(request);
+			working[i] = mb;
+		}
+		if(((port.sata_active & (1 << i)) == 0) && working[i].has_value()){
+			workOnRequest(working[i].value().req);
+		}
+	}
+}
+
 bool SATA_AHCIDevice::workOnRequest(TransferRequest& req){
 	//for(;;);
+	SD::the() << "req.base " << (void*)req.base << "\n";
 	port.interrupt_status = port.interrupt_status; //clear interrupts
 	assert((uint32_t)req.base % PAGE_SIZE == 0, "Error: buffer not aligned to page");
 	assert((uint32_t)req.size % blockSize == 0, "Error: request size not aligned to sector size"); 
 	int spin = 0;
-	int slot = findCommandSlot();
-	if(slot == -1)
-		return false;
+	int slot = req.assigned_slot;
+	assert(slot != -1, "Error: tried to work on AHCI request without slot");
 	volatile CMD& command = commandList[slot];
 	volatile CommandTable& cmdtbl = commandTables[slot];
 	volatile PRDTEntry* prdt = cmdtbl.prdt;

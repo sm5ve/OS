@@ -18,6 +18,24 @@ public:
 	T pop();
 	T top();
 	size_t size();
+
+	class Iterator{
+	public:
+		Iterator(T* p): ptr(p){}
+		Iterator operator++() {ptr++;}
+		bool operator!=(const Iterator& rhs){return ptr != rhs.ptr;}
+		T& operator*() const {return *ptr;}
+	private:
+		T* ptr;
+	};
+
+	Iterator begin(){
+		return Iterator(&buffer[0]);
+	}
+	
+	Iterator end(){
+		return Iterator(&buffer[count]);
+	}
 private:
 	T* buffer;
 	size_t count;
