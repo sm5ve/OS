@@ -90,25 +90,22 @@ void HashMap<K,V>::put(K key, V value){
 template <class K, class V>
 V HashMap<K,V>::get(K key){
 	LinkedList<Tuple<K,V>>* list = &data[hash<K>{}(key) % capacity];
-	LinkedListNode<Tuple<K,V>>* node = list -> head();
-	while(node != list -> ending()){
-		if(node -> value.a == key){
-			return node -> value.b;
+	for(auto& kvp : *list){
+		if(kvp.a == key){
+			return kvp.b;
 		}
-		node = node -> next();
 	}
 	assert(false, "Tried to get nonexistent entry from HashMap");
+	return list -> head() -> value.b; //hacky thing to get GCC to not complain
 }
 
 template <class K, class V>
 bool HashMap<K,V>::contains(K key){
 	LinkedList<Tuple<K,V>>* list = &data[hash<K>{}(key) % capacity];
-	LinkedListNode<Tuple<K,V>>* node = list -> head();
-	while(node != list -> ending()){
-		if(node -> value.a == key){
+	for (auto& kvp : *list){
+		if(kvp.a == key){
 			return true;
 		}
-		node = node -> next();
 	}
 	return false;
 }
@@ -116,7 +113,7 @@ bool HashMap<K,V>::contains(K key){
 template <class K, class V>
 void HashMap<K, V>::remove(K key){
 	LinkedList<Tuple<K, V>>* list = &data[hash<K>{}(key) % capacity];
-	LinkedListNode<Tuple<K, V>>* node = list -> head();
+	auto* node = list -> head();
 	while(node != list -> ending()){
 		if(node -> value.a == key){
 			list -> remove(node);

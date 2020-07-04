@@ -46,7 +46,7 @@ CC := i686-elf-gcc
 INCLUDES := -I./include -I../lib/LibELF/include -I../lib/LibCore/include
 
 CPPFLAGS := -ffreestanding -fno-exceptions -fno-rtti -fno-sized-deallocation -std=gnu++2a -g -fconcepts
-CPPFLAGS += -Wall -Wextra -pedantic -Wshadow -Wcast-align -Wwrite-strings -Wredundant-decls -Winline -Wno-long-long -Wconversion
+CPPFLAGS += -Wall -Wextra -pedantic -Wshadow -Wcast-align -Wwrite-strings -Wredundant-decls -Winline -Wno-long-long -Wconversion -Werror=return-type
 CPPFLAGS += $(INCLUDES)
 
 ASMFLAGS := -ffreestanding -g

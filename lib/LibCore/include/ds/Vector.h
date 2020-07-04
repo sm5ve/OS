@@ -22,7 +22,7 @@ public:
 	class Iterator{
 	public:
 		Iterator(T* p): ptr(p){}
-		Iterator operator++() {ptr++;}
+		Iterator operator++() {ptr++; return *this;}
 		bool operator!=(const Iterator& rhs){return ptr != rhs.ptr;}
 		T& operator*() const {return *ptr;}
 	private:

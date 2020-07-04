@@ -72,5 +72,6 @@ SATA_AHCIDevice* AHCIHostBusAdapter::getPrimaryDisk()
 		if (devices[i] && devices[i]->isDisk())
 			return (SATA_AHCIDevice*)devices[i];
 	}
+	return NULL;
 }
 } // namespace AHCI

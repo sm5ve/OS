@@ -234,6 +234,7 @@ void* parseDIETag(void*& ptr, uint32_t type, ELF* elf)
 	}
 	default:
 		assert(false, "Unimplemented DWARF tag type");
+		return NULL;
 	}
 }
 

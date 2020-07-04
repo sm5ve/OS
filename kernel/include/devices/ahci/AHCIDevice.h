@@ -23,9 +23,10 @@ namespace AHCI{
 			buffer = rhs.buffer;
 		}
 		
-		TransferResponse operator=(TransferResponse& rhs){
+		TransferResponse& operator=(TransferResponse& rhs){
 			successful = rhs.successful;
 			buffer = rhs.buffer;
+			return *this;
 		}
 		
 		TransferResponse(){}
@@ -57,11 +58,12 @@ namespace AHCI{
 			lba = rhs.lba;
 			base = rhs.base;
 			size = rhs.size;
+			write = rhs.write;
 			assigned_slot = rhs.assigned_slot;
 			original_buffer = rhs.original_buffer;
 		}
 
-		TransferRequest operator=(TransferRequest& rhs){
+		TransferRequest& operator=(TransferRequest& rhs){
 			lba = rhs.lba;
 			base = rhs.base;
 			size = rhs.size;
@@ -69,6 +71,7 @@ namespace AHCI{
 			assigned_slot = rhs.assigned_slot;
 			pd = rhs.pd;
 			original_buffer = rhs.original_buffer;
+			return *this;
 		}
 	};
 	
@@ -94,9 +97,10 @@ namespace AHCI{
 			callback = move(mv.callback);
 		}
 
-		WorkRequest operator=(WorkRequest& wrq){
+		WorkRequest& operator=(WorkRequest& wrq){
 			req = wrq.req;
 			callback = wrq.callback;
+			return *this;
 		}
 	};
 
@@ -152,7 +156,7 @@ namespace AHCI{
 		
 		//shared_ptr<Promise<size_t>> workOnRequest(TransferRequest&);
 		void updateWorkQueue();	
-		bool workOnRequest(TransferRequest&);
+		void workOnRequest(TransferRequest&);
 	};
 }
 

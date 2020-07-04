@@ -52,7 +52,7 @@ public:
 	class Iterator{
 	public:
 		Iterator(LinkedListNode<T>* n): node(n){}
-		Iterator operator++() {node = node -> next();}
+		Iterator operator++() {node = node -> next(); return *this;}
 		bool operator!=(const Iterator& rhs){return node != rhs.node;}
 		T& operator*() const {return node -> value;}
 	private:

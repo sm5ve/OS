@@ -2,6 +2,7 @@
 #include <devices/ahci/AHCIDevice.h>
 #include <devices/pit.h>
 #include <assert.h>
+#include <debug.h>
 
 namespace AHCI {
 SATA_AHCIDevice::SATA_AHCIDevice(HBAPort& p, uint32_t c)
@@ -21,9 +22,11 @@ SATA_AHCIDevice::~SATA_AHCIDevice(){
 void cb(TransferResponse resp, void*){
 	char* cbuff = (char*)resp.buffer;
 	SD::the() << "AHCI read with success " << resp.successful << "\n";
+	SD::the() << "Response buffer at " << resp.buffer << "\n";
 	for(int i = 0; i < 4096 + 1024; i++){
 		SD::the() << cbuff[i];
 	}
+	//stackTrace();
 }
 
 void SATA_AHCIDevice::test(){
@@ -32,15 +35,17 @@ void SATA_AHCIDevice::test(){
 		buffer = (uint8_t*)((uint32_t)buffer + (PAGE_SIZE - ((uint32_t)buffer % PAGE_SIZE)));
 	}
 	memset(buffer, 0, sizeof(buffer));
-	cb(TransferResponse(true, buffer), NULL);
+	//cb(TransferResponse(true, buffer), NULL);
 	TransferRequest req(
 		0x600000 / 512,
+		//0,
 		buffer,
-		4096 + 1024,
+		4096,
 		false,
 		*MemoryManager::active_page_dir
 	);
 	auto promise = queueRequest(req);
+	uint32_t* p = (uint32_t*)(&*promise);
 	promise -> then(cb, NULL);
 }
 
@@ -48,9 +53,11 @@ void SATA_AHCIDevice::handleInterrupt()
 {
 	SD::the() << "SATA interrupt!\n";
 	SD::the() << port.command_issue << "\n";
+	SD::the() << (void*)port.interrupt_status << "\n";
 	SD::the() << "transferred bytes " << commandList[0].transferred_bytes_count << "\n";
 
 	updateWorkQueue();
+	
 	port.interrupt_status = port.interrupt_status;
 }
 
@@ -155,7 +162,7 @@ void SATA_AHCIDevice::updateWorkQueue(){
 	}
 }
 
-bool SATA_AHCIDevice::workOnRequest(TransferRequest& req){
+void SATA_AHCIDevice::workOnRequest(TransferRequest& req){
 	//for(;;);
 	SD::the() << "req.base " << (void*)req.base << "\n";
 	port.interrupt_status = port.interrupt_status; //clear interrupts
@@ -204,7 +211,16 @@ bool SATA_AHCIDevice::workOnRequest(TransferRequest& req){
 	command.flags = sizeof(FIS_H2D) / 4;
 	fis.fis_type = FISType::H2D;
 	fis.flags |= (1 << 7);
-	fis.command = 0x25;
+	if(req.write){
+		SD::the() << "Writing!\n";
+		fis.flags |= (1 << 6);
+		fis.command = 0x35;
+	}
+	else{
+		SD::the() << "Reading!\n";
+		fis.flags &= ~(1 << 6);
+		fis.command = 0x25;
+	}
 	fis.lba0 = (uint8_t)req.lba;
 	fis.lba1 = (uint8_t)(req.lba >> 8);
 	fis.lba2 = (uint8_t)(req.lba >> 16);
