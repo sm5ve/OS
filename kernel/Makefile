@@ -69,7 +69,7 @@ test: test_program/main.cpp
 	$(CC) -ffreestanding -nostdlib -lgcc -fno-exceptions $< -o test
 
 kernel: $(OBJS)
-	$(CC) -T linker.ld -o kernel -ffreestanding -nostdlib $(OBJS) -lgcc -g
+	$(CC) -D KERNEL_UNIT -T linker.ld -o kernel -ffreestanding -nostdlib $(OBJS) -lgcc -g
 
 kernel.sym: kernel
 	@i686-elf-objcopy --only-keep-debug kernel kernel.sym
