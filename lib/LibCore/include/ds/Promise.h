@@ -3,37 +3,37 @@
 
 #include <ds/Maybe.h>
 
-template <class T>
-using PromiseHandler = void(*)(T, void*);
+template <class T, class S>
+using PromiseHandler = void(*)(T, S);
 
-template <class T>
+template <class T, class S>
 class Promise{
 public:
 	Promise();
-	Promise(Promise<T>&);
+	Promise(Promise<T, S>&);
 	~Promise();
 	
 	void await();
-	void then(PromiseHandler<T>, void* context);
+	void then(PromiseHandler<T, S>, S context);
 	void fulfill(T);
 
-	Promise<T>& operator=(Promise<T>& rhs);
+	Promise<T, S>& operator=(Promise<T, S>& rhs);
 private:
 	volatile bool fulfilled;
 	T value; //maybe this needs to be volatile, but I'm struggling against the compiler here
-	void* context;
-	PromiseHandler<T> handler;
+	S context;
+	PromiseHandler<T, S> handler;
 };
 
-template <class T>
-Promise<T>::Promise(){
+template <class T, class S>
+Promise<T, S>::Promise(){
 	fulfilled = false;
 }
 
 #include <devices/SerialDevice.h>
 
-template <class T>
-Promise<T>::Promise(Promise& p){
+template <class T, class S>
+Promise<T, S>::Promise(Promise<T, S>& p){
 	SD::the() << "here!\n";
 	fulfilled = p.fulfilled;
 	value = p.value;
@@ -41,8 +41,8 @@ Promise<T>::Promise(Promise& p){
 	handler = p.handler;
 }
 
-template <class T>
-Promise<T>& Promise<T>::operator=(Promise<T>& rhs){
+template <class T, class S>
+Promise<T, S>& Promise<T, S>::operator=(Promise<T, S>& rhs){
 	fulfilled = rhs.fulfilled;
 	value = rhs.value;
 	context = rhs.context;
@@ -50,13 +50,13 @@ Promise<T>& Promise<T>::operator=(Promise<T>& rhs){
 	return *this;
 }
 
-template <class T>
-Promise<T>::~Promise(){
+template <class T, class S>
+Promise<T, S>::~Promise(){
 	SD::the() << "Bye\n";
 }
 
-template <class T>
-void Promise<T>::await(){
+template <class T, class S>
+void Promise<T, S>::await(){
 	while(!fulfilled){
 		#if defined(__x86_64__) || defined(__i386__)
 		asm("hlt");
@@ -64,8 +64,8 @@ void Promise<T>::await(){
 	}
 }
 
-template <class T>
-void Promise<T>::then(PromiseHandler<T> h, void* c){
+template <class T, class S>
+void Promise<T, S>::then(PromiseHandler<T, S> h, S c){
 	handler = h;
 	context = c;
 	if(fulfilled && (handler != NULL)){
@@ -73,10 +73,8 @@ void Promise<T>::then(PromiseHandler<T> h, void* c){
 	}
 }
 
-#include <debug.h>
-
-template <class T>
-void Promise<T>::fulfill(T val){
+template <class T, class S>
+void Promise<T, S>::fulfill(T val){
 	value = val;
 	fulfilled = true;
 	if(handler != NULL){

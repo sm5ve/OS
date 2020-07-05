@@ -77,8 +77,8 @@ namespace AHCI{
 	
 	struct WorkRequest{
 		TransferRequest req;
-		shared_ptr<Promise<TransferResponse>> callback;
-		WorkRequest(TransferRequest r, shared_ptr<Promise<TransferResponse>> cb){
+		shared_ptr<Promise<TransferResponse, void*>> callback;
+		WorkRequest(TransferRequest r, shared_ptr<Promise<TransferResponse, void*>> cb){
 			req = r;
 			callback = cb;
 		}
@@ -131,7 +131,7 @@ namespace AHCI{
 		};
 		//shared_ptr<Promise<size_t>> test();
 		void test();
-		shared_ptr<Promise<TransferResponse>> queueRequest(TransferRequest);
+		shared_ptr<Promise<TransferResponse, void*>> queueRequest(TransferRequest);
 	private:
 		volatile HBAPort& port;
 		uint32_t capabilities;

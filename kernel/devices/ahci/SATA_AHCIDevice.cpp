@@ -36,18 +36,17 @@ void SATA_AHCIDevice::test(){
 		buffer = (uint8_t*)((uint32_t)buffer + (PAGE_SIZE - ((uint32_t)buffer % PAGE_SIZE)));
 	}
 	memset(buffer, 0, sizeof(buffer));
-	//strcpy((char*)buffer, "Hello, world!\n");
+	strcpy((char*)buffer, "Test!\n");
 	//cb(TransferResponse(true, buffer), NULL);
 	TransferRequest req(
 		0x600000 / 512,
 		//0,
 		buffer,
 		4096,
-		true,
+		false,
 		*MemoryManager::active_page_dir
 	);
 	auto promise = queueRequest(req);
-	uint32_t* p = (uint32_t*)(&*promise);
 	promise -> then(cb, NULL);
 }
 
@@ -128,8 +127,8 @@ uint32_t SATA_AHCIDevice::findCommandSlot(){
 	return (uint32_t)(-1);
 }
 
-shared_ptr<Promise<TransferResponse>> SATA_AHCIDevice::queueRequest(TransferRequest req){
-	auto promise = make_shared<Promise<TransferResponse>>();
+shared_ptr<Promise<TransferResponse, void*>> SATA_AHCIDevice::queueRequest(TransferRequest req){
+	auto promise = make_shared<Promise<TransferResponse, void*>>();
 	auto entry = WorkRequest(req, promise);
 	requests.enqueue(entry);
 	updateWorkQueue();
@@ -142,7 +141,7 @@ void SATA_AHCIDevice::updateWorkQueue(){
 			if(working[i].has_value()){
 				TransferRequest req = working[i].value().req;
 				if(req.size == 0){
-					shared_ptr<Promise<TransferResponse>> callback = working[i].value().callback;
+					auto callback = working[i].value().callback;
 					auto mb = Maybe<WorkRequest>();
 					working[i] = mb;
 					auto response = TransferResponse(true, req.original_buffer);
