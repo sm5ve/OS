@@ -2,6 +2,7 @@
 #define PROMISE
 
 #include <ds/Maybe.h>
+#include <ds/Tuple.h>
 
 template <class T, class S>
 using PromiseHandler = void(*)(T, S);
@@ -13,7 +14,7 @@ public:
 	Promise(Promise<T, S>&);
 	~Promise();
 	
-	void await();
+	Tuple<T, S> await();
 	void then(PromiseHandler<T, S>, S context);
 	void fulfill(T);
 
@@ -56,12 +57,13 @@ Promise<T, S>::~Promise(){
 }
 
 template <class T, class S>
-void Promise<T, S>::await(){
+Tuple<T, S> Promise<T, S>::await(){
 	while(!fulfilled){
 		#if defined(__x86_64__) || defined(__i386__)
 		asm("hlt");
 		#endif
 	}
+	return Tuple<T,S>(value, context);
 }
 
 template <class T, class S>
