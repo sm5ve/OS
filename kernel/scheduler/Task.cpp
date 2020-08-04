@@ -3,8 +3,8 @@
 Task::Task(bool kp)
 	: is_kernel_task(kp)
 {
-	MemoryManager::kernel_directory->copyRegionsInto(pd);
-	if (!kp) {
+	if(!kp){
+		MemoryManager::kernel_directory->copyRegionsInto(pd);
 		auto region = make_shared<MemoryManager::PhysicalMemoryRegion>(
 			Vector<page_table*>(), 0, 0, false, TLBInvalidationType::INVLPG,
 			PAGE_PRESENT | PAGE_ENABLE_WRITE | PAGE_USER_ACCESSIBLE);
@@ -38,7 +38,12 @@ void Task::contextSwitch()
 
 void Task::setEntrypoint(virt_addr ep) { regs.eip = (uint32_t)ep; }
 
-PageDirectory& Task::getPageDirectory() { return pd; }
+PageDirectory& Task::getPageDirectory() { 
+	if(is_kernel_task){
+		return *MemoryManager::active_page_dir;
+	}
+	return pd; 
+}
 
 void Task::storeState(registers& stored)
 {

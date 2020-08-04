@@ -62,6 +62,8 @@ public:
 	}
 };
 
+void init_scheduled();
+
 extern "C" [[noreturn]] void kernel_init(unsigned int multiboot_magic,
 	mboot_info* mboot)
 {
@@ -112,19 +114,29 @@ extern "C" [[noreturn]] void kernel_init(unsigned int multiboot_magic,
 
 	// sti();
 
-	Task* utask = Loader::load(*test_program_elf);
+	/*Task* utask = Loader::load(*test_program_elf);
 	Scheduler::addTask(*utask);
 	Task* utask2 = Loader::load(*test_program_elf);
 	Scheduler::addTask(*utask2);
+	Scheduler::pickNext();*/
+	auto stage2 = new Task(true);
+	stage2 -> setEntrypoint((void*)init_scheduled);
+	Scheduler::addTask(*stage2);
 	Scheduler::pickNext();
-	//Scheduler::exec();
+	Scheduler::exec();
 
-	SD::the() << "Free bytes " << MemoryManager::getFreeBytes() << "\n";
+	//SD::the() << "Free bytes " << MemoryManager::getFreeBytes() << "\n";
 
 	outw(0x604, 0x2000); //shutdown qemu
 	for (;;) {
 		__asm__("hlt");
 	}
+}
+
+void init_scheduled(){
+	SD::the() << "Hello ktask world!\n";
+	outw(0x604, 0x2000);
+	for(;;);
 }
 
 #pragma GCC diagnostic pop

@@ -14,7 +14,7 @@ public:
 	Promise(Promise<T, S>&);
 	~Promise();
 	
-	Tuple<T, S> await();
+	T await();
 	void then(PromiseHandler<T, S>, S context);
 	void fulfill(T);
 
@@ -57,13 +57,13 @@ Promise<T, S>::~Promise(){
 }
 
 template <class T, class S>
-Tuple<T, S> Promise<T, S>::await(){
+T Promise<T, S>::await(){
 	while(!fulfilled){
 		#if defined(__x86_64__) || defined(__i386__)
 		asm("hlt");
 		#endif
 	}
-	return Tuple<T,S>(value, context);
+	return value;
 }
 
 template <class T, class S>
